@@ -1,7 +1,5 @@
-McPHP
+MCPHP `version 2.1`
 ====================
-`version 2.1`
-
 
 [ä¯ÀÀ¹ÙÍø£¨www.mcphp.com£©](http://www.mcphp.com "McPHP¹Ù·½ÍøÕ¾")
 
