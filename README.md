@@ -7,5 +7,8 @@ Documentation:
 
 入口文件写法
 ```
+<?php
+//是否使用debug模式
+//define('APP_DEBUG',true);
 include 'MCPHP/MCPHP.php';
 ```
