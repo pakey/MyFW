@@ -1,5 +1,4 @@
 #PTFrameWork
-##A Fast & Simple & Light MVC PHP Framework.
 开源，不只是一种行为，更是一种信仰！
 
 ##功能介绍
