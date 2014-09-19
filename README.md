@@ -2,7 +2,7 @@
 ##A Fast & Simple & Light MVC PHP Framework.
 开源，不只是一种行为，更是一种信仰！
 
-#功能介绍
+##功能介绍
 - 多模块设计
 - 支持SAE
 - 路由分发
@@ -15,3 +15,6 @@
 - Cache驱动
 - 丰富的扩展类
 
+##文档
+正在编写中
+地址：[PTCMS文档中心](http://www.ptcms.com/manual/dir_1.html)
