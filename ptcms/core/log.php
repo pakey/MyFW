@@ -3,7 +3,7 @@
 // todo f函数改为storage
 class log
 {
-	protected static $logstr=array();
+	public static $logstr=array();
 
 	/**
 	 * 直接写日志
@@ -13,7 +13,7 @@ class log
 	public static function write($str,$type='pt')
 	{
 		$str="[".date('Y-m-d H:i:s')."] ".$str.PHP_EOL;
-		F(CACHE_PATH.'/log/'.$type.'.log',$str,FILE_APPEND);
+		F(CACHE_PATH.'/log/'.$type.'_'.date('Ymd').'.log',$str,FILE_APPEND);
 	}
 
 	/**
@@ -31,8 +31,16 @@ class log
 	 */
 	public static function build()
 	{
-		foreach(self::$logstr as $type=>$str){
-			F(CACHE_PATH.'/log/'.$type.'.log',$str,FILE_APPEND);
+
+		foreach(self::$logstr as $type=>$log){
+            $file=CACHE_PATH.'/log/'.$type.'_'.date('Ymd').'.log';
+            if(is_array($log)){
+                foreach($log as $v){
+                    F($file,$v,FILE_APPEND);
+                }
+            }else{
+                F($file,$log,FILE_APPEND);
+            }
 		}
 	}
 }

@@ -6,7 +6,7 @@ class Driver_Storage_Sae{
 	public function __construct($domain='')
 	{
 		self::$handler=new SaeStorage();
-		self::$domain=$domain?:STORAGE_DOMAIN;
+		self::$domain=$domain?$domain:C('storage_path');
 		return self::$handler;
 	}
 
@@ -33,7 +33,7 @@ class Driver_Storage_Sae{
 		return self::$handler->write(self::$domain,$file,$content);
 	}
 
-	public function delete($file)
+	public function remove($file)
 	{
 		return self::$handler->delete(self::$domain,$file);
 	}

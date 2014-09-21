@@ -78,7 +78,7 @@ class Driver_Oauth_QQ extends oauth{
 				'refresh'=>$data['refresh_token'],
 			);
 		} else
-			throw new Exception("获取 ACCESS_TOKEN 出错：{$result}");
+			return "获取 ACCESS_TOKEN 出错：{$result}";
 	}
 
 	/**
@@ -94,7 +94,7 @@ class Driver_Oauth_QQ extends oauth{
 			$this->openid=$data['openid'];
 			return $data['openid'];
 		}else
-			throw new Exception("获取用户openid出错：{$data['error_description']}");
+            return false;
 	}
 
 	/**

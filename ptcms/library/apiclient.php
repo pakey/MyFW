@@ -16,9 +16,10 @@ class Apiclient
 		$this->apiurl = $apiuri;
 	}
 
+    // 调用API
 	public function __call($method, $params = array())
 	{
-		$params=$params['0'];
+		$params=($params==array())?array():$params['0'];
 		$params['action'] = $method;
 		$params['appid'] = $this->appid;
 		$params['format'] = 'json';
@@ -27,22 +28,23 @@ class Apiclient
 		//自动重试5次 防止失败！
 		for($i=0;$i<5;$i++){
 			$data = json_decode(http::get($this->apiurl, $params),true);
-			if (is_array($data) && $data['status']!=0){
+			if (is_array($data)){
 				break;
 			}
 		}
-		if (is_array($data)){
+		if (!empty($data) && is_array($data)){
 			if ($data['status']==1){
 				return $data['data'];
 			}else{
-				exit('采集错误！原因：'.$data['msg']. ' 参数：<pre>' . var_export($params,true).'</pre>');
+				log::write('调用接口失败！原因：'.$data['msg']. ' 参数：' . var_export($params,true));
 			}
 		}else{
-			exit('采集错误！方法' . $method . ' 参数：<pre>' . var_export($params,true).'</pre>');
+            log::write('调用接口失败！方法' . $method . ' 参数：' . var_export($params,true));
 		}
-
+        return array();
 	}
 
+    //对参数进行签名
 	public function sign($params)
 	{
 		asort($params);

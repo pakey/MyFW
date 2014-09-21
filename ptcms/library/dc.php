@@ -71,7 +71,7 @@ class Dc{
 	}
 
 	// 获取数据
-	static public function get($type, $id, $field)
+	static public function get($type, $id, $field=false)
 	{
 		if ($id==0) return false;
 		if (!isset(self::$_data[$type][$id])) {

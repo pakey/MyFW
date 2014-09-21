@@ -18,8 +18,7 @@ class Driver_Cache_Saekv{
 		if (self::$handler->set($key,$value)){
 			return true;
 		}else{
-			var_dump(self::$handler->errmsg());
-			var_dump(self::$handler->errno());
+            return false;
 		}
 	}
 
@@ -32,12 +31,6 @@ class Driver_Cache_Saekv{
 	{
 		return self::$handler->delete($key);
 	}
-
-	public function mget(array $list)
-	{
-		return self::$handler->mget($list);
-	}
-
 	public function clear()
 	{
 

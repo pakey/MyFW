@@ -95,10 +95,7 @@ class Steal
 			}
 			return false;
 		} catch (Exception $e) {
-			if (APP_DEBUG) {
-				var_dump($pregArr);
-				var_dump($e);
-			}
+            halt($e->getMessage());
 			return '';
 		}
 	}

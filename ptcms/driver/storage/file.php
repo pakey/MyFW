@@ -4,53 +4,50 @@
  * @Email : admin@ptcms.com
  * @File  : File.php
  */
+class Driver_Storage_File
+{
 
-// todo
-class Driver_Storage_File{
-	protected static $handler=null;
-	protected static $domain=null;
-	public function __construct($domain='')
-	{
-		self::$handler=new SaeStorage();
-		self::$domain=$domain?:STORAGE_DOMAIN;
-		return self::$handler;
-	}
+    protected static $path = null;
+    protected static $url = null;
 
-	public function exist($file)
-	{
-		return self::$handler->fileExists (self::$domain, $file);
-	}
+    public function __construct($domain = '')
+    {
+        self::$path = PT_ROOT . '/' . C('storage_path') . '/';
+        self::$url = PT_DIR . '/' . C('storage_path') . '/';
+    }
 
-	public function write($file,$content)
-	{
-		return self::$handler->write(self::$domain,$file,$content);
-	}
+    public function exist($file)
+    {
+        return is_file(self::$path . $file);
+    }
 
-	public function read($file)
-	{
-		return self::$handler->read(self::$domain,$file);
-	}
+    public function write($file, $content)
+    {
+        return F(self::$path . $file, $content);
+    }
 
-	public function append($file, $content)
-	{
-		if ( self::$handler->fileExists (self::$domain, $file)){
-			$content=self::$handler->read(self::$domain,$file).$content;
-		}
-		return self::$handler->write(self::$domain,$file,$content);
-	}
+    public function read($file)
+    {
+        return F(self::$path . $file);
+    }
 
-	public function delete($file)
-	{
-		return self::$handler->delete(self::$domain,$file);
-	}
+    public function append($file, $content)
+    {
+        return F(self::$path . $file, $content, FILE_APPEND);
+    }
 
-	public function getUrl($file)
-	{
-		return self::$handler->getUrl(self::$domain,$file);
-	}
+    public function remove($file)
+    {
+        return @unlink(self::$path . $file);
+    }
 
-	public function error()
-	{
-		return self::$handler->errmsg();
-	}
+    public function getUrl($file)
+    {
+        return self::$url . $file;
+    }
+
+    public function error()
+    {
+        return '';
+    }
 }

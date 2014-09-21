@@ -9,12 +9,17 @@ class dispatcher{
 	// 入口文件
 	public static function run()
 	{
-		if (empty($_GET['s'])){
-			$_GET=array_merge(array('m'=>'index','c'=>'index','a'=>'index'),$_GET);//设置默认值
+		if (!empty($_POST['s'])) $_GET['s']=$_POST['s'];
+        if (!empty($_POST['m'])) $_GET['m']=$_POST['m'];
+        if (!empty($_POST['c'])) $_GET['c']=$_POST['c'];
+        if (!empty($_POST['a'])) $_GET['a']=$_POST['a'];
+        if (empty($_GET['s'])){
+			$_GET=array_merge(array(
+                'm'=>C('default_module',null,'index'),
+                'c'=>C('default_controller',null,'index'),
+                'a'=>C('default_action',null,'index')
+            ),$_GET);//设置默认值
 		}else{
-			if ($suffix=C('URL_SUFFIX')){
-				$_GET['s']=str_replace($suffix,'',$_GET['s']);
-			}
 			$_GET['s']=trim($_GET['s'],'/');//去除左右的/防止干扰
 			self::router();//路由校验
 			self::parseSuperVar();//解析超级变量
@@ -24,6 +29,7 @@ class dispatcher{
 		if (isset($mapModule[$_GET['m']])) {
 			halt('当前模块已经改名',__FILE__,__LINE__-1);
 		} elseif (in_array($_GET['m'], $mapModule)) {
+            $_GET['_m']=$_GET['m'];
 			$_GET['m'] = array_search($_GET['m'],$mapModule);
 		}
 		$_REQUEST=array_merge($_GET,$_POST);
@@ -32,11 +38,10 @@ class dispatcher{
 	// 解析超级变量
 	public static function parseSuperVar()
 	{
-		$depr=C('URL_DEPR',null,'/');
-		$param=explode($depr,$_GET['s']);
-		$var['m']=isset($param['0'])?array_shift($param):'index';
-		$var['c']=isset($param['0'])?array_shift($param):'index';
-		$var['a']=isset($param['0'])?array_shift($param):'index';
+		$param=explode('/',$_GET['s']);
+		$var['m']=isset($param['0'])?array_shift($param):C('default_module',null,'index');
+		$var['c']=isset($param['0'])?array_shift($param):C('default_controller',null,'index');
+		$var['a']=isset($param['0'])?array_shift($param):C('default_action',null,'index');
 		while($k=each($param)){
 			$var[$k['value']]=current($param);
 			next($param);
@@ -47,7 +52,7 @@ class dispatcher{
 	// 解析路由
 	public static function router()
 	{
-		if ($router=C('URL_ROUTER')){
+		if ($router=C('url_router')){
 			foreach($router as $rule=>$url){
 				if (preg_match('{'.$rule.'}isU',$_GET['s'],$match)){
 					unset($match['0']);

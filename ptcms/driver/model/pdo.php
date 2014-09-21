@@ -36,10 +36,9 @@ class Driver_Model_Pdo
 	 */
 	public function __construct($params = array())
 	{
-
 		//分析数据库连接信息
 
-		//连接数据库
+		//连接数据库 ,PDO::ATTR_PERSISTENT => true
 		$this->db_link = @new PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 
 		if (!$this->db_link) {
@@ -65,9 +64,9 @@ class Driver_Model_Pdo
 		if (!$sql) {
 			return false;
 		}
-
 		$result = $this->db_link->query($sql);
 
+        $GLOBALS['_sql'][]=$sql;
 		return $result;
 	}
 
@@ -77,9 +76,8 @@ class Driver_Model_Pdo
 		if (!$sql) {
 			return false;
 		}
-
 		$result = $this->db_link->exec($sql);
-
+        $GLOBALS['_sql'][]=$sql;
 		return $result;
 	}
 

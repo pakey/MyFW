@@ -6,7 +6,7 @@
  */
 
 
-class Driver_Cache_Memcache{
+class Driver_Cache_File{
 	protected static $handler=null;
 	public function __construct($option=array())
 	{
@@ -17,7 +17,7 @@ class Driver_Cache_Memcache{
 		$file=self::key2file($key);
 		$data['data']=$value;
 		$data['time']=($time==0)?0:(NOW_TIME+$time);
-		F($file,serialize($data));
+		return F($file,serialize($data));
 	}
 
 	public function get($key)
@@ -50,15 +50,8 @@ class Driver_Cache_Memcache{
 		return $file;
 	}
 
-	public function clear($path=CACHE_PATH)
+	public function clear()
 	{
-		if (!file_exists($path)) return true;
-		if (!is_dir($path)) return unlink($path);
-		$handle = opendir($path);
-		while (($file = readdir($handle)) !== false) {
-			if ($file !== '.' and $file !== '..') self::clear($path . '/' . $file);
-		}
-		closedir($handle);
-		return rmdir($path);
+		F(CACHE_PATH.'/data');
 	}
 }

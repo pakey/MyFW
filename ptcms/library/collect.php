@@ -10,7 +10,7 @@ class collect
 	 * @param int $needposition 确定是否需要间距数字
 	 * @return array|bool
 	 */
-	public static function getMatchAll(array $pregArr, $code, $needposition = 0)
+	public static function getMatchAll($pregArr, $code, $needposition = 0)
 	{
 		if (is_string($pregArr)){
 			$pregArr=array('rule'=>$pregArr);

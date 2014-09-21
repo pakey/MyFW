@@ -8,21 +8,37 @@
 class Cache{
 	protected static $handler=null;
 
-	static public function getInstance($type='File',$options=array()) {
-		if (self::$handler===null){
-			$class  =   'Driver_Cache_'.$type;
-			self::$handler = new $class($options);
+    /**
+     * @return Driver_Cache_File
+     */
+    public static function getInstance() {
+        $key=C('cache_type',null,'file');
+		if (empty(self::$handler[$key])){
+			$class  =   'Driver_Cache_'.C('cache_type');
+            self::$handler[$key] = new $class(C('cache_option',null,array()));
 		}
-		return self::$handler;
+		return self::$handler[$key];
 	}
 
-	static public function __callstatic($method,$args){
-		if (self::$handler===null){
-			Cache::getInstance(C('CACHE_DRIVER',null,'memcache'));
-		}
-		//调用缓存驱动的方法
-		if(method_exists(self::$handler, $method)){
-			return call_user_func_array(array(self::$handler,$method), $args);
-		}
-	}
+    public static function set($key, $value, $time=0)
+    {
+        $GLOBALS['_cacheRead']++;
+        return self::getInstance()->set($key, $value, $time);
+    }
+
+    public static function get($key)
+    {
+        $GLOBALS['_cacheWrite']++;
+        return self::getInstance()->get($key);
+    }
+
+    public static function rm($key)
+    {
+        return self::getInstance()->rm($key);
+    }
+
+    public static function clear()
+    {
+        self::getInstance()->clear();
+    }
 }

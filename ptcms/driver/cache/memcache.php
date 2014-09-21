@@ -12,8 +12,8 @@ class Driver_Cache_Memcache{
 	public function __construct($option=array())
 	{
 		self::$handler = new Memcache();
-		self::$handler->connect(C('MEMCACHE_HOST',null,'127.0.0.1'),C('MEMCACHE_PORT',null,'11211'));
-		self::$prefix=C('CACHE_PREFIX',null,PT_URL);
+		self::$handler->connect(C('memcache_host',null,'127.0.0.1'),C('memcache_port',null,'11211'));
+		self::$prefix=C('cache_prefix',null,substr(md5(PT_URL),0,3).'_');
 	}
 
 	public function set($key, $value, $time=0)
@@ -31,17 +31,8 @@ class Driver_Cache_Memcache{
 		return self::$handler->delete(self::$prefix.$key);
 	}
 
-	public function mget(array $list)
-	{
-		$return=array();
-		foreach($list as $key){
-			$return[]=$this->get($key);
-		}
-		return $return;
-	}
-
 	public function clear()
 	{
-		return self::$handler->flush();
+		self::$handler->flush();
 	}
 }

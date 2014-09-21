@@ -12,7 +12,7 @@ date_default_timezone_set("PRC");
 // 记录开始运行时间
 $GLOBALS['_startTime'] = microtime(TRUE);
 // 记录sql执行次数
-$GLOBALS['_sqlNum'] = 0;
+$GLOBALS['_sql'] = array();
 // 缓存读取次数
 $GLOBALS['_cacheRead'] = 0;
 // 缓存写入次数
@@ -20,22 +20,12 @@ $GLOBALS['_cacheWrite'] = 0;
 // 记录内存初始使用
 $GLOBALS['_startUseMems'] = memory_get_usage();
 // 记录网络请求
-$GLOBALS['_api']=array();
+$GLOBALS['_api'] = array();
 // 框架版本号
-define('PTCMS_VERSION', '3.0.8 20140820');
+define('PTCMS_VERSION', '3.0.8 20140826');
 // debug信息 是否开启当前项目debug模式 默认 不开启
 defined('APP_DEBUG') || define('APP_DEBUG', false);
-if (APP_DEBUG) {
-    // 开启错误输出
-    ini_set('display_errors', 'on');
-    // 设置错误输出级别
-    error_reporting(E_ALL);
-} else {
-    // 开启错误输出
-    ini_set('display_errors', 'off');
-    // 设置错误输出级别
-    error_reporting(0);
-}
+
 //项目名
 if (PHP_SAPI == 'cli') {
     $_root = '/';
@@ -59,20 +49,21 @@ defined('PT_PATH') || define('PT_PATH', dirname(__FILE__));
 // 项目目录
 defined('APP_PATH') || define('APP_PATH', PT_ROOT . '/application');
 //缓存目录
-defined('CACHE_PATH') || define('CACHE_PATH', PT_ROOT . '/cache');
+defined('CACHE_PATH') || define('CACHE_PATH', PT_ROOT . '/runtime');
 //数据目录/
-defined('DATA_PATH') || define('DATA_PATH', PT_ROOT . '/data');
+defined('DATA_PATH') || define('DATA_PATH', APP_PATH . '/common/data');
 //模版目录
 defined('TPL_PATH') || define('TPL_PATH', PT_ROOT . '/template');
-// 其他常量
+// 环境常量
 define('NOW_TIME', $_SERVER['REQUEST_TIME']);
 define('IS_GET', $_SERVER['REQUEST_METHOD'] === 'GET' ? true : false);
 define('IS_POST', $_SERVER['REQUEST_METHOD'] === 'POST' ? true : false);
 define('IS_AJAX', ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || !empty($_POST['isajax']) || !empty($_GET['isajax'])) ? true : false);
+
 // 判断是否有html缓存
-if (IS_GET && is_file(PT_ROOT.$_SERVER['REQUEST_URI'])){
+if (IS_GET && strpos($_SERVER['REQUEST_URI'], '.php') === false && is_file(PT_ROOT . $_SERVER['REQUEST_URI'])) {
     pt::show();
-    readfile(PT_ROOT.$_SERVER['REQUEST_URI']);
+    readfile(PT_ROOT . $_SERVER['REQUEST_URI']);
     exit;
 }
 // 自动识别SAE环境
@@ -84,6 +75,7 @@ if (function_exists('saeAutoLoader') or function_exists('sae_auto_load')) {
     defined('APP_MODE') or define('APP_MODE', 'common');
 }
 
+//后台运行程序
 if (!empty($_GET['backRun'])) {
     //生成html
     if (function_exists('fastcgi_finish_request')) {
@@ -94,6 +86,49 @@ if (!empty($_GET['backRun'])) {
     }
 }
 
+// 加载公共配置文件
+C(pt::import(APP_PATH . '/common/config.php'));
+
+// 编译模式
+if (APP_DEBUG) {
+    // 开启错误输出
+    ini_set('display_errors', 'on');
+    // 设置错误输出级别
+    error_reporting(E_ALL);
+    pt::import(APP_PATH . '/common/function.php');
+} else {
+    // 开启错误输出
+    ini_set('display_errors', 'off');
+    // 设置错误输出级别
+    error_reporting(0);
+    // 合并核心文件
+    $runtimefile = CACHE_PATH . '/pt_runtime.php';
+    if (!is_file($runtimefile)) {
+        $files = array(
+            PT_PATH . '/core/cache.php',
+            PT_PATH . '/driver/cache/' . strtolower(C('CACHE_DRIVER', null, 'memcache')) . '.php',
+            PT_PATH . '/core/controller.php',
+            PT_PATH . '/core/dispatcher.php',
+            PT_PATH . '/core/log.php',
+            PT_PATH . '/core/plugin.php',
+            PT_PATH . '/core/storage.php',
+            PT_PATH . '/driver/storage/' . strtolower(C('STORAGE_DRIVER', null, 'file')) . '.php',
+            PT_PATH . '/core/view.php',
+            PT_PATH . '/core/block.php',
+            APP_PATH . '/common/function.php'
+        );
+        if (C('db_mysql')) {
+            $file[] = PT_PATH . '/core/model.php';
+            $file[] = PT_PATH . '/driver/model/' . strtolower(C('db_mysql.driver')) . '.php';
+        }
+        $str = "<?php ";
+        foreach ($files as $file) {
+            $str .= trim(substr(php_strip_whitespace($file), 5));
+        }
+        F($runtimefile, $str);
+    }
+    include $runtimefile;
+}
 pt::start();
 
 class pt
@@ -105,29 +140,58 @@ class pt
     {
         //初始化加载
         self::init();
-		plugin::call('app_init_start');
-        // 加载公共配置文件
-        C(self::import(APP_PATH . '/common/config.php'));
-		//加载站点配置文件
-        //C(self::import(APP_PATH . '/common/' . pt::getSiteCode() . '.config.php'));
+        plugin::call('app_init_start');
+        //加载站点配置文件
+        C(self::import(APP_PATH . '/common/' . pt::getSiteCode() . '.config.php'));
         // 路由解析
-		plugin::call('dispatcher_start');
+        plugin::call('dispatcher_start');
         self::dispatcher();
-		plugin::call('dispatcher_end');
-        // 加载模块文件
-        C(self::import(APP_PATH . '/' . MODULE_NAME . '/config.php'));
-        // 加载函数
-        self::import(APP_PATH . '/common/function.php');
-        self::import(APP_PATH . '/' . MODULE_NAME . '/function.php');
-        // 注册插件
-        Plugin::register(C('tag', null, array()));
+        plugin::call('dispatcher_end');
+        if (MODULE_NAME != 'common') {
+            // 加载模块文件
+            C(self::import(APP_PATH . '/' . MODULE_NAME . '/config.php'));
+            // 加载函数
+            self::import(APP_PATH . '/' . MODULE_NAME . '/function.php');
+        }
         // 控制器调用
         self::app();
     }
 
+
+    /**
+     * 注册autoload等操作
+     */
+    protected static function init()
+    {
+        // 设定错误和异常处理
+        register_shutdown_function(array(__CLASS__, 'shutdown'));
+        //set_error_handler(array(__CLASS__, 'error'));
+        set_exception_handler(array(__CLASS__, 'exception'));
+        // 注册AUTOLOAD方法
+        spl_autoload_register(array(__CLASS__, 'autoload'));
+        // 取消对GPC的自动处理
+        if (version_compare(PHP_VERSION, '5.4.0', '<')) {
+            ini_set('magic_quotes_runtime', 0);
+            if (get_magic_quotes_gpc()) {
+                function stripslashes_deep($value)
+                {
+                    $value = is_array($value) ? array_map('stripslashes_deep', $value) : (isset($value) ? stripslashes($value) : null);
+                    return $value;
+                }
+
+                $_POST = stripslashes_deep($_POST);
+                $_GET = stripslashes_deep($_GET);
+                $_COOKIE = stripslashes_deep($_COOKIE);
+            }
+        }
+        // 注册插件
+        Plugin::register(C('plugin', null, array()));
+    }
+
     protected static function app()
     {
-		plugin::call('controller_start');
+        //加载控制器启动的插件
+        plugin::call('controller_start');
         $controllerFile = APP_PATH . '/' . MODULE_NAME . '/controller/' . CONTROLLER_NAME . '.php';
         if (is_file($controllerFile)) {
             include $controllerFile;
@@ -142,7 +206,7 @@ class pt
                 // 加载action
                 if (method_exists($app, $actionname)) {
                     $app->$actionname();
-					plugin::call('controller_end');
+                    plugin::call('controller_end');
                 } else {
                     halt('控制器' . CONTROLLER_NAME . '对应的文件中未找到方法' . $actionname, __FILE__, __LINE__ - 3);
                 }
@@ -179,45 +243,17 @@ class pt
         define('__SELF__', strip_tags($_SERVER['REQUEST_URI']));
         define('__APP__', rtrim($_SERVER['SCRIPT_NAME'], '/'));
         // 当前模块和分组地址
-        define('__MODULE__', __APP__ . '?s=' . MODULE_NAME);
+        define('__MODULE__', __APP__ . '?s=' . strtolower(empty($_GET['_m']) ? $_GET['m'] : $_GET['_m']));
         define('__URL__', __MODULE__ . '/' . CONTROLLER_NAME);
         // 当前操作地址
         define('__ACTION__', __URL__ . '/' . ACTION_NAME);
-    }
-
-    /**
-     * 注册autoload等操作
-     */
-    protected static function init()
-    {
-        // 设定错误和异常处理
-        register_shutdown_function(array(__CLASS__, 'shutdown'));
-        //set_error_handler(array(__CLASS__, 'error'));
-        set_exception_handler(array(__CLASS__, 'exception'));
-        // 注册AUTOLOAD方法
-        spl_autoload_register(array(__CLASS__, 'autoload'));
-        // 取消对GPC的自动处理
-        if (version_compare(PHP_VERSION, '5.4.0', '<')) {
-            ini_set('magic_quotes_runtime', 0);
-            if (get_magic_quotes_gpc()) {
-                function stripslashes_deep($value)
-                {
-                    $value = is_array($value) ? array_map('stripslashes_deep', $value) : (isset($value) ? stripslashes($value) : null);
-                    return $value;
-                }
-
-                $_POST = stripslashes_deep($_POST);
-                $_GET = stripslashes_deep($_GET);
-                $_COOKIE = stripslashes_deep($_COOKIE);
-            }
-        }
     }
 
     // 自动加载
     public static function autoload($class)
     {
         $classfile = strtolower(str_replace('_', '/', $class));
-        if (in_array($classfile, array('controller','view','dispatcher', 'cache', 'model', 'plugin', 'storage', 'widget', 'log'))) {
+        if (in_array($classfile, array('controller', 'view', 'dispatcher', 'cache', 'model', 'plugin', 'storage', 'block', 'log'))) {
             pt::import(PT_PATH . '/core/' . $classfile . '.php');
         } elseif (substr($classfile, 0, 6) == 'driver') {
             pt::import(PT_PATH . '/' . $classfile . '.php');
@@ -226,12 +262,14 @@ class pt
                 pt::import(APP_PATH . '/common/controller/' . substr($classfile, 0, -10) . '.php');
             }
         } elseif (substr($classfile, -5) == 'model') {
+            //适配ptcms_a_b这样的表
+            $classfile=str_replace('/', '_', $classfile);
             if (!pt::import(APP_PATH . '/common/model/' . substr($classfile, 0, -5) . '.php')) {
                 pt::import(APP_PATH . '/' . MODULE_NAME . '/model/' . substr($classfile, 0, -5) . '.php');
             }
-        } elseif (substr($classfile, -6) == 'widget') {
-            if (!pt::import(APP_PATH . '/common/widget/' . substr($classfile, 0, -6) . '.php')) {
-                pt::import(APP_PATH . '/' . MODULE_NAME . '/widget/' . substr($classfile, 0, -6) . '.php');
+        } elseif (substr($classfile, -5) == 'block') {
+            if (!pt::import(APP_PATH . '/common/block/' . substr($classfile, 0, -5) . '.php')) {
+                pt::import(APP_PATH . '/' . MODULE_NAME . '/block/' . substr($classfile, 0, -5) . '.php');
             }
         } elseif (substr($classfile, -6) == 'plugin') {
             pt::import(APP_PATH . '/common/plugin/' . substr($classfile, 0, -6) . '.php');
@@ -285,12 +323,13 @@ class pt
     public static function err404($msg = '找不到指定的页面')
     {
         $file = PT_ROOT . C('404file', null, '/404.html');
+        log::write($msg);
         if (is_file($file)) {
             $content = F($file);
             $content = str_replace(array('{$sitename}', '{$siteurl}', '{$msg}'), array(C('sitename'), C('siteurl'), $msg), $content);
             exit($content);
         } else {
-            exit('页面出现错误，如需自定义此错误，请创建文件：' . $file);
+            exit($msg . ' 页面出现错误，如需自定义此错误，请创建文件：' . $file);
         }
     }
 
@@ -302,6 +341,7 @@ class pt
 
         $domain = str_replace('-', '_', $_SERVER['HTTP_HOST']); // Replace '-' by '_'.
         if (strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':')); // Remove port from domain.
+        if (stripos($domain, 'www.') === 0) $domain = substr($domain, 4); // Remove port from domain.
         return $domain;
     }
 
@@ -313,15 +353,16 @@ class pt
      * @param string $mimeType MIME类型
      * @return void
      */
-    public static function show($content='', $mimeType = 'text/html')
+    public static function show($content = '', $mimeType = 'text/html')
     {
-        if (C('gzip_encode',null,false)) {
+        if (C('gzip_encode', null, false)) {
             $zlib = ini_get('zlib.output_compression');
             if (empty($zlib)) ob_start('ob_gzhandler');
         }
-        if (!headers_sent()){
+        if (!headers_sent()) {
             header("Content-Type: $mimeType; charset=utf-8"); //设置系统的输出字符为utf-8
             header("Cache-control: private"); //支持页面回跳
+            header("Connection:Keep-Alive"); //长连接
             header("X-Powered-By: ptcms studio (www.ptcms.com)");
         }
         echo $content;
@@ -517,10 +558,12 @@ function M($name = '', $layer = '')
 function halt($msg, $file = '', $line = '')
 {
     if (APP_DEBUG) {
+        pt::show();
         $e['message'] = $msg;
         $e['file'] = $file;
         $e['line'] = $line;
         include PT_PATH . '/error.tpl';
+        exit;
     } else {
         PT::err404($msg);
     }
@@ -628,10 +671,10 @@ function regex($value, $rule)
  */
 function U($method = '', $args = array(), $ignores = array())
 {
-    static $rules = null, $_method = array(),$_map=array();
+    static $rules = null, $_method = array(), $_map = array();
     if ($rules === null) {
         $rules = C('URL_RULES');
-        $_map=C('map_module');
+        $_map = C('map_module');
     }
     //忽视args中的部分参数
     if (!empty($ignores)) {
@@ -639,8 +682,6 @@ function U($method = '', $args = array(), $ignores = array())
             if (isset($args[$key]) && $args[$key] == $var) unset($args[$key]);
         }
     }
-    //清除args中page参数
-    if (isset($args['page']) && $args['page'] == 1) unset($args['page']);
     if (empty($_method[$method])) {
         if (substr_count($method, '.') == 1) {
             $_method[$method] = MODULE_NAME . '.' . $method;
@@ -654,36 +695,37 @@ function U($method = '', $args = array(), $ignores = array())
         $_method[$method] = strtolower($_method[$method]);
     }
     $method = $_method[$method];
-    if (!empty($rules[$method])) {
+    if (!empty($rules[$method]) && empty($args['_force'])) {
         $keys = array();
         $rule = $rules[$method];
         foreach ($args as $key => $arg) {
             $keys[] = '{' . $key . '}';
         }
         $url = clearUrl(str_replace($keys, $args, $rule));
-		if (strpos($url,']')){
-			$url=strtr($url,array('[' => '', ']' => ''));
-		}
-		return PT_DIR.$url;
+        if (strpos($url, ']')) {
+            $url = strtr($url, array('[' => '', ']' => ''));
+        }
+        return PT_DIR . $url;
     } else {
         list($param['m'], $param['c'], $param['a']) = explode('.', $method);
         krsort($param); //调整顺序为m c a
         $param = array_merge($param, $args);
-        if (isset($_map[$param['m']])) $param['m']=$_map[$param['m']];
+        if (isset($_map[$param['m']])) $param['m'] = $_map[$param['m']];
         return __APP__ . '?' . http_build_query($param);
     }
 }
 
+/**
+ * 清除url中可选参数
+ *
+ * @param $url
+ * @return mixed
+ */
 function clearUrl($url)
 {
-	$i=0;
-	while(preg_match('#\[[^\[\]]*?\{\w+\}[^\[\]]*?\]#', $url,$match)){
-		$url = str_replace($match['0'], '', $url);
-		$i++;
-		if ($i==10){
-			var_dump($url);exit;
-		}
-	}
+    while (preg_match('#\[[^\[\]]*?\{\w+\}[^\[\]]*?\]#', $url, $match)) {
+        $url = str_replace($match['0'], '', $url);
+    }
     return $url;
 }
 
@@ -742,23 +784,113 @@ function strip_whitespace($content)
 
 
 /**
- * widget调用函数
+ * block调用函数
  *
- * @param string $class widget名称
- * @param array $param  widget参数
+ * @param string $class block名称
+ * @param array $param  block参数
  * @return mixed
  */
-function W($class, $param)
+function B($class, $param)
 {
     static $_class;
     $classname = ucfirst(strtolower($class));
-    $class = $classname . 'Widget';
+    $class = $classname . 'Block';
     if (empty($_class[$class])) {
         if (class_exists($class)) {
             $_class[$class] = new $class();
         } else {
-            halt('不存在的widget：' . $classname, __FILE__, __LINE__ - 4);
+            halt('不存在的block：' . $classname, __FILE__, __LINE__ - 4);
         }
     }
     return $_class[$class]->run($param);
+}
+
+function runinfo()
+{
+    if (C('is_gen_html')) return '';
+    $tpl = C('runinfo', null, 'Power by PTCMS(ptcms.com),Processed in {time}(s), Memory usage: {mem}MB.');
+    $from[] = '{time}';
+    $to[] = number_format(microtime(true) - $GLOBALS['_startTime'], 3);
+    $from[] = '{mem}';
+    $to[] = number_format((memory_get_usage() - $GLOBALS['_startUseMems']) / 1024 / 1024, 3);
+    if (strpos($tpl, '{net}')) {
+        $from[] = '{net}';
+        $to[] = count($GLOBALS['_api']);
+    }
+    if (strpos($tpl, '{file}')) {
+        $from[] = '{file}';
+        $to[] = count(get_included_files());
+    }
+    if (strpos($tpl, '{sql}')) {
+        $from[] = '{sql}';
+        $to[] = count($GLOBALS['_sql']);
+    }
+    if (strpos($tpl, '{cacheread}')) {
+        $from[] = '{cacheread}';
+        $to[] = $GLOBALS['_cacheRead'];
+    }
+    if (strpos($tpl, '{cachewrite}')) {
+        $from[] = '{cachewrite}';
+        $to[] = $GLOBALS['_cacheWrite'];
+    }
+    $runtimeinfo = str_replace($from, $to, $tpl);
+    return $runtimeinfo;
+}
+
+function is_mobile()
+{
+    // 如果有HTTP_X_WAP_PROFILE则一定是移动设备
+    if (isset ($_SERVER['HTTP_X_WAP_PROFILE'])) {
+        return true;
+    }
+    // 如果via信息含有wap则一定是移动设备,部分服务商会屏蔽该信息
+    if (isset ($_SERVER['HTTP_VIA'])) {
+        // 找不到为flase,否则为true
+        return stristr($_SERVER['HTTP_VIA'], "wap") ? true : false;
+    }
+    // 脑残法，判断手机发送的客户端标志,兼容性有待提高
+    if (isset ($_SERVER['HTTP_USER_AGENT'])) {
+        $clientkeywords = array('nokia', 'sony', 'ericsson', 'mot', 'samsung', 'htc', 'sgh', 'lg', 'sharp', 'sie-', 'philips', 'panasonic', 'alcatel', 'lenovo', 'iphone', 'ipod', 'blackberry', 'meizu', 'android', 'netfront', 'symbian', 'ucweb', 'windowsce', 'palm', 'operamini', 'operamobi', 'openwave', 'nexusone', 'cldc', 'midp', 'wap', 'mobile', 'UCBrowser');
+        // 从HTTP_USER_AGENT中查找手机浏览器的关键字
+        if (preg_match("/(" . implode('|', $clientkeywords) . ")/i", strtolower($_SERVER['HTTP_USER_AGENT']))) {
+            return true;
+        }
+    }
+    // 协议法，因为有可能不准确，放到最后判断
+    if (isset ($_SERVER['HTTP_ACCEPT'])) {
+        // 如果只支持wml并且不支持html那一定是移动设备
+        // 如果支持wml和html但是wml在html之前则是移动设备
+        if ((strpos($_SERVER['HTTP_ACCEPT'], 'vnd.wap.wml') !== false) && (strpos($_SERVER['HTTP_ACCEPT'], 'text/html') === false || (strpos($_SERVER['HTTP_ACCEPT'], 'vnd.wap.wml') < strpos($_SERVER['HTTP_ACCEPT'], 'text/html')))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 判断是否是蜘蛛
+function is_spider($ua = '')
+{
+    empty($ua) && $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = strtolower($ua);
+    $spiders = array('bot', 'crawl', 'spider', 'slurp', 'sohu-search', 'lycos', 'robozilla');
+    foreach ($spiders as $spider) {
+        if (false !== strpos($ua, $spider)) return true;
+    }
+    return false;
+}
+
+//获取客户端ip
+function get_ip($default = '0.0.0.0')
+{
+    $keys = array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR');
+
+    foreach ($keys as $key) {
+        if (empty($_SERVER[$key])) continue;
+        $ips = explode(',', $_SERVER[$key], 1);
+        $ip = $ips[0];
+        $l = ip2long($ip);
+        if ((false !== $l) && ($ip === long2ip($l))) return $ip;
+    }
+
+    return $default;
 }
