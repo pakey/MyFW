@@ -22,7 +22,7 @@ $GLOBALS['_startUseMems'] = memory_get_usage();
 // 记录网络请求
 $GLOBALS['_api'] = array();
 // 框架版本号
-define('PTCMS_VERSION', '3.0.8 20140826');
+define('PTCMS_VERSION', '3.1.0 20140925');
 // debug信息 是否开启当前项目debug模式 默认 不开启
 defined('APP_DEBUG') || define('APP_DEBUG', false);
 
@@ -192,11 +192,19 @@ class pt
     {
         //加载控制器启动的插件
         plugin::call('controller_start');
-        $controllerFile = APP_PATH . '/' . MODULE_NAME . '/controller/' . CONTROLLER_NAME . '.php';
-        if (is_file($controllerFile)) {
-            include $controllerFile;
+        if (MODULE_NAME == 'plugin') {
+            //插件控制器
+            $controllerFile = APP_PATH . '/common/plugin/' . CONTROLLER_NAME . '/manage.php';
+            $classname = 'manageController';
+            $actionname = ACTION_NAME . 'Action';
+        } else {
+            //正常模式
+            $controllerFile = APP_PATH . '/' . MODULE_NAME . '/controller/' . CONTROLLER_NAME . '.php';
             $classname = CONTROLLER_NAME . 'Controller';
             $actionname = ACTION_NAME . 'Action';
+        }
+        if (is_file($controllerFile)) {
+            include $controllerFile;
             if (class_exists($classname, false)) {
                 $app = new $classname();
                 //加载init方法
@@ -214,7 +222,7 @@ class pt
                 halt('控制器' . CONTROLLER_NAME . '对应的文件中未找到类' . $classname, __FILE__, __LINE__ - 13);
             }
         } else {
-            halt('找不到' . MODULE_NAME . '模块下的控制器' . CONTROLLER_NAME . ' 文件不存在：' . $controllerFile, __FILE__, __LINE__ - 20);
+            halt('找不到' . MODULE_NAME . '模块下的控制器' . CONTROLLER_NAME . ' 文件不存在：' . $controllerFile, __FILE__, __LINE__ - 19);
         }
     }
 
@@ -263,18 +271,27 @@ class pt
             }
         } elseif (substr($classfile, -5) == 'model') {
             //适配ptcms_a_b这样的表
-            $classfile=str_replace('/', '_', $classfile);
-            if (!pt::import(APP_PATH . '/common/model/' . substr($classfile, 0, -5) . '.php')) {
-                pt::import(APP_PATH . '/' . MODULE_NAME . '/model/' . substr($classfile, 0, -5) . '.php');
+            $classfile = substr(str_replace('/', '_', $classfile), 0, -5);
+            if (MODULE_NAME == 'plugin') {
+                $file = APP_PATH . '/common/plugin/' . MODULE_NAME . '/model/' . $classfile . '.php';
+            } else {
+                $file = APP_PATH . '/' . MODULE_NAME . '/model/' . $classfile . '.php';
+            }
+            if (!pt::import($file)) {
+                pt::import(APP_PATH . '/common/model/' . $classfile . '.php');
             }
         } elseif (substr($classfile, -5) == 'block') {
-            if (!pt::import(APP_PATH . '/common/block/' . substr($classfile, 0, -5) . '.php')) {
-                pt::import(APP_PATH . '/' . MODULE_NAME . '/block/' . substr($classfile, 0, -5) . '.php');
+            if (!pt::import(APP_PATH . '/' . MODULE_NAME . '/block/' . substr($classfile, 0, -5) . '.php')) {
+                pt::import(APP_PATH . '/common/block/' . substr($classfile, 0, -5) . '.php');
             }
         } elseif (substr($classfile, -6) == 'plugin') {
-            pt::import(APP_PATH . '/common/plugin/' . substr($classfile, 0, -6) . '.php');
+            $classname = substr($classfile, 0, -6);
+            pt::import(APP_PATH . '/common/plugin/' . $classname . '/' . $classname . '.php');
         } else {
-            (pt::import(PT_PATH . '/library/' . $classfile . '.php')) or (pt::import(APP_PATH . '/common/library/' . $classfile . '.php')) or (pt::import(APP_PATH . '/' . MODULE_NAME . 'library/' . $classfile . '.php'));
+            (pt::import(PT_PATH . '/library/' . $classfile . '.php')) or
+            (pt::import(APP_PATH . '/common/library/' . $classfile . '.php')) or
+            (pt::import(APP_PATH . '/' . MODULE_NAME . '/library/' . $classfile . '.php')) or
+            (pt::import(APP_PATH . '/common/plugin/' . MODULE_NAME . '/library/' . $classfile . '.php'));
         }
     }
 
