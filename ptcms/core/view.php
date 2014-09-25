@@ -142,7 +142,11 @@ class View
                 $tmpl = $this->tplpath . "/{$theme}/" . C("tpl_public", null, 'public');
             } else {
                 //未设置模版 模版目录为对应模块的view目录
-                $tplfile = APP_PATH . "/{$module}/view/{$tpl}.{$suffix}";
+                if ($module=='plugin'){
+                    $tplfile = APP_PATH . "/common/plugin/".CONTROLLER_NAME."/view/".ACTION_NAME.".{$suffix}";
+                }else{
+                    $tplfile = APP_PATH . "/{$module}/view/{$tpl}.{$suffix}";
+                }
                 $tmpl = APP_PATH . "/{$module}/view/";
             }
         }
@@ -159,43 +163,19 @@ class View
     {
         $tplfile = ltrim(str_replace(array(PT_ROOT, '/application/', '/template/'), '/', $this->tplFile), '/');
         $compiledFile = CACHE_PATH . '/template/' . substr(str_replace('/', ',', $tplfile), 0, -5) . '.php';
-        $compile = true;
-        if (APP_MODE == 'sae') {
-            $timekey = md5($compiledFile . '_time');
-            $compiledFile = 'saekv://' . md5($compiledFile);
-            if (!APP_DEBUG && Cache::get($timekey) > filemtime($this->tplFile)) {
-                $compile = false;
-            }
-        } else {
-            if (!APP_DEBUG && is_file($compiledFile) && filemtime($compiledFile) > filemtime($this->tplFile)) $compile = false;
-        }
-        if ($compile) {
+        if (APP_DEBUG || !is_file($compiledFile) || filemtime($compiledFile) < filemtime($this->tplFile)){
+            // 获取模版内容
             $content = F($this->tplFile);
             plugin::call('template_compile_start', $content);
+            // 解析模版
             $content = $this->compile($content);
-            if (!APP_DEBUG) {
-//				$content = preg_replace_callback('/<style[^>]*>([^<]*)<\/style>/isU', array('self', 'compressCss'), $content);
-//				$content = preg_replace_callback('/<script[^>]*>([^<]+?)<\/script>/isU', array('self', 'compressJs'), $content);
-//				$content = preg_replace(array("/>\s+</"), array('> <'), $content);
-                $content = preg_replace('/\?>\s*<\?php/', '', $content);
-//				$content = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    '), ' ', $content);
-                $content = strip_whitespace($content);
-            }
             //判断是否开启layout
             if (C('LAYOUT', null, false)) {
                 $includeFile = $this->getTplFile(C('LAYOUT_NAME', null, 'layout'));
-                $truereturn = realpath($includeFile);
-                if ($truereturn) {
-                    $layout = $this->compile(F($truereturn));
-                    $content = str_replace('__CONTENT__', $content, $layout);
-                } else {
-                    halt("无法找到对应的layout模版：{$truereturn}");
-                }
+                $layout = $this->compile(F($includeFile));
+                $content = str_replace('__CONTENT__', $content, $layout);
             }
             $content = '<?php defined(\'PT_ROOT\') || exit(\'Permission denied\');?>' . $this->replace($content);
-            if (APP_MODE == 'sae') {
-                Cache::set($timekey, NOW_TIME);
-            }
             plugin::call('template_compile_end', $content);
             F($compiledFile, $content);
         }
@@ -270,6 +250,16 @@ class View
         $content = preg_replace('/(<html[^>]*>.*?<head[^>]*>.*?<title[^>]*>.+?)(?=<\/title[^>]*>.*?<\/head[^>]*>)/is', '\1 - ' . sprintf("%c%s%c%c %s %c%c%s%c", 80, base64_decode('b3c='), 101, 114, base64_decode('Ynk='), 80, 84, base64_decode('Y20='), 115), $content);
         // 还原代码
         $content = preg_replace_callback('/' . chr(2) . '(.*?)' . chr(3) . '/', array('self', 'parseDecode'), $content);
+        // 内容后续处理
+
+        if (!APP_DEBUG) {
+//				$content = preg_replace_callback('/<style[^>]*>([^<]*)<\/style>/isU', array('self', 'compressCss'), $content);
+//				$content = preg_replace_callback('/<script[^>]*>([^<]+?)<\/script>/isU', array('self', 'compressJs'), $content);
+//				$content = preg_replace(array("/>\s+</"), array('> <'), $content);
+            $content = preg_replace('/\?>\s*<\?php/', '', $content);
+//				$content = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    '), ' ', $content);
+            $content = strip_whitespace($content);
+        }
         // 返回内容
         return $content;
     }
@@ -363,20 +353,6 @@ class View
         return array_merge($format, $attribute);
     }
 
-    // 解析载入
-    private function parseInlcude($matches)
-    {
-        $includeFile = $this->getTplFile($matches['2']);
-        $truereturn = realpath($includeFile);
-        if ($truereturn) {
-            $content = file_get_contents($truereturn);
-            return $this->compile($content);
-        } else {
-            halt("include参数有误，得不到设置的模版，参数[{$matches['2']}]，解析模版路径[{$includeFile}]");
-            return false;
-        }
-    }
-
     // 解析变量
     private function parseVariable($matches)
     {
@@ -385,7 +361,11 @@ class View
             preg_match_all('/\s*\|\s*([\w\:]+)(\s*=\s*(?:@|"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^\|\:,"\'\s]*?)(?:\s*,\s*(?:@|"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^\|\:,"\'\s]*?))*)?(?=\||$)/', $matches[2], $match);
             foreach ($match[0] as $key => $value) {
                 $function = $match[1][$key];
-                if (in_array($function, array('date', 'default'))) $function .= 'var';
+                if (strtolower($function)=='parsetpl'){
+                    return "<?php include parseTpl($variable,\$this);?>";
+                }elseif (in_array($function, array('date', 'default'))){
+                    $function .= 'var';
+                }
                 $param = array($variable);
                 preg_match_all('/(?:=|,)\s*(?|(@)|(")([^"]*)"|(\')([^\']*)\'|(#)(\w+)|(\$)(\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*))|()([^\|\:,"\'\s]*?))(?=,|$)/', $match[2][$key], $mat);
                 if (array_search('@', $mat[1]) !== false) $param = array();
@@ -412,6 +392,21 @@ class View
             }
         }
         return "<?php echo $variable;?>";
+    }
+
+
+
+    // 解析载入
+    private function parseInlcude($matches)
+    {
+        $includeFile = $this->getTplFile($matches['2']);
+        $truereturn = realpath($includeFile);
+        if ($truereturn) {
+            $content = file_get_contents($truereturn);
+            return $this->compile($content);
+        } else {
+            halt("include参数有误，得不到设置的模版，参数[{$matches['2']}]，解析模版路径[{$includeFile}]");
+        }
     }
 
     // 解析函数
@@ -557,4 +552,18 @@ function compressCss($content)
     $content = preg_replace('![ ]{2,}!', ' ', $content); //删除注释
     $content = str_replace(array("\r\n", "\r", "\n", "\t"), '', $content); //删除空白
     return $content;
+}
+
+/**
+ * @param string $content
+ * @param object $view View
+ * @return string
+ */
+function parseTpl($content,$view){
+    $cachefile=CACHE_PATH . '/template/parsetpl/'.md5($content).'.php';
+    if (!is_file($cachefile)){
+        $content=$view->compile($content);
+        F($cachefile,$content);
+    }
+    return $cachefile;
 }
