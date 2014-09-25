@@ -130,7 +130,7 @@ abstract class Controller
                     $this->assign('jumpurl', $_SERVER['REQUEST_URI']);
                 }
             }
-            $this->display('message', 'common');
+            $this->display('message', 'common', C('tpl_theme') ? C('tpl_theme') : 'default');
             exit;
         }
     }
