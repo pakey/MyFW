@@ -592,42 +592,46 @@ function halt($msg, $file = '', $line = '')
  * @param string $name   变量的名称 支持指定类型
  * @param mixed $default 不存在的时候默认值
  * @param mixed $filter  参数过滤方法
+ * @param array $input
  * @return mixed
  */
-function I($name, $filter = 'int', $default = null)
+function I($name, $filter = 'int', $default = null,$input=array())
 {
-    if (strpos($name, '.')) { // 指定参数来源
-        list($method, $name) = explode('.', $name, 2);
-    } else { // 默认为post
-        $method = 'post';
-    }
-    switch (strtolower($method)) {
-        case 'get'     :
-            $input = $_GET;
-            break;
-        case 'post'    :
-            $input = $_POST;
-            break;
-        case 'put'     :
-            parse_str(file_get_contents('php://input'), $input);
-            break;
-        case 'request' :
-            $input = $_REQUEST;
-            break;
-        case 'session' :
-            $input = $_SESSION;
-            break;
-        case 'cookie'  :
-            $input = $_COOKIE;
-            break;
-        case 'server'  :
-            $input = $_SERVER;
-            break;
-        case 'globals' :
-            $input = $GLOBALS;
-            break;
-        default:
-            return NULL;
+    // 可以从指定的数组中取值
+    if ($input==array()){
+        if (strpos($name, '.')) { // 指定参数来源
+            list($method, $name) = explode('.', $name, 2);
+        } else { // 默认为post
+            $method = 'post';
+        }
+        switch (strtolower($method)) {
+            case 'get'     :
+                $input = $_GET;
+                break;
+            case 'post'    :
+                $input = $_POST;
+                break;
+            case 'put'     :
+                parse_str(file_get_contents('php://input'), $input);
+                break;
+            case 'request' :
+                $input = $_REQUEST;
+                break;
+            case 'session' :
+                $input = $_SESSION;
+                break;
+            case 'cookie'  :
+                $input = $_COOKIE;
+                break;
+            case 'server'  :
+                $input = $_SERVER;
+                break;
+            case 'globals' :
+                $input = $GLOBALS;
+                break;
+            default:
+                return NULL;
+        }
     }
     $value = isset($input[$name]) ? $input[$name] : null;
     if (is_array($filter)) return in_array($value, $filter) ? $value : $default;
@@ -712,7 +716,7 @@ function U($method = '', $args = array(), $ignores = array())
         $_method[$method] = strtolower($_method[$method]);
     }
     $method = $_method[$method];
-    if (!empty($rules[$method]) && empty($args['_force'])) {
+    if (!empty($rules[$method])) {
         $keys = array();
         $rule = $rules[$method];
         foreach ($args as $key => $arg) {
