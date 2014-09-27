@@ -36,8 +36,15 @@ class View
             if (isset($auto)) {
                 if (is_dir($this->tplpath . '/' . $auto)) {
                     $this->theme = $auto;
+                    C('tpl_theme', $this->theme);
                 } else {
                     cookie('THEME_' . MODULE_NAME, null);
+                }
+            }
+            //读取模版配置文件
+            if ($tplconfig = pt::import($this->tplpath . '/' . $this->theme . '/config.php')) {
+                foreach ($tplconfig as $k => $v) {
+                    C("tplconfig.{$k}", $v['value']);
                 }
             }
         }
@@ -121,18 +128,18 @@ class View
                 $tpl = CONTROLLER_NAME . '_' . ACTION_NAME;
             }
             //判断模版目录
-            $protect=C('tpl_protect',null,'');
-            $suffix=C('tpl_suffix',null,'html');
+            $protect = C('tpl_protect', null, '');
+            $suffix = C('tpl_suffix', null, 'html');
             if ($theme) {
                 // 设置了模版 模版目录为template下对应的设置的模版目录
                 $tplfile = $this->tplpath . "/{$theme}/{$module}/{$protect}/{$tpl}.{$suffix}";
                 if (!is_file($tplfile)) {
                     //没有找到的模版默认使用default匹配一次
-                    if (is_file($this->tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}")){
+                    if (is_file($this->tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}")) {
                         //去掉保护目录
                         $tplfile = $this->tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}";
-                        log::record('指定的模版（' . $tplfile . '）不存在，尝试使用'.$tplfile.'模版成功');
-                    }elseif($theme !== 'default' && is_file($this->tplpath . "/default/{$module}/{$tpl}.{$suffix}")){
+                        log::record('指定的模版（' . $tplfile . '）不存在，尝试使用' . $tplfile . '模版成功');
+                    } elseif ($theme !== 'default' && is_file($this->tplpath . "/default/{$module}/{$tpl}.{$suffix}")) {
                         //使用默认模版
                         log::record('指定的模版（' . $tplfile . '）不存在，尝试使用默认模版成功');
                         $tplfile = $this->tplpath . "/default/{$module}/{$tpl}.{$suffix}";
@@ -142,9 +149,9 @@ class View
                 $tmpl = $this->tplpath . "/{$theme}/" . C("tpl_public", null, 'public');
             } else {
                 //未设置模版 模版目录为对应模块的view目录
-                if ($module=='plugin'){
-                    $tplfile = APP_PATH . "/common/plugin/".CONTROLLER_NAME."/view/".ACTION_NAME.".{$suffix}";
-                }else{
+                if ($module == 'plugin') {
+                    $tplfile = APP_PATH . "/common/plugin/" . CONTROLLER_NAME . "/view/" . ACTION_NAME . ".{$suffix}";
+                } else {
                     $tplfile = APP_PATH . "/{$module}/view/{$tpl}.{$suffix}";
                 }
                 $tmpl = APP_PATH . "/{$module}/view/";
@@ -163,7 +170,7 @@ class View
     {
         $tplfile = ltrim(str_replace(array(PT_ROOT, '/application/', '/template/'), '/', $this->tplFile), '/');
         $compiledFile = CACHE_PATH . '/template/' . substr(str_replace('/', ',', $tplfile), 0, -5) . '.php';
-        if (APP_DEBUG || !is_file($compiledFile) || filemtime($compiledFile) < filemtime($this->tplFile)){
+        if (APP_DEBUG || !is_file($compiledFile) || filemtime($compiledFile) < filemtime($this->tplFile)) {
             // 获取模版内容
             $content = F($this->tplFile);
             plugin::call('template_compile_start', $content);
@@ -198,14 +205,14 @@ class View
     protected function replace($content)
     {
         $replace = array(
-            '__TMPL__' => __TMPL__, // 项目模板目录
-            '__ROOT__' => PT_DIR, // 当前网站地址
-            '__APP__' => __APP__, // 当前项目地址
-            '__MODULE__' => __MODULE__,
-            '__ACTION__' => __ACTION__, // 当前操作地址
-            '__SELF__' => __SELF__, // 当前页面地址
-            '__URL__' => __URL__, // 当前控制器地址
-            '__PUBLIC__' => PT_DIR . '/public', // 站点公共目录
+            '__TMPL__' => '<?php echo __TMPL__;?>', // 项目模板目录
+            '__ROOT__' => '<?php echo PT_DIR;?>', // 当前网站地址
+            '__APP__' => '<?php echo __APP__;?>', // 当前项目地址
+            '__MODULE__' => '<?php echo __MODULE__;?>',
+            '__ACTION__' => '<?php echo __ACTION__;?>', // 当前操作地址
+            '__SELF__' => '<?php echo __SELF__;?>', // 当前页面地址
+            '__URL__' => '<?php echo  __URL__;?>', // 当前控制器地址
+            '__PUBLIC__' => '<?php echo PT_DIR;?>' . '/public', // 站点公共目录
             '__RUNINFO__' => '<?php echo runinfo();?>', // 站点公共目录
         );
         // 允许用户自定义模板的字符串替换
@@ -361,9 +368,9 @@ class View
             preg_match_all('/\s*\|\s*([\w\:]+)(\s*=\s*(?:@|"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^\|\:,"\'\s]*?)(?:\s*,\s*(?:@|"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^\|\:,"\'\s]*?))*)?(?=\||$)/', $matches[2], $match);
             foreach ($match[0] as $key => $value) {
                 $function = $match[1][$key];
-                if (strtolower($function)=='parsetpl'){
+                if (strtolower($function) == 'parsetpl') {
                     return "<?php include parseTpl($variable,\$this);?>";
-                }elseif (in_array($function, array('date', 'default'))){
+                } elseif (in_array($function, array('date', 'default'))) {
                     $function .= 'var';
                 }
                 $param = array($variable);
@@ -393,7 +400,6 @@ class View
         }
         return "<?php echo $variable;?>";
     }
-
 
 
     // 解析载入
@@ -559,11 +565,12 @@ function compressCss($content)
  * @param object $view View
  * @return string
  */
-function parseTpl($content,$view){
-    $cachefile=CACHE_PATH . '/template/parsetpl/'.md5($content).'.php';
-    if (!is_file($cachefile)){
-        $content=$view->compile($content);
-        F($cachefile,$content);
+function parseTpl($content, $view)
+{
+    $cachefile = CACHE_PATH . '/template/parsetpl/' . md5($content) . '.php';
+    if (!is_file($cachefile)) {
+        $content = $view->compile($content);
+        F($cachefile, $content);
     }
     return $cachefile;
 }
