@@ -5,8 +5,8 @@
  * @Email : admin@ptcms.com
  * @File  : weibo.php
  */
-class Driver_Oauth_Weibo extends oauth
-{
+class Driver_Oauth_Weibo extends oauth {
+
     /**
      * 获取requestCode的api接口
      *
@@ -55,8 +55,7 @@ class Driver_Oauth_Weibo extends oauth
      * @param  bool $multi
      * @return string json
      */
-    public function call($api, $param = array(), $method = 'GET', $multi = false)
-    {
+    public function call($api, $param = array(), $method = 'GET', $multi = false) {
         /* 腾讯QQ调用公共参数 */
         $params = array(
             'access_token' => $this->token,
@@ -73,8 +72,7 @@ class Driver_Oauth_Weibo extends oauth
      * @return mixed
      * @throws Exception
      */
-    protected function parseToken($result)
-    {
+    protected function parseToken($result) {
         $data = json_decode($result, true);
         if (isset($data['access_token'])) {
             $this->token = $data['access_token'];
@@ -95,8 +93,7 @@ class Driver_Oauth_Weibo extends oauth
      * @return mixed
      * @throws Exception
      */
-    public function getOpenId()
-    {
+    public function getOpenId() {
         if ($this->openid) return $this->openid;
         return false;
     }
@@ -106,8 +103,7 @@ class Driver_Oauth_Weibo extends oauth
      *
      * @return array
      */
-    public function getInfo()
-    {
+    public function getInfo() {
         $data = $this->call('users/show.json', array('uid' => $this->getOpenId()));
         return array(
             'id' => $this->openid,

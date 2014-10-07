@@ -1,9 +1,8 @@
 <?php
 
-class CommonController extends Controller
-{
-	public function init()
-	{
+class CommonController extends Controller {
 
-	}
+    public function init() {
+
+    }
 }

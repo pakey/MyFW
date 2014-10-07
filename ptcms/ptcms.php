@@ -39,7 +39,8 @@ if ($pos = strpos($_SERVER['HTTP_HOST'], ':')) {
 } else {
     $host = $_SERVER['HTTP_HOST'];
 }
-defined('PT_URL') || define('PT_URL', 'http://' . $host . (($_SERVER['SERVER_PORT'] == 80) ? '' : ':' . $_SERVER['SERVER_PORT']) . PT_DIR); // 网站访问域名 不包括入口文件及参数
+// 网站访问域名 不包括入口文件及参数
+defined('PT_URL') || define('PT_URL', 'http://' . $host . (($_SERVER['SERVER_PORT'] == 80) ? '' : ':' . $_SERVER['SERVER_PORT']) . PT_DIR);
 
 //项目根目录
 defined('PT_ROOT') || define('PT_ROOT', str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME'])));
@@ -131,13 +132,12 @@ if (APP_DEBUG) {
 }
 pt::start();
 
-class pt
-{
+class pt {
+
     /**
      * 框架开始调用
      */
-    public static function start()
-    {
+    public static function start() {
         //初始化加载
         self::init();
         plugin::call('app_init_start');
@@ -161,8 +161,7 @@ class pt
     /**
      * 注册autoload等操作
      */
-    protected static function init()
-    {
+    protected static function init() {
         // 设定错误和异常处理
         register_shutdown_function(array(__CLASS__, 'shutdown'));
         //set_error_handler(array(__CLASS__, 'error'));
@@ -173,8 +172,7 @@ class pt
         if (version_compare(PHP_VERSION, '5.4.0', '<')) {
             ini_set('magic_quotes_runtime', 0);
             if (get_magic_quotes_gpc()) {
-                function stripslashes_deep($value)
-                {
+                function stripslashes_deep($value) {
                     $value = is_array($value) ? array_map('stripslashes_deep', $value) : (isset($value) ? stripslashes($value) : null);
                     return $value;
                 }
@@ -188,8 +186,7 @@ class pt
         Plugin::register(C('plugin', null, array()));
     }
 
-    protected static function app()
-    {
+    protected static function app() {
         //加载控制器启动的插件
         plugin::call('controller_start');
         if (MODULE_NAME == 'plugin') {
@@ -214,20 +211,21 @@ class pt
                 // 加载action
                 if (method_exists($app, $actionname)) {
                     $app->$actionname();
-                    plugin::call('controller_end');
                 } else {
-                    halt('控制器' . CONTROLLER_NAME . '对应的文件中未找到方法' . $actionname, __FILE__, __LINE__ - 3);
+                    $app->_empty("当前控制器下" . get_class($app) . "找不到指定的方法 {$_GET['a']}Action");
                 }
+                plugin::call('controller_end');
             } else {
-                halt('控制器' . CONTROLLER_NAME . '对应的文件中未找到类' . $classname, __FILE__, __LINE__ - 13);
+                $app = new Controller();
+                $app->_empty('控制器' . CONTROLLER_NAME . '对应的文件中未找到类' . $classname);
             }
         } else {
-            halt('找不到' . MODULE_NAME . '模块下的控制器' . CONTROLLER_NAME . ' 文件不存在：' . $controllerFile, __FILE__, __LINE__ - 19);
+            $app = new Controller();
+            $app->_empty(MODULE_NAME . '模块下控制器' . CONTROLLER_NAME . 'Controller对应的文件不存在');
         }
     }
 
-    public static function import($filename)
-    {
+    public static function import($filename) {
         static $_importFiles = array();
         if (!isset($_importFiles[$filename])) {
             if (is_file($filename)) {
@@ -240,8 +238,7 @@ class pt
     }
 
 
-    protected static function dispatcher()
-    {
+    protected static function dispatcher() {
         dispatcher::run();
         // 获取分组 模块和操作名称
         define('MODULE_NAME', strtolower($_GET['m']));
@@ -258,8 +255,7 @@ class pt
     }
 
     // 自动加载
-    public static function autoload($class)
-    {
+    public static function autoload($class) {
         $classfile = strtolower(str_replace('_', '/', $class));
         if (in_array($classfile, array('controller', 'view', 'dispatcher', 'cache', 'model', 'plugin', 'storage', 'block', 'log'))) {
             pt::import(PT_PATH . '/core/' . $classfile . '.php');
@@ -296,8 +292,7 @@ class pt
     }
 
     // 中止操作
-    public static function shutdown()
-    {
+    public static function shutdown() {
         // 判断是否有错误
         if ($e = error_get_last()) {
             if (in_array($e['type'], array(1, 4))) {
@@ -313,14 +308,12 @@ class pt
     }
 
     // 异常处理
-    public static function exception(Exception $e)
-    {
+    public static function exception(Exception $e) {
         halt($e->getmessage(), $e->getFile(), $e->getLine());
     }
 
     // 错误处理
-    public static function error($errno, $errstr, $errfile, $errline)
-    {
+    public static function error($errno, $errstr, $errfile, $errline) {
         switch ($errno) {
             case E_ERROR:
             case E_PARSE:
@@ -337,8 +330,7 @@ class pt
         }
     }
 
-    public static function err404($msg = '找不到指定的页面')
-    {
+    public static function err404($msg = '找不到指定的页面') {
         $file = PT_ROOT . C('404file', null, '/404.html');
         log::write($msg);
         if (is_file($file)) {
@@ -353,12 +345,13 @@ class pt
     /**
      * 获取host
      **/
-    public static function getSiteCode()
-    {
-
-        $domain = str_replace('-', '_', $_SERVER['HTTP_HOST']); // Replace '-' by '_'.
-        if (strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':')); // Remove port from domain.
-        if (stripos($domain, 'www.') === 0) $domain = substr($domain, 4); // Remove port from domain.
+    public static function getSiteCode() {
+        // 替换域名中的-为_
+        $domain = str_replace('-', '_', $_SERVER['HTTP_HOST']);
+        // 去掉端口
+        if (strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':'));
+        // 去掉开始的www.
+        if (stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
         return $domain;
     }
 
@@ -370,17 +363,20 @@ class pt
      * @param string $mimeType MIME类型
      * @return void
      */
-    public static function show($content = '', $mimeType = 'text/html')
-    {
+    public static function show($content = '', $mimeType = 'text/html') {
         if (C('gzip_encode', null, false)) {
             $zlib = ini_get('zlib.output_compression');
             if (empty($zlib)) ob_start('ob_gzhandler');
         }
         if (!headers_sent()) {
-            header("Content-Type: $mimeType; charset=utf-8"); //设置系统的输出字符为utf-8
-            header("Cache-control: private"); //支持页面回跳
-            header("Connection:Keep-Alive"); //长连接
-            header("X-Powered-By: ptcms studio (www.ptcms.com)");
+            //设置系统的输出字符为utf-8
+            header("Content-Type: $mimeType; charset=utf-8");
+            //支持页面回跳
+            header("Cache-control: private");
+            //长连接
+            header("Connection:Keep-Alive");
+            //版权标识
+            header("X-Powered-By: PTcms Studio (www.ptcms.com)");
         }
         echo $content;
     }
@@ -395,8 +391,7 @@ class pt
  * @param mixed $default     默认值
  * @return mixed
  */
-function C($name = null, $value = null, $default = null)
-{
+function C($name = null, $value = null, $default = null) {
     static $_config = array();
     // 无参数时获取所有
     if (empty($name)) {
@@ -433,7 +428,8 @@ function C($name = null, $value = null, $default = null)
         $_config = array_merge($_config, array_change_key_case($name));
         return true;
     }
-    return null; // 避免非法参数
+    // 避免非法参数
+    return null;
 }
 
 /**
@@ -444,16 +440,19 @@ function C($name = null, $value = null, $default = null)
  * @param string $option cookie参数
  * @return mixed
  */
-function cookie($name, $value = '', $option = null)
-{
+function cookie($name, $value = '', $option = null) {
     static $_config = null;
     if (!$_config) {
         // 默认设置
         $_config = array(
-            'prefix' => C('COOKIE_PREFIX', null, 'PTCMS_'), // cookie 名称前缀
-            'expire' => intval(C('COOKIE_EXPIRE', null, 2592000)), // cookie 保存时间
-            'path' => C('COOKIE_PATH', null, '/'), // cookie 保存路径
-            'domain' => C('COOKIE_DOMAIN'), // cookie 有效域名
+            // cookie 名称前缀
+            'prefix' => C('cookie_prefix', null, 'PTCMS_'),
+            // cookie 保存时间
+            'expire' => intval(C('cookie_expire', null, 2592000)),
+            // cookie 保存路径
+            'path' => C('cookie_path', null, '/'),
+            // cookie 有效域名
+            'domain' => C('cookie_domain'),
         );
     }
     // 参数设置(会覆盖黙认设置)
@@ -472,7 +471,8 @@ function cookie($name, $value = '', $option = null)
             return true;
         // 要删除的cookie前缀，不指定则删除config设置的指定前缀
         $prefix = empty($value) ? $config['prefix'] : $value;
-        if (!empty($prefix)) { // 如果前缀为空字符串将不作处理直接返回
+        if (!empty($prefix)) {
+            // 如果前缀为空字符串将不作处理直接返回
             foreach ($_COOKIE as $key => $val) {
                 if (0 === stripos($key, $prefix)) {
                     setcookie($key, '', time() - 3600, $config['path'], $config['domain']);
@@ -492,7 +492,8 @@ function cookie($name, $value = '', $option = null)
     } else {
         if (is_null($value)) {
             setcookie($name, '', time() - 3600, $config['path'], $config['domain']);
-            unset($_COOKIE[$name]); // 删除指定cookie
+            // 删除指定cookie
+            unset($_COOKIE[$name]);
         } else {
             // 设置cookie
             $expire = !empty($config['expire']) ? time() + $config['expire'] : 0;
@@ -511,13 +512,15 @@ function cookie($name, $value = '', $option = null)
  * @param string $mod   写入模式，默认为wb，wb清空写入  ab末尾插入
  * @return mixed
  */
-function F($file, $content = false, $mod = '')
-{
+function F($file, $content = false, $mod = '') {
     if ($content === false) {
         return is_file($file) ? file_get_contents($file) : false;
     } elseif ($content === null) {
-        if (is_file($file)) return unlink($file); //删除文件
-        elseif (is_dir($file)) { //删除目录
+        if (is_file($file)) {
+            //删除文件
+            return unlink($file);
+        } elseif (is_dir($file)) {
+            //删除目录
             $handle = opendir($file);
             while (($filename = readdir($handle)) !== false) {
                 if ($filename !== '.' && $filename !== '..') F($file . '/' . $filename, null);
@@ -553,27 +556,34 @@ function F($file, $content = false, $mod = '')
  * @param string $layer Model分层
  * @return object
  */
-function M($name = '', $layer = '')
-{
+function M($name = '', $layer = '') {
     static $_model = array();
     if ($layer === '') {
-        $layer = strtolower(C('DEFAULT_MODEL_LAYER', null, 'model'));
+        $layer = strtolower(C('default_model_layer', null, 'model'));
     }
-    if (!empty($_model[$name])) {
-        return $_model[$name];
+    if (empty($_model[$name])) {
+        if ($name) {
+            $name=strtolower($name);
+            $classname = "{$name}{$layer}";
+            //采用自动加载加载类 不存在则加载默认类
+            if (MODULE_NAME == 'plugin') {
+                $file = APP_PATH . '/common/plugin/' . MODULE_NAME . '/'.$layer.'/' . $name . '.php';
+            } else {
+                $file = APP_PATH . '/' . MODULE_NAME . '/model/' . $layer . '.php';
+            }
+            if (!pt::import($file)) {
+                pt::import(APP_PATH . '/common/model/' . $layer . '.php');
+            }
+            if (!class_exists($classname)) $classname = $layer;
+        } else {
+            $classname = $layer;
+        }
+        $_model[$name] = new $classname($name);
     }
-    if ($name) {
-        $classname = "{$name}{$layer}";
-        if (!class_exists($classname)) $classname = ucfirst($layer); //才用自动加载加载类 不存在则加载默认类
-    } else {
-        $classname = ucfirst($layer);
-    }
-    $_model[$name] = new $classname($name);
     return $_model[$name];
 }
 
-function halt($msg, $file = '', $line = '')
-{
+function halt($msg, $file = '', $line = '') {
     if (APP_DEBUG) {
         pt::show();
         $e['message'] = $msg;
@@ -595,13 +605,14 @@ function halt($msg, $file = '', $line = '')
  * @param array $input
  * @return mixed
  */
-function I($name, $filter = 'int', $default = null,$input=array())
-{
+function I($name, $filter = 'int', $default = null, $input = array()) {
     // 可以从指定的数组中取值
-    if ($input==array()){
-        if (strpos($name, '.')) { // 指定参数来源
+    if ($input == array()) {
+        if (strpos($name, '.')) {
+            // 指定参数来源
             list($method, $name) = explode('.', $name, 2);
-        } else { // 默认为post
+        } else {
+            // 默认为post
             $method = 'post';
         }
         switch (strtolower($method)) {
@@ -657,24 +668,39 @@ function I($name, $filter = 'int', $default = null,$input=array())
  * @param string $rule  验证规则
  * @return mixed
  */
-function regex($value, $rule)
-{
+function regex($value, $rule) {
     $validate = array(
-        'require' => '/.+/', //必填
-        'email' => '/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/', //邮箱
-        'url' => '/^http:\/\/[a-zA-Z0-9]+\.[a-zA-Z0-9]+[\/=\?%\-&_~`@\[\]\':+!]*([^<>\"\"])*$/', //链接
-        'currency' => '/^\d+(\.\d+)?$/', //货币
-        'number' => '/^\d+$/', //数字
-        'zip' => '/^[0-9]\d{5}$/', //邮编
-        'tel' => '/^1[\d]{10}$/', //电话
-        'integer' => '/^[-\+]?\d+$/', //整型
-        'double' => '/^[-\+]?\d+(\.\d+)?$/', //带小数点
-        'english' => '/^[a-zA-Z]+$/', //英文字母
-        'chinese' => '/^[\x{4e00}-\x{9fa5}]+$/u', //中文汉字
-        'pinyin' => '/^[a-zA-Z0-9\-\_]+$/', //拼音
-        'username' => '/^(?!_)(?!.*?_$)[a-zA-Z0-9_\x{4e00}-\x{9fa5}]{3,15}$/u', //用户名
-        'en' => '/^[a-zA-Z0-9_\s\-\.]+$/', //英文字符
-        'cn' => '/^[\w\s\-\x{4e00}-\x{9fa5}]+$/u', //中文字符
+        //必填
+        'require' => '/.+/',
+        //邮箱
+        'email' => '/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/',
+        //链接
+        'url' => '/^http:\/\/[a-zA-Z0-9]+\.[a-zA-Z0-9]+[\/=\?%\-&_~`@\[\]\':+!]*([^<>\"\"])*$/',
+        //货币
+        'currency' => '/^\d+(\.\d+)?$/',
+        //数字
+        'number' => '/^\d+$/',
+        //邮编
+        'zip' => '/^[0-9]\d{5}$/',
+        //电话
+        'tel' => '/^1[\d]{10}$/',
+        //整型
+        'integer' => '/^[-\+]?\d+$/',
+        //带小数点
+        'double' => '/^[-\+]?\d+(\.\d+)?$/',
+        //英文字母
+        'english' => '/^[a-zA-Z]+$/',
+        //中文汉字
+        'chinese' => '/^[\x{4e00}-\x{9fa5}]+$/u',
+        //拼音
+        'pinyin' => '/^[a-zA-Z0-9\-\_]+$/',
+        //用户名
+        'username' => '/^(?!_)(?!.*?_$)[a-zA-Z0-9_\x{4e00}-\x{9fa5}]{3,15}$/u',
+        //英文字符
+        'en' => '/^[a-zA-Z0-9_\s\-\.]+$/',
+        //中文字符
+        'cn' => '/^[\w\s\-\x{4e00}-\x{9fa5}]+$/u',
+        //安全字符串
         'safestring' => '/^[^\$\?]+$/'
     );
     // 检查是否有内置的正则表达式
@@ -690,8 +716,7 @@ function regex($value, $rule)
  * @param array $ignores 忽略参数
  * @return string
  */
-function U($method = '', $args = array(), $ignores = array())
-{
+function U($method = '', $args = array(), $ignores = array()) {
     static $rules = null, $_method = array(), $_map = array();
     if ($rules === null) {
         $rules = C('URL_RULES');
@@ -729,7 +754,8 @@ function U($method = '', $args = array(), $ignores = array())
         return PT_DIR . $url;
     } else {
         list($param['m'], $param['c'], $param['a']) = explode('.', $method);
-        krsort($param); //调整顺序为m c a
+        //调整顺序为m c a
+        krsort($param);
         $param = array_merge($param, $args);
         if (isset($_map[$param['m']])) $param['m'] = $_map[$param['m']];
         return __APP__ . '?' . http_build_query($param);
@@ -742,8 +768,7 @@ function U($method = '', $args = array(), $ignores = array())
  * @param $url
  * @return mixed
  */
-function clearUrl($url)
-{
+function clearUrl($url) {
     while (preg_match('#\[[^\[\]]*?\{\w+\}[^\[\]]*?\]#', $url, $match)) {
         $url = str_replace($match['0'], '', $url);
     }
@@ -757,8 +782,7 @@ function clearUrl($url)
  * @param string $content 代码内容
  * @return string
  */
-function strip_whitespace($content)
-{
+function strip_whitespace($content) {
     $stripStr = '';
     //分析php源码
     $tokens = token_get_all($content);
@@ -811,8 +835,7 @@ function strip_whitespace($content)
  * @param array $param  block参数
  * @return mixed
  */
-function B($class, $param)
-{
+function B($class, $param) {
     static $_class;
     $classname = ucfirst(strtolower($class));
     $class = $classname . 'Block';
@@ -826,8 +849,7 @@ function B($class, $param)
     return $_class[$class]->run($param);
 }
 
-function runinfo()
-{
+function runinfo() {
     if (C('is_gen_html')) return '';
     $tpl = C('runinfo', null, 'Power by PTCMS(ptcms.com),Processed in {time}(s), Memory usage: {mem}MB.');
     $from[] = '{time}';
@@ -858,8 +880,7 @@ function runinfo()
     return $runtimeinfo;
 }
 
-function is_mobile()
-{
+function is_mobile() {
     // 如果有HTTP_X_WAP_PROFILE则一定是移动设备
     if (isset ($_SERVER['HTTP_X_WAP_PROFILE'])) {
         return true;
@@ -889,8 +910,7 @@ function is_mobile()
 }
 
 // 判断是否是蜘蛛
-function is_spider($ua = '')
-{
+function is_spider($ua = '') {
     empty($ua) && $ua = $_SERVER['HTTP_USER_AGENT'];
     $ua = strtolower($ua);
     $spiders = array('bot', 'crawl', 'spider', 'slurp', 'sohu-search', 'lycos', 'robozilla');
@@ -901,8 +921,7 @@ function is_spider($ua = '')
 }
 
 //获取客户端ip
-function get_ip($default = '0.0.0.0')
-{
+function get_ip($default = '0.0.0.0') {
     $keys = array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR');
 
     foreach ($keys as $key) {

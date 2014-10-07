@@ -1,50 +1,44 @@
 <?php
 
-class Driver_Storage_Sae{
-	protected static $handler=null;
-	protected static $domain=null;
-	public function __construct($domain='')
-	{
-		self::$handler=new SaeStorage();
-		self::$domain=$domain?$domain:C('storage_path');
-		return self::$handler;
-	}
+class Driver_Storage_Sae {
 
-	public function exist($file)
-	{
-		return self::$handler->fileExists (self::$domain, $file);
-	}
+    protected static $handler = null;
+    protected static $domain = null;
 
-	public function write($file,$content)
-	{
-		return self::$handler->write(self::$domain,$file,$content);
-	}
+    public function __construct($domain = '') {
+        self::$handler = new SaeStorage();
+        self::$domain = $domain ? $domain : C('storage_path');
+        return self::$handler;
+    }
 
-	public function read($file)
-	{
-		return self::$handler->read(self::$domain,$file);
-	}
+    public function exist($file) {
+        return self::$handler->fileExists(self::$domain, $file);
+    }
 
-	public function append($file, $content)
-	{
-		if ( self::$handler->fileExists (self::$domain, $file)){
-			$content=self::$handler->read(self::$domain,$file).$content;
-		}
-		return self::$handler->write(self::$domain,$file,$content);
-	}
+    public function write($file, $content) {
+        return self::$handler->write(self::$domain, $file, $content);
+    }
 
-	public function remove($file)
-	{
-		return self::$handler->delete(self::$domain,$file);
-	}
+    public function read($file) {
+        return self::$handler->read(self::$domain, $file);
+    }
 
-	public function getUrl($file)
-	{
-		return self::$handler->getUrl(self::$domain,$file);
-	}
+    public function append($file, $content) {
+        if (self::$handler->fileExists(self::$domain, $file)) {
+            $content = self::$handler->read(self::$domain, $file) . $content;
+        }
+        return self::$handler->write(self::$domain, $file, $content);
+    }
 
-	public function error()
-	{
-		return self::$handler->errmsg();
-	}
+    public function remove($file) {
+        return self::$handler->delete(self::$domain, $file);
+    }
+
+    public function getUrl($file) {
+        return self::$handler->getUrl(self::$domain, $file);
+    }
+
+    public function error() {
+        return self::$handler->errmsg();
+    }
 }

@@ -13,8 +13,10 @@
 - Storage驱动
 - Cache驱动
 - 丰富的扩展类
-- 后台管理框架
 
 ##文档
 正在编写中
 地址：[PTCMS文档中心](http://www.ptcms.com/manual/dir_1.html)
+
+##todo
+1、其他程序的index.php文件引用绝对路径

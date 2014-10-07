@@ -5,8 +5,7 @@
  * @Email : admin@ptcms.com
  * @File  : Model.php
  */
-class Model
-{
+class Model {
 
     /**
      * 数据表名
@@ -106,8 +105,7 @@ class Model
     protected $data = array();
 
 
-    public function __construct($tablename = '')
-    {
+    public function __construct($tablename = '') {
         //定义model字段缓存文件目录
         $this->cachePath = CACHE_PATH . '/fields';
         //获取数据库连接参数
@@ -119,28 +117,23 @@ class Model
         return true;
     }
 
-    public function __set($key, $value)
-    {
+    public function __set($key, $value) {
         $this->data[strtolower($key)] = $value;
     }
 
-    public function __get($key)
-    {
+    public function __get($key) {
         return $this->data[strtolower($key)];
     }
 
-    public function __isset($key)
-    {
+    public function __isset($key) {
         return isset($this->data[strtolower($key)]);
     }
 
-    public function __unset($key)
-    {
+    public function __unset($key) {
         unset($this->data[strtolower($key)]);
     }
 
-    public function __call($method, $args)
-    {
+    public function __call($method, $args) {
         $method = strtolower($method);
         //todo join union
         if (in_array($method, array('field', 'order', 'limit', 'page', 'group', 'having', 'table', 'distinct'))) {
@@ -166,22 +159,20 @@ class Model
         return $this;
     }
 
-    public function setTable($tablename)
-    {
+    public function setTable($tablename) {
         $this->tableName = $this->prefix . $tablename;
         $this->getTableField();
     }
 
     // 配置解析
-    public function parseConfig()
-    {
-        $params = C('DB_MYSQL',null,array());
+    public function parseConfig() {
+        $params = C('DB_MYSQL', null, array());
 
         //分析,检测配置文件内容
         if (!is_array($params)) {
             halt('数据库配置文件必须为数组');
         }
-        $params=array_change_key_case($params);
+        $params = array_change_key_case($params);
 
         //获取数据表前缀，默认为空
         $this->prefix = (isset($params['prefix']) && $params['prefix']) ? trim($params['prefix']) : '';
@@ -216,8 +207,7 @@ class Model
      * @param string $id
      * @return mixed
      */
-    public function master($id = null)
-    {
+    public function master($id = null) {
         if (self::$master) {
             return self::$master[array_rand(self::$master)];
         }
@@ -237,8 +227,7 @@ class Model
     /**
      * @return mixed
      */
-    public function slave()
-    {
+    public function slave() {
         if (self::$slave) {
             return self::$slave[array_rand(self::$slave)];
         }
@@ -252,8 +241,7 @@ class Model
         return self::$slave[array_rand(self::$slave)];
     }
 
-    public function getTableField($tablename = '')
-    {
+    public function getTableField($tablename = '') {
         $tablename = empty($tablename) ? $this->tableName : $tablename;
         if (!$tablename) {
             halt('您必须设置表名后才可以使用该方法');
@@ -281,15 +269,13 @@ class Model
         return $this->fields;
     }
 
-    public function getPk()
-    {
+    public function getPk() {
         if ($this->pk === null)
             $this->getTableField();
         return $this->pk;
     }
 
-    public function insert($data = array(), $replace = false)
-    {
+    public function insert($data = array(), $replace = false) {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
         if ($this->tableName || $this->parts['table']) {
             foreach ($this->data as $k => $v) { // 过滤参数
@@ -313,8 +299,7 @@ class Model
         }
     }
 
-    public function update($data = array())
-    {
+    public function update($data = array()) {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
         if ($this->tableName || $this->parts['table']) {
             $sets = array();
@@ -350,8 +335,7 @@ class Model
         }
     }
 
-    public function delete()
-    {
+    public function delete() {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
         if ($this->tableName || $this->parts['table']) {
             $this->sql = 'DELETE FROM' . $this->parseTable()
@@ -371,8 +355,7 @@ class Model
         }
     }
 
-    public function find($id = null)
-    {
+    public function find($id = null) {
         if (is_scalar($id)) $this->parts['where'][] = array($this->pk => $id);
         $this->parts['limit'] = 1;
         $this->sql = "SELECT "
@@ -400,8 +383,7 @@ class Model
         }
     }
 
-    public function select()
-    {
+    public function select() {
         $this->sql = "SELECT "
             . $this->parseField() . ' FROM '
             . $this->parseTable()
@@ -427,8 +409,7 @@ class Model
         }
     }
 
-    public function getField($field, $isArr = false)
-    {
+    public function getField($field, $isArr = false) {
         if (empty($this->parts['field'])) $this->parts['field'] = $field;
         if ($isArr) {
             $row = $this->select();
@@ -460,8 +441,7 @@ class Model
         }
     }
 
-    public function setField($field, $data)
-    {
+    public function setField($field, $data) {
         if (is_array($field)) {
             $this->data = $field;
         } elseif (is_string($field)) {
@@ -470,13 +450,11 @@ class Model
         $this->update();
     }
 
-    public function setInc($field, $step = 1)
-    {
+    public function setInc($field, $step = 1) {
         $this->setField($field, array('exp', "{$field}+{$step}"));
     }
 
-    public function setDec($field, $step = 1)
-    {
+    public function setDec($field, $step = 1) {
         $this->setField($field, array('exp', "{$field}-{$step}"));
     }
 
@@ -487,8 +465,7 @@ class Model
      * @param string $key
      * @return string
      */
-    protected function parseKey(&$key)
-    {
+    protected function parseKey(&$key) {
         $key = trim($key);
         if (!preg_match('/[,\'\"\*\(\)`.\s]/', $key)) {
             $key = '`' . $key . '`';
@@ -503,8 +480,7 @@ class Model
      * @param mixed $value
      * @return string
      */
-    protected function parseValue($value)
-    {
+    protected function parseValue($value) {
         if (is_string($value)) {
             $value = '\'' . $this->master()->escapeString($value) . '\'';
         } elseif (isset($value[0]) && is_string($value[0]) && strtolower($value[0]) == 'exp') {
@@ -519,24 +495,20 @@ class Model
         return $value;
     }
 
-    public function getLastSql()
-    {
+    public function getLastSql() {
         return $this->sql;
     }
 
-    public function getError()
-    {
+    public function getError() {
         return $this->errorinfo;
     }
 
-    protected function parseWhere()
-    {
+    protected function parseWhere() {
         if (empty($this->parts['where'])) return ' WHERE 1';
         return ' WHERE ' . $this->parseWhereCondition($this->parts['where']);
     }
 
-    protected function parseWhereCondition($condition)
-    {
+    protected function parseWhereCondition($condition) {
         $logic = ' AND ';
         $wheres = array();
         foreach ($condition as $var) {
@@ -559,8 +531,7 @@ class Model
      * @param $var
      * @return mixed
      */
-    protected function parseWhereItem($field, $var)
-    {
+    protected function parseWhereItem($field, $var) {
         if (is_array($var)) {
             switch (strtolower($var['0'])) {
                 case '>':
@@ -592,8 +563,7 @@ class Model
         }
     }
 
-    protected function parseOrder()
-    {
+    protected function parseOrder() {
         if (!empty($this->parts['order'])) {
             if (is_string($this->parts['order'])) {
                 return ' ORDER BY ' . $this->parts['order'];
@@ -602,8 +572,7 @@ class Model
         return '';
     }
 
-    protected function parseGroup()
-    {
+    protected function parseGroup() {
         if (!empty($this->parts['group'])) {
             if (is_string($this->parts['group'])) {
                 return ' GROUP BY ' . $this->parseKey($this->parts['group']);
@@ -615,14 +584,12 @@ class Model
         return '';
     }
 
-    protected function parseHaving()
-    {
+    protected function parseHaving() {
         if (empty($this->parts['having'])) return '';
         return ' HAVING ' . $this->parseWhereCondition($this->parts['having']);
     }
 
-    protected function parseLimit()
-    {
+    protected function parseLimit() {
         if (isset($this->parts['page'])) {
             // 根据页数计算limit
             if (strpos($this->parts['page'], ',')) {
@@ -641,18 +608,15 @@ class Model
         }
     }
 
-    protected function parseUnion()
-    {
+    protected function parseUnion() {
 
     }
 
-    protected function parseJoin()
-    {
+    protected function parseJoin() {
 
     }
 
-    protected function parseField()
-    {
+    protected function parseField() {
         if (empty($this->parts['field'])) {
             return '*';
         } else {
@@ -664,8 +628,7 @@ class Model
         }
     }
 
-    protected function parseTable()
-    {
+    protected function parseTable() {
         if (empty($this->parts['table'])) {
             if ($this->tableName)
                 return $this->parseKey($this->tableName);
@@ -676,39 +639,32 @@ class Model
         }
     }
 
-    protected function parseDistinct()
-    {
+    protected function parseDistinct() {
         return $this->parts['distinct'] ? ' DISTINCT ' : '';
     }
 
-    public function parseCount($method)
-    {
+    public function parseCount($method) {
         $this->parts['field'] = "{$method}({$this->parts['field']}) as pt_num";
         return $this->getField('pt_num');
     }
 
-    public function start()
-    {
+    public function start() {
         $this->master(0)->startTrans();
     }
 
-    public function commit()
-    {
+    public function commit() {
         $this->master(0)->commit();
     }
 
-    public function rollback()
-    {
+    public function rollback() {
         $this->master(0)->rollback();
     }
 
-    public function fetch($sql)
-    {
+    public function fetch($sql) {
         return $this->slave()->fetch($sql);
     }
 
-    public function fetchall($sql)
-    {
+    public function fetchall($sql) {
         return $this->slave()->fetchall($sql);
     }
 

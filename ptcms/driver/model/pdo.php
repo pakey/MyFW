@@ -5,256 +5,242 @@
  * @Email : admin@ptcms.com
  * @File  : Pdo.php
  */
-class Driver_Model_Pdo
-{
-	/**
-	 * 单例模式实例化对象
-	 *
-	 * @var object
-	 */
-	public static $instance;
+class Driver_Model_Pdo {
 
-	/**
-	 * 数据库连接ID
-	 *
-	 * @var object
-	 */
-	public $db_link;
-	/**
-	 * 事务处理开启状态
-	 *
-	 * @var boolean
-	 */
-	public $Transactions;
+    /**
+     * 单例模式实例化对象
+     *
+     * @var object
+     */
+    public static $instance;
 
-	/**
-	 * 构造函数
-	 *
-	 * 用于初始化运行环境,或对基本变量进行赋值
-	 *
-	 * @param array $params 数据库连接参数,如主机名,数据库用户名,密码等
-	 */
-	public function __construct($params = array())
-	{
-		//分析数据库连接信息
+    /**
+     * 数据库连接ID
+     *
+     * @var object
+     */
+    public $db_link;
+    /**
+     * 事务处理开启状态
+     *
+     * @var boolean
+     */
+    public $Transactions;
 
-		//连接数据库 ,PDO::ATTR_PERSISTENT => true
-		$this->db_link = @new PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+    /**
+     * 构造函数
+     *
+     * 用于初始化运行环境,或对基本变量进行赋值
+     *
+     * @param array $params 数据库连接参数,如主机名,数据库用户名,密码等
+     */
+    public function __construct($params = array()) {
+        //分析数据库连接信息
 
-		if (!$this->db_link) {
-			trigger_error($params['driver'] . ' Server connect fail! <br/>Error Message:' . $this->error() . '<br/>Error Code:' . $this->errno(), E_USER_ERROR);
-		}
+        //连接数据库 ,PDO::ATTR_PERSISTENT => true
+        $this->db_link = @new PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 
-		return true;
-	}
+        if (!$this->db_link) {
+            trigger_error($params['driver'] . ' Server connect fail! <br/>Error Message:' . $this->error() . '<br/>Error Code:' . $this->errno(), E_USER_ERROR);
+        }
 
-	/**
-	 * 执行SQL语句
-	 *
-	 * SQL语句执行函数
-	 *
-	 * @access public
-	 * @param string $sql SQL语句内容
-	 * @return mixed
-	 */
-	public function query($sql)
-	{
+        return true;
+    }
 
-		//参数分析
-		if (!$sql) {
-			return false;
-		}
-		$result = $this->db_link->query($sql);
+    /**
+     * 执行SQL语句
+     *
+     * SQL语句执行函数
+     *
+     * @access public
+     * @param string $sql SQL语句内容
+     * @return mixed
+     */
+    public function query($sql) {
 
-        $GLOBALS['_sql'][]=$sql;
-		return $result;
-	}
+        //参数分析
+        if (!$sql) {
+            return false;
+        }
+        $result = $this->db_link->query($sql);
 
-	public function execute($sql)
-	{
-		//参数分析
-		if (!$sql) {
-			return false;
-		}
-		$result = $this->db_link->exec($sql);
-        $GLOBALS['_sql'][]=$sql;
-		return $result;
-	}
+        $GLOBALS['_sql'][] = $sql;
+        return $result;
+    }
 
-	/**
-	 * 获取数据库错误描述信息
-	 *
-	 * @access public
-	 * @return string
-	 */
-	public function error()
-	{
+    public function execute($sql) {
+        //参数分析
+        if (!$sql) {
+            return false;
+        }
+        $result = $this->db_link->exec($sql);
+        $GLOBALS['_sql'][] = $sql;
+        return $result;
+    }
 
-		$info = $this->db_link->errorInfo();
+    /**
+     * 获取数据库错误描述信息
+     *
+     * @access public
+     * @return string
+     */
+    public function error() {
 
-		return $info[2];
-	}
+        $info = $this->db_link->errorInfo();
 
-	/**
-	 * 获取数据库错误信息代码
-	 *
-	 * @access public
-	 * @return int
-	 */
-	public function errno()
-	{
+        return $info[2];
+    }
 
-		return $this->db_link->errorCode();
-	}
+    /**
+     * 获取数据库错误信息代码
+     *
+     * @access public
+     * @return int
+     */
+    public function errno() {
 
-	/**
-	 * 通过一个SQL语句获取一行信息(字段型)
-	 *
-	 * @access public
-	 * @param string $sql SQL语句内容
-	 * @return mixed
-	 */
-	public function fetch($sql)
-	{
+        return $this->db_link->errorCode();
+    }
 
-		//参数分析
-		if (!$sql) {
-			return false;
-		}
+    /**
+     * 通过一个SQL语句获取一行信息(字段型)
+     *
+     * @access public
+     * @param string $sql SQL语句内容
+     * @return mixed
+     */
+    public function fetch($sql) {
 
-		$result = $this->query($sql);
-		if (!$result) {
-			return false;
-		}
+        //参数分析
+        if (!$sql) {
+            return false;
+        }
 
-		$myrow = $result->fetch(PDO::FETCH_ASSOC);
-		if (!$myrow) return null;
+        $result = $this->query($sql);
+        if (!$result) {
+            return false;
+        }
 
-		return $myrow;
-	}
+        $myrow = $result->fetch(PDO::FETCH_ASSOC);
+        if (!$myrow) return null;
 
-	/**
-	 * 通过一个SQL语句获取全部信息(字段型)
-	 *
-	 * @access public
-	 * @param string $sql SQL语句
-	 * @return array
-	 */
-	public function fetchAll($sql)
-	{
+        return $myrow;
+    }
 
-		//参数分析
-		if (!$sql) {
-			return false;
-		}
+    /**
+     * 通过一个SQL语句获取全部信息(字段型)
+     *
+     * @access public
+     * @param string $sql SQL语句
+     * @return array
+     */
+    public function fetchAll($sql) {
 
-		$result = $this->query($sql);
+        //参数分析
+        if (!$sql) {
+            return false;
+        }
 
-		if (!$result) {
-			return false;
-		}
+        $result = $this->query($sql);
 
-		$myrow = $result->fetchAll(PDO::FETCH_ASSOC);
-		if (!$myrow) return null;
+        if (!$result) {
+            return false;
+        }
 
-		return $myrow;
-	}
+        $myrow = $result->fetchAll(PDO::FETCH_ASSOC);
+        if (!$myrow) return null;
 
-	/**
-	 * 获取insert_id
-	 *
-	 * @access public
-	 * @return int
-	 */
-	public function insertId()
-	{
+        return $myrow;
+    }
 
-		return $this->db_link->lastInsertId();
-	}
+    /**
+     * 获取insert_id
+     *
+     * @access public
+     * @return int
+     */
+    public function insertId() {
 
-	/**
-	 * 转义字符
-	 *
-	 * @access public
-	 * @param string $string 待转义的字符串
-	 * @return string
-	 */
-	public function escapeString($string)
-	{
-		//参数分析
-		return addslashes($string);
-	}
+        return $this->db_link->lastInsertId();
+    }
 
-	/**
-	 * 开启事务处理
-	 *
-	 * @access public
-	 * @return boolean
-	 */
-	public function startTrans()
-	{
-		if ($this->Transactions == false) {
-			$this->db_link->beginTransaction();
-			$this->Transactions = true;
-		}
-		return true;
-	}
+    /**
+     * 转义字符
+     *
+     * @access public
+     * @param string $string 待转义的字符串
+     * @return string
+     */
+    public function escapeString($string) {
+        //参数分析
+        return addslashes($string);
+    }
 
-	/**
-	 * 提交事务处理
-	 *
-	 * @access public
-	 * @return boolean
-	 */
-	public function commit()
-	{
+    /**
+     * 开启事务处理
+     *
+     * @access public
+     * @return boolean
+     */
+    public function startTrans() {
+        if ($this->Transactions == false) {
+            $this->db_link->beginTransaction();
+            $this->Transactions = true;
+        }
+        return true;
+    }
 
-		if ($this->Transactions == true) {
-			if ($this->db_link->commit()) {
-				$this->Transactions = false;
-			}
-		}
+    /**
+     * 提交事务处理
+     *
+     * @access public
+     * @return boolean
+     */
+    public function commit() {
 
-		return true;
-	}
+        if ($this->Transactions == true) {
+            if ($this->db_link->commit()) {
+                $this->Transactions = false;
+            }
+        }
 
-	/**
-	 * 事务回滚
-	 *
-	 * @access public
-	 * @return boolean
-	 */
-	public function rollback()
-	{
+        return true;
+    }
 
-		if ($this->Transactions == true) {
-			if ($this->db_link->rollBack()) {
-				$this->Transactions = false;
-			}
-		}
-	}
+    /**
+     * 事务回滚
+     *
+     * @access public
+     * @return boolean
+     */
+    public function rollback() {
 
-	public function __destruct()
-	{
+        if ($this->Transactions == true) {
+            if ($this->db_link->rollBack()) {
+                $this->Transactions = false;
+            }
+        }
+    }
 
-		if ($this->db_link == true) {
-			$this->db_link = null;
-		}
-	}
+    public function __destruct() {
 
-	/**
-	 * 单例模式
-	 *
-	 * @access public
-	 * @param array $params 数据库连接参数,如数据库服务器名,用户名,密码等
-	 * @return object
-	 */
-	public static function getInstance($params)
-	{
-		if (!self::$instance) {
+        if ($this->db_link == true) {
+            $this->db_link = null;
+        }
+    }
+
+    /**
+     * 单例模式
+     *
+     * @access public
+     * @param array $params 数据库连接参数,如数据库服务器名,用户名,密码等
+     * @return object
+     */
+    public static function getInstance($params) {
+        if (!self::$instance) {
             self::$instance = new self($params);
         }
 
         return self::$instance;
-	}
+    }
 }

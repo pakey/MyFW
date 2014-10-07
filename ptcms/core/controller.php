@@ -5,10 +5,9 @@
  * @Email : admin@ptcms.com
  * @File  : controller.php
  */
-abstract class Controller
-{
-    protected function getView()
-    {
+class Controller {
+
+    protected function getView() {
         static $view;
         if (!isset($view)) {
             plugin::call('view_start');
@@ -20,8 +19,7 @@ abstract class Controller
         return $view;
     }
 
-    public function assign($name, $value = null)
-    {
+    public function assign($name, $value = null) {
         $this->getView()->assign($name, $value);
         return $this; //支持连贯操作
     }
@@ -35,8 +33,7 @@ abstract class Controller
      * @param string $theme  所属模版
      * @return void
      */
-    protected function display($tpl = null, $module = null, $theme = null)
-    {
+    protected function display($tpl = null, $module = null, $theme = null) {
         $content = $this->render($tpl, $module, $theme);
         $this->show($content);
     }
@@ -49,13 +46,11 @@ abstract class Controller
      * @param string $mimeType MIME类型
      * @return void
      */
-    protected function show($content, $mimeType = 'text/html')
-    {
+    protected function show($content, $mimeType = 'text/html') {
         pt::show($content, $mimeType);
     }
 
-    protected function render($tpl = null, $module = null, $theme = null)
-    {
+    protected function render($tpl = null, $module = null, $theme = null) {
         if (C('html', null, false)) {
             $rules = C('URL_RULES');
             $key = $_GET['m'] . '.' . $_GET['c'] . '.' . $_GET['a'];
@@ -73,29 +68,24 @@ abstract class Controller
     }
 
     // 实现 $this->name=value 的赋值方法
-    public function __set($name, $value)
-    {
+    public function __set($name, $value) {
         $this->getView()->assign($name, $value);
     }
 
     // 获取 $this->name 的值
-    public function __get($name)
-    {
+    public function __get($name) {
         return $this->getView()->getassign($name);
     }
 
-    protected function success($info, $jumpUrl = '', $second = 1)
-    {
+    protected function success($info, $jumpUrl = '', $second = 1) {
         $this->dispatchJump($info, 1, $jumpUrl, $second);
     }
 
-    protected function error($info, $jumpUrl = '', $second = 3)
-    {
+    protected function error($info, $jumpUrl = '', $second = 3) {
         $this->dispatchJump($info, 0, $jumpUrl, $second);
     }
 
-    protected function dispatchJump($message, $status = 1, $jumpurl = '', $second = 1)
-    {
+    protected function dispatchJump($message, $status = 1, $jumpurl = '', $second = 1) {
         C('LAYOUT', false);
         if (IS_AJAX or $second === true) {
             $data['status'] = $status;
@@ -103,7 +93,7 @@ abstract class Controller
             $data['url'] = $jumpurl;
             $this->ajax($data);
         } else {
-            defined('PT_SITENAME') ? $this->assign('msgname', PT_SITENAME) : $this->assign('msgname', C('SITENAME', null, 'PTCMS'));
+            defined('PT_SITENAME') ? $this->assign('msgname', PT_SITENAME) : $this->assign('msgname', C('SITENAME', null, 'PTFrameWork'));
             //如果设置了关闭窗口，则提示完毕后自动关闭窗口
             $this->assign('status', $status); // 状态
             $this->assign('waitsecond', $second);
@@ -135,8 +125,7 @@ abstract class Controller
         }
     }
 
-    protected function ajax($data, $type = 'json')
-    {
+    protected function ajax($data, $type = 'json') {
         switch (strtoupper($type)) {
             case 'JSON' :
                 // 返回JSON数据格式到客户端 包含状态信息
@@ -157,8 +146,7 @@ abstract class Controller
         exit;
     }
 
-    public function redirect($url, $type = 302)
-    {
+    public function redirect($url, $type = 302) {
         if ($type == 302) {
             header('HTTP/1.1 302 Moved Temporarily');
             header('Status:302 Moved Temporarily'); // 确保FastCGI模式下正常
@@ -169,4 +157,13 @@ abstract class Controller
         header('Location: ' . $url);
         exit;
     }
+
+    public function _empty($msg) {
+        if (APP_DEBUG) {
+            $this->error($msg, '', 0);
+        } else {
+            halt($msg);
+        }
+    }
+
 }

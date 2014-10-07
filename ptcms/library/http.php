@@ -1,9 +1,8 @@
 <?php
 
-class http
-{
-    public static function curl($url, $params = array(), $method = 'GET', $header = array())
-    {
+class http {
+
+    public static function curl($url, $params = array(), $method = 'GET', $header = array()) {
         $opts = array(
             CURLOPT_TIMEOUT => C('timeout', null, 10),
             CURLOPT_CONNECTTIMEOUT => C('timeout', null, 10),
@@ -48,8 +47,7 @@ class http
         return $data;
     }
 
-    public static function filegc($url, $params = array(), $method = 'GET')
-    {
+    public static function filegc($url, $params = array(), $method = 'GET') {
         $header = array("Referer: $url", "User-Agent: " . C('user_agent', null, 'PTSingleNovel'));
         $context = array(
             'http' => array(
@@ -71,8 +69,7 @@ class http
         return $data;
     }
 
-    public static function fsock($url, $params, $method = 'GET')
-    {
+    public static function fsock($url, $params, $method = 'GET') {
         $urlinfo = parse_url($url);
         $port = isset($urlinfo["port"]) ? $urlinfo["port"] : 80;
         $path = $urlinfo['path'] . (!empty($urlinfo['query']) ? '?' . $urlinfo['query'] : '') . (!empty($urlinfo['fragment']) ? '#' . $urlinfo['fragment'] : '');
@@ -105,8 +102,7 @@ class http
         return $tmp[1];
     }
 
-    public static function get($url, $data = array())
-    {
+    public static function get($url, $data = array()) {
         $func = C('httpmethod', null, 'curl');
         if (is_array($data)) {
             $data = http_build_query($data);
@@ -125,8 +121,7 @@ class http
         return $res;
     }
 
-    public static function post($url, $data = array())
-    {
+    public static function post($url, $data = array()) {
         $func = C('httpmethod', null, 'curl');
         $t = microtime(true);
         $res = self::$func($url, $data, 'POST');
@@ -134,8 +129,7 @@ class http
         return $res;
     }
 
-    public static function getMethod()
-    {
+    public static function getMethod() {
         $method = array();
         if (function_exists('curl_init')) {
             $method['curl'] = 'curl函数(推荐)';

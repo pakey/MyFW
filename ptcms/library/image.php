@@ -5,23 +5,31 @@
  * @Email : admin@ptcms.com
  * @File  : login.php
  */
-class Image
-{
+class Image {
+
     public $img;
     public $info;
     /* 水印相关常量定义 */
-    const IMAGE_WATER_NORTHWEST = 1; //常量，标识左上角水印
-    const IMAGE_WATER_NORTH = 2; //常量，标识上居中水印
-    const IMAGE_WATER_NORTHEAST = 3; //常量，标识右上角水印
-    const IMAGE_WATER_WEST = 4; //常量，标识左居中水印
-    const IMAGE_WATER_CENTER = 5; //常量，标识居中水印
-    const IMAGE_WATER_EAST = 6; //常量，标识右居中水印
-    const IMAGE_WATER_SOUTHWEST = 7; //常量，标识左下角水印
-    const IMAGE_WATER_SOUTH = 8; //常量，标识下居中水印
-    const IMAGE_WATER_SOUTHEAST = 9; //常量，标识右下角水印
+    //常量，标识左上角水印
+    const IMAGE_WATER_NORTHWEST = 1;
+    //常量，标识上居中水印
+    const IMAGE_WATER_NORTH = 2;
+    //常量，标识右上角水印
+    const IMAGE_WATER_NORTHEAST = 3;
+    //常量，标识左居中水印
+    const IMAGE_WATER_WEST = 4;
+    //常量，标识居中水印
+    const IMAGE_WATER_CENTER = 5;
+    //常量，标识右居中水印
+    const IMAGE_WATER_EAST = 6;
+    //常量，标识左下角水印
+    const IMAGE_WATER_SOUTHWEST = 7;
+    //常量，标识下居中水印
+    const IMAGE_WATER_SOUTH = 8;
+    //常量，标识右下角水印
+    const IMAGE_WATER_SOUTHEAST = 9;
 
-    public function __construct($var)
-    {
+    public function __construct($var) {
         if (stripos($var, 'http') === 0) {
             $content = http::get($var);
         } elseif (is_file($var)) {
@@ -29,8 +37,8 @@ class Image
         } else {
             return false;
         }
-        $this->info['type']=$this->gettype($content);
-        $this->info['mime']='image/'. $this->info['type'];
+        $this->info['type'] = $this->gettype($content);
+        $this->info['mime'] = 'image/' . $this->info['type'];
         $this->img = imagecreatefromstring($content);
         if ('gif' == $this->info['type']) {
             $this->gif = new extend_gif($content);
@@ -38,8 +46,8 @@ class Image
         } else {
             $this->img = imagecreatefromstring($content);
         }
-        $this->info['width']=imagesx($this->img);
-        $this->info['height']=imagesy($this->img);
+        $this->info['width'] = imagesx($this->img);
+        $this->info['height'] = imagesy($this->img);
     }
 
     /**
@@ -47,8 +55,7 @@ class Image
      *
      * @return integer 图像宽度
      */
-    public function width()
-    {
+    public function width() {
         return $this->info['width'];
     }
 
@@ -57,8 +64,7 @@ class Image
      *
      * @return integer 图像高度
      */
-    public function height()
-    {
+    public function height() {
         return $this->info['height'];
     }
 
@@ -67,8 +73,7 @@ class Image
      *
      * @return string 图像类型
      */
-    public function type()
-    {
+    public function type() {
         return $this->info['type'];
     }
 
@@ -77,8 +82,7 @@ class Image
      *
      * @return string 图像MIME类型
      */
-    public function mime()
-    {
+    public function mime() {
         return $this->info['mime'];
     }
 
@@ -87,13 +91,11 @@ class Image
      *
      * @return array 图像尺寸
      */
-    public function size()
-    {
+    public function size() {
         return array($this->info['width'], $this->info['height']);
     }
 
-    public function resize($w)
-    {
+    public function resize($w) {
         $h = ceil($w * $this->info['height'] / $this->info['width']);
         do {
             //创建新图像
@@ -104,7 +106,8 @@ class Image
 
             //裁剪
             imagecopyresampled($img, $this->img, 0, 0, 0, 0, $w, $h, $this->info['width'], $this->info['height']);
-            imagedestroy($this->img); //销毁原图
+            //销毁原图
+            imagedestroy($this->img);
 
             //设置新图像
             $this->img = $img;
@@ -115,8 +118,7 @@ class Image
         return $this->img;
     }
 
-    public function thumb($width, $height)
-    {
+    public function thumb($width, $height) {
         //判断尺寸
         if ($this->info['width'] < $width && $this->info['height'] < $height) {
             //创建图像资源 需要填充的
@@ -155,8 +157,7 @@ class Image
         }
     }
 
-    public function crop($w, $h, $x = 0, $y = 0)
-    {
+    public function crop($w, $h, $x = 0, $y = 0) {
         //设置保存尺寸
         do {
             //创建新图像
@@ -166,7 +167,8 @@ class Image
             imagefill($img, 0, 0, $color);
             //裁剪
             imagecopyresampled($img, $this->img, 0, 0, $x, $y, $w, $h, $w, $h);
-            imagedestroy($this->img); //销毁原图
+            //销毁原图
+            imagedestroy($this->img);
             //设置新图像
             $this->img = $img;
         } while (!empty($this->gif) && $this->gifNext());
@@ -176,13 +178,12 @@ class Image
         return $this->img;
     }
 
-    public function water($source, $posotion = image::IMAGE_WATER_SOUTHEAST, $alpha = 60)
-    {
+    public function water($source, $posotion = image::IMAGE_WATER_SOUTHEAST, $alpha = 60) {
         //资源检测
         if (!is_file($source)) return false;
         //获取水印图像信息
         $info = getimagesize($source);
-        if ($info === false || $this->info['width']<$info['0'] ||$this->info['height']<$info['1']) return false;
+        if ($info === false || $this->info['width'] < $info['0'] || $this->info['height'] < $info['1']) return false;
         //创建水印图像资源
         $fun = 'imagecreatefrom' . image_type_to_extension($info[2], false);
         $water = $fun($source);
@@ -283,8 +284,7 @@ class Image
      * @param  integer $angle  文字倾斜角度
      * @return mixed
      */
-    public function text($text, $font, $size = 20, $color = '#ff0000', $locate = Image::IMAGE_WATER_SOUTHEAST, $margin = '', $offset = 0, $angle = 0)
-    {
+    public function text($text, $font, $size = 20, $color = '#ff0000', $locate = Image::IMAGE_WATER_SOUTHEAST, $margin = '', $offset = 0, $angle = 0) {
         //资源检测
         if (!is_file($font)) return false;
         if ($margin === '') $margin = ceil($size / 2);
@@ -311,21 +311,21 @@ class Image
 
             /* 左下角文字 */
             case Image::IMAGE_WATER_SOUTHWEST:
-                $x+=$margin;
-                $y += $this->info['height'] - $h-$margin;
+                $x += $margin;
+                $y += $this->info['height'] - $h - $margin;
                 break;
 
             /* 左上角文字 */
             case Image::IMAGE_WATER_NORTHWEST:
                 // 起始坐标即为左上角坐标，无需调整
-                $x+=$margin;
-                $y+=$margin;
+                $x += $margin;
+                $y += $margin;
                 break;
 
             /* 右上角文字 */
             case Image::IMAGE_WATER_NORTHEAST:
-                $x += $this->info['width'] - $w-$margin;
-                $y+=$margin;
+                $x += $this->info['width'] - $w - $margin;
+                $y += $margin;
                 break;
 
             /* 居中文字 */
@@ -337,24 +337,24 @@ class Image
             /* 下居中文字 */
             case Image::IMAGE_WATER_SOUTH:
                 $x += ($this->info['width'] - $w) / 2;
-                $y += $this->info['height'] - $h-$margin;
+                $y += $this->info['height'] - $h - $margin;
                 break;
 
             /* 右居中文字 */
             case Image::IMAGE_WATER_EAST:
-                $x += $this->info['width'] - $w-$margin;
+                $x += $this->info['width'] - $w - $margin;
                 $y += ($this->info['height'] - $h) / 2;
                 break;
 
             /* 上居中文字 */
             case Image::IMAGE_WATER_NORTH:
                 $x += ($this->info['width'] - $w) / 2;
-                $y+=$margin;
+                $y += $margin;
                 break;
 
             /* 左居中文字 */
             case Image::IMAGE_WATER_WEST:
-                $x+=$margin;
+                $x += $margin;
                 $y += ($this->info['height'] - $h) / 2;
                 break;
 
@@ -365,7 +365,7 @@ class Image
                     $x += $posx;
                     $y += $posy;
                 } else {
-                    $this->crop($this->info['width'],$this->info['height']+ceil($size*1.4));
+                    $this->crop($this->info['width'], $this->info['height'] + ceil($size * 1.4));
                     $x += $this->info['width'] - $w;
                     $y += $this->info['height'] - $h;
                 }
@@ -405,8 +405,7 @@ class Image
      * @param  boolean $interlace 是否对JPEG类型图像设置隔行扫描
      * @return string
      */
-    public function save($type = null, $interlace = true)
-    {
+    public function save($type = null, $interlace = true) {
         if (empty($this->img)) return '';
 
         //自动获取图像类型
@@ -436,8 +435,7 @@ class Image
         }
     }
 
-    protected function gettype($content)
-    {
+    protected function gettype($content) {
         switch (substr($content, 0, 4)) {
             case chr('137') . 'PNG':
                 return 'png';
@@ -455,8 +453,7 @@ class Image
     }
 
     /* 切换到GIF的下一帧并保存当前帧，内部使用 */
-    private function gifNext()
-    {
+    private function gifNext() {
         ob_start();
         ob_implicit_flush(0);
         imagegif($this->img);
@@ -477,8 +474,7 @@ class Image
     /**
      * 析构方法，用于销毁图像资源
      */
-    public function __destruct()
-    {
+    public function __destruct() {
         empty($this->img) || imagedestroy($this->img);
     }
 }

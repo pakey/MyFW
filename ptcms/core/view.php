@@ -5,8 +5,8 @@
  * @Email : admin@ptcms.com
  * @File  : view.php
  */
-class View
-{
+class View {
+
     // 模板存储变量
     protected $_tpl_vars = array();
     // 模版基地址
@@ -16,13 +16,11 @@ class View
     // 模版
     protected $theme = '';
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->tplpath = TPL_PATH;
     }
 
-    public function getTheme()
-    {
+    public function getTheme() {
         //设置了默认模版名
         $this->theme = C('tpl_theme', null, 'default');
         if ($this->theme) {
@@ -59,8 +57,7 @@ class View
      * @param mixed $value
      * @return void
      */
-    public function assign($var, $value = null)
-    {
+    public function assign($var, $value = null) {
         if (is_array($var)) {
             $this->_tpl_vars = array_merge($this->_tpl_vars, $var);
         } else {
@@ -71,8 +68,7 @@ class View
     /*
      * 获取模板变量值
      */
-    public function getassign($var)
-    {
+    public function getassign($var) {
         if (isset($this->_tpl_vars[$var])) return $this->_tpl_vars[$var];
         if (strpos($var, '.') !== false) {
             $arr = explode('.', $var);
@@ -97,8 +93,7 @@ class View
      * @param string $theme  所属模版
      * @return string
      */
-    public function render($tpl = null, $module = null, $theme = null)
-    {
+    public function render($tpl = null, $module = null, $theme = null) {
         $this->tplFile = $this->getTplFile($tpl, $module, $theme);
         extract($this->_tpl_vars, EXTR_OVERWRITE);
         ob_start();
@@ -116,8 +111,7 @@ class View
      * @param string $theme  所属模版
      * @return string
      */
-    protected function getTplFile($tpl, $module = null, $theme = null)
-    {
+    protected function getTplFile($tpl, $module = null, $theme = null) {
         $theme = ($theme === null) ? $this->theme : $theme;
         $module = ($module === null) ? MODULE_NAME : $module;
         if (substr($tpl, 0, 1) === '/') { //绝对目录 可以设置模版
@@ -166,8 +160,7 @@ class View
     }
 
     // 校验编译模板
-    protected function checkCompile()
-    {
+    protected function checkCompile() {
         $tplfile = ltrim(str_replace(array(PT_ROOT, '/application/', '/template/'), '/', $this->tplFile), '/');
         $compiledFile = CACHE_PATH . '/template/' . substr(str_replace('/', ',', $tplfile), 0, -5) . '.php';
         if (APP_DEBUG || !is_file($compiledFile) || filemtime($compiledFile) < filemtime($this->tplFile)) {
@@ -190,20 +183,17 @@ class View
     }
 
     // css压缩
-    public function compressCss($match)
-    {
+    public function compressCss($match) {
         return '<style type = "text/css">' . compressCss($match['1']) . '</style>';
     }
 
     // js压缩
-    public function compressJs($march)
-    {
+    public function compressJs($march) {
         return str_replace($march['1'], compressJs($march['1']), $march['0']);
     }
 
     // 模版输出替换
-    protected function replace($content)
-    {
+    protected function replace($content) {
         $replace = array(
             '__TMPL__' => '<?php echo __TMPL__;?>', // 项目模板目录
             '__ROOT__' => '<?php echo PT_DIR;?>', // 当前网站地址
@@ -223,8 +213,7 @@ class View
     }
 
     // 编译解析
-    public function compile($content)
-    {
+    public function compile($content) {
         $left = preg_quote('{', '/');
         $right = preg_quote('}', '/');
         if (!preg_match('/' . $left . '.*?' . $right . '/s', $content)) return $content;
@@ -272,8 +261,7 @@ class View
     }
 
     // 解析变量名
-    private function parseVar($var)
-    {
+    private function parseVar($var) {
         $var = strtolower(is_array($var) ? reset($var) : trim($var));
         if (substr($var, 0, 1) !== '$') $var = '$' . $var;
         if (preg_match('/^\$\w+(\.[\w\-]+)+$/', $var)) {
@@ -326,8 +314,7 @@ class View
      * @return array
      * $format中值true则按照变量解析 其他为默认值
      */
-    private function parseAttribute($string, $format)
-    {
+    private function parseAttribute($string, $format) {
         $attribute = array('_etc' => array());
         preg_match_all('/(?:^|\s+)(\w+)\s*\=\s*(?|(")([^"]*)"|(\')([^\']*)\'|(#)(\w+)|(\$)(\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*))|()([^"\'\s]+?))(?=\s+\w+\s*\=|$)/', $string, $match);
         foreach ($match[0] as $key => $value) {
@@ -361,8 +348,7 @@ class View
     }
 
     // 解析变量
-    private function parseVariable($matches)
-    {
+    private function parseVariable($matches) {
         $variable = self::parseVar($matches[1]);
         if ($matches[2]) {
             preg_match_all('/\s*\|\s*([\w\:]+)(\s*=\s*(?:@|"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^\|\:,"\'\s]*?)(?:\s*,\s*(?:@|"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^\|\:,"\'\s]*?))*)?(?=\||$)/', $matches[2], $match);
@@ -403,8 +389,7 @@ class View
 
 
     // 解析载入
-    private function parseInlcude($matches)
-    {
+    private function parseInlcude($matches) {
         $includeFile = $this->getTplFile($matches['2']);
         $truereturn = realpath($includeFile);
         if ($truereturn) {
@@ -416,24 +401,21 @@ class View
     }
 
     // 解析函数
-    private function parseFunction($matches)
-    {
+    private function parseFunction($matches) {
         $operate = $matches[1] === '=' ? 'echo' : '';
         $expression = preg_replace_callback('/\$\w+(?:\.\w+)+/', array('self', 'parseVar'), $matches[2]);
         return "<?php $operate $expression;?>";
     }
 
     // 解析判断
-    private function parseJudgment($matches)
-    {
+    private function parseJudgment($matches) {
         $judge = strtolower($matches[1]) === 'if' ? 'if' : 'elseif';
         $condition = preg_replace_callback('/\$\w+(?:\.\w+)+/', array('self', 'parseVar'), $matches[2]);
         return "<?php $judge($condition):?>";
     }
 
     // 解析链接
-    private function parseLink($matches)
-    {
+    private function parseLink($matches) {
         $attribute = self::parseAttribute('_type_=' . $matches[1], array('_type_' => false));
         if (!is_string($attribute['_type_'])) return $matches[0];
         $var = array();
@@ -444,8 +426,7 @@ class View
     }
 
     // 解析微件
-    private function parseBlock($matches)
-    {
+    private function parseBlock($matches) {
         $attribute = self::parseAttribute($matches[1], array('method' => false, 'name' => false));
         if (!is_string($attribute['method'])) return $matches[0];
         $name = is_string($attribute['name']) ? '$' . $attribute['name'] : '$list';
@@ -461,14 +442,12 @@ class View
     }
 
     // 解析循环
-    private function parseLoop($matches)
-    {
+    private function parseLoop($matches) {
         $loop = empty($matches[2]) ? '$list' : (self::parseVar($matches[2]));
         return "<?php if(is_array($loop)): foreach($loop as \$key =>\$loop):?>";
     }
 
-    private function parseSection($matches)
-    {
+    private function parseSection($matches) {
         $attribute = self::parseAttribute($matches[1], array('loop' => true, 'name' => true, 'item' => true, 'cols' => '1', 'skip' => '0', 'limit' => 'null'));
         if (!is_string($attribute['loop'])) return $matches[0];
         $name = is_string($attribute['name']) ? $attribute['name'] : '$i';
@@ -477,14 +456,12 @@ class View
     }
 
     // 解析代码
-    private function parseEncode($matches)
-    {
+    private function parseEncode($matches) {
         return chr(2) . base64_encode(strtolower($matches[1]) === 'php' ? "<?php {$matches[2]};?>" : trim($matches[2])) . chr(3);
     }
 
     // 还原代码
-    private function parseDecode($matches)
-    {
+    private function parseDecode($matches) {
         return base64_decode($matches[1]);
     }
 }
@@ -494,8 +471,7 @@ class View
  *
  * @return string
  */
-function defaultvar()
-{
+function defaultvar() {
     $args = func_get_args();
     $value = array_shift($args);
     if (isset($args[$value])) {
@@ -513,13 +489,11 @@ function defaultvar()
  * @param $format
  * @return mixed
  */
-function datevar($time, $format)
-{
+function datevar($time, $format) {
     return date($format, $time);
 }
 
-function compressJS($content)
-{
+function compressJS($content) {
     $lines = explode("\n", $content);
     foreach ($lines as &$line) {
         $line = trim($line) . "\n";
@@ -551,8 +525,7 @@ function compressJS($content)
      return $content;*/
 }
 
-function compressCss($content)
-{
+function compressCss($content) {
 
     $content = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $content); //删除注释
     $content = preg_replace('![ ]{2,}!', ' ', $content); //删除注释
@@ -565,8 +538,7 @@ function compressCss($content)
  * @param object $view View
  * @return string
  */
-function parseTpl($content, $view)
-{
+function parseTpl($content, $view) {
     $cachefile = CACHE_PATH . '/template/parsetpl/' . md5($content) . '.php';
     if (!is_file($cachefile)) {
         $content = $view->compile($content);
