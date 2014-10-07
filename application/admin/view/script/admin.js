@@ -167,7 +167,7 @@ $(function () {
 	if ($('.pt-tab').length > 0) {
 		$.admin.tab.init()
 	}
-	$('select').width($('select').width()+8)
+	$('select').width($('select').width() + 8)
 	$.admin.tool.checkAll();
 	$.admin.tool.selectJump();
 	$('.alert .close').live('click', function () {
@@ -202,12 +202,11 @@ $(function () {
 			}
 		}, 'json')
 	});
-	if ($('.vform').length>0){
+	if ($('.vform').length > 0) {
 		$('.vform').Validform({
-			tiptype:3
+			tiptype: 3
 		});
 	}
-
 });
 function checkselt(name, form) {
 	si = 0;
