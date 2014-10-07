@@ -202,9 +202,12 @@ $(function () {
 			}
 		}, 'json')
 	});
-	$('.vform').Validform({
-		tiptype:3
-	});
+	if ($('.vform').length>0){
+		$('.vform').Validform({
+			tiptype:3
+		});
+	}
+
 });
 function checkselt(name, form) {
 	si = 0;
