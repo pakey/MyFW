@@ -14,11 +14,10 @@ class dispatcher {
         if (!empty($_POST['c'])) $_GET['c'] = $_POST['c'];
         if (!empty($_POST['a'])) $_GET['a'] = $_POST['a'];
         if (empty($_GET['s'])) {
-            $_GET = array_merge(array(
-                'm' => C('default_module', null, 'index'),
-                'c' => C('default_controller', null, 'index'),
-                'a' => C('default_action', null, 'index')
-            ), $_GET);//设置默认值
+            //设置默认值
+            $_GET['m']=empty($_GET['m'])?C('default_module', null, 'index'):$_GET['m'];
+            $_GET['c']=empty($_GET['c'])?C('default_controller', null, 'index'):$_GET['c'];
+            $_GET['a']=empty($_GET['a'])?C('default_action', null, 'index'):$_GET['a'];
         } else {
             $_GET['s'] = trim($_GET['s'], '/');//去除左右的/防止干扰
             self::router();//路由校验

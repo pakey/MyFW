@@ -17,6 +17,7 @@ class AdminController extends Controller {
 
     public function init() {
         session_start();
+        // 登录状态判断
         if (empty($_SESSION['admin'])) {
             //未登录
             $this->redirect(U('admin.public.login'));
@@ -24,6 +25,11 @@ class AdminController extends Controller {
             $this->username = $_SESSION['admin']['username'];
             session_write_close();
         }
+        // 设置了表名则自动初始化model
+        if ($this->tableName){
+            $this->model=M($this->tableName);
+        }
+        // 其他初始化
         $this->typename='aaaa';
         $this->actionname='bbbb';
         $this->pagestr='';

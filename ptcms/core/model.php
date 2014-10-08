@@ -275,6 +275,11 @@ class Model {
         return $this->pk;
     }
 
+    /**
+     * @param array $data
+     * @param bool $replace
+     * @return mixed
+     */
     public function insert($data = array(), $replace = false) {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
         if ($this->tableName || $this->parts['table']) {

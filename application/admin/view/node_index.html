@@ -24,31 +24,28 @@
                     <th class = "f-tal" style="width: 200px">参数</th>
                     <th class = "w-word3">排序</th>
                     <th class = "w-word3">状态</th>
-                    <th class = "operate w-operate4">操作</th>
+                    <th class = "operate w-operate3">操作</th>
                 </tr>
                 </thead>
                 <tbody>
                 {loop="list"}
                 <tr class="cat{$loop.id}">
                     <td class = "f-tal">
-                        {if $loop.level>0}{$loop.level|str_repeat='　　',@}{/if}<span class = "icon icon-list" style = "font-size:16px;vertical-align: middle"></span>
-                        <input type = "text" name="name[{$loop.id}]" value = "{$loop.name}" class = "input-text" style = "width:100px;margin-left: 5px" />
-                    </td>
-
-                    <td class = "f-tal">
-                        {$loop.manage}
+                        {$loop.showname}
                     </td>
                     <td class = "f-tal">
-                        <input type = "text" name="key[{$loop.id}]" value = "{$loop.key}" class = "input-text" style = "width:100px;" />
+                        {if $loop.module}
+                        {$loop.module}.{$loop.controller}.{$loop.action}
+                        {/if}
+                    </td>
+                    <td class = "f-tal">
+                        <input type = "text" name="ordernum[{$loop.id}]" value = "{$loop.ordernum}" class = "input-text" style = "width:100px;" />
                     </td>
                     <td>{$loop.status|default='<span class = "label label-warning">禁用</span>','<span class = "label label-success">正常</span>'}</td>
                     <td class = "operate">
                         <a href = "{link=bbs.category.add pid=$loop.id}"><i class = "icon icon-plus"></i>子类</a>
                         <a href = "{link=bbs.category.edit id=$loop.id}"><i class = "icon icon-edit"></i>编辑</a>
                         <a href = "javascript:;" class="del" data-id="{$loop.id}"><i class = "icon icon-trash"></i>删除</a>
-                        <a href = "javascript:;" class="changestatus" data-id="{$loop.id}">
-                            {$loop.status|default='<i class = "icon icon-ok-circle"></i>启用','<i class = "icon icon-ban-circle"></i>禁用'}
-                        </a>
                     </td>
                 </tr>
                 {/loop}
