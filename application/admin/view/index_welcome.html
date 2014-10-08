@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class = "pt-main-wrap">
-    <div class = "pt-path"><span class = "pt-path-icon icon-home"></span>您好<font color = "red"><b>{$username}</b></font>，欢迎进入<a href = "http://www.ptcms.com"><b>{$pt.PRONAME}</b></a> 控制台！</div>
+    <div class = "pt-path"><span class = "pt-path-icon icon-home"></span>您好 <font color = "orangered"><b>{$username}</b></font>，您是<font color = "orangered"><b>{$groupname}</b></font>，欢迎进入<a href = "http://www.ptcms.com"><b>{$pt.PRONAME}</b></a> 控制台！</div>
     <div class = "pt-wrap">
         {loop=$tips}
         <div class = "alert alert-{$loop.type} alert-dismissable ">
@@ -100,13 +100,13 @@
         <div class = "f-clear"></div>
         <div class = "pt-list" style = "margin:20px">
             <h4 class = "pt-msg-title"> 服务器信息</h4>
-            <table class = "pt-list-table" style = "margin:20px;width:auto;">
+            <table class = "pt-list-table" style = "margin:20px 0;">
                 <tbody style = "border-top: 1px #ccc solid;">
                 <tr>
-                    <td width = "20" class = "f-tar"><b>当前程序名称:</b></td>
-                    <td width = "30" class = "f-tal"><?php echo PRONAME;?></td>
-                    <td width = "20" class = "f-tar"><b>当前程序更新时间:</b></td>
-                    <td width = "30" class = "f-tal" id = "nowtime"><?php echo PROTIME;?></td>
+                    <td width = "15%" class = "f-tar"><b>当前程序名称:</b></td>
+                    <td width = "35%" class = "f-tal"><?php echo PRONAME;?></td>
+                    <td width = "15%" class = "f-tar"><b>当前程序更新时间:</b></td>
+                    <td width = "35%" class = "f-tal" id = "nowtime"><?php echo PROTIME;?></td>
                 </tr>
                 <tr>
                     <td class = "f-tar"><b>当前程序版本:</b></td>

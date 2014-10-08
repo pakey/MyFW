@@ -24,6 +24,7 @@ class AdminController extends Controller {
             $this->redirect(U('admin.public.login'));
         } else {
             $this->username = $_SESSION['admin']['username'];
+            $this->groupname=$_SESSION['admin']['groupname'];
             session_write_close();
         }
         // 设置了表名则自动初始化model
