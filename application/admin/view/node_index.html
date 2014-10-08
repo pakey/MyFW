@@ -6,7 +6,7 @@
         <form method = "post" action = "__URL__/multi">
         <div class = "pt-list-header">
                 <div class = "pt-list-operate f-fl">
-                    <a class = "btn btn-success btn-sm" href = '{link=admin.node.add}'>添加</a>
+                    <a class = "btn btn-success btn-sm" href = '__URL__/add'>添加</a>
                     <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name = "reorder">
                 </div>
             <div class = "f-fr">
@@ -53,7 +53,7 @@
             </table>
             <div class = "pt-list-footer">
                 <div class = "pt-list-operate f-fl">
-                    <a class = "btn btn-success btn-sm" href = '{link=admin.node.add}'>添加</a>
+                    <a class = "btn btn-success btn-sm" href = '__URL__/add'>添加</a>
                     <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name = "reorder">
                 </div>
                 <div class = "pt-page f-fr">
@@ -83,9 +83,14 @@
             });
         };
         $scope.del = function (id) {
-            if (confirm('确认删除么？')) {
-                $scope.lists.splice(id, 1);
-            }
+            var param={'id':id};
+            $http.post('__URL__/del', param).success(function (res) {
+                if (res.status == 1) {
+                    $scope.lists.splice(id, 1);
+                } else {
+                    alert(res.info);
+                }
+            });
         };
     }
 </script>

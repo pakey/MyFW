@@ -1,5 +1,5 @@
 ﻿# Host: localhost  (Version: 5.5.38)
-# Date: 2014-10-08 17:11:47
+# Date: 2014-10-08 18:46:09
 # Generator: MySQL-Front 5.3  (Build 4.120)
 
 /*!40101 SET NAMES utf8 */;
@@ -10,7 +10,7 @@
 
 DROP TABLE IF EXISTS `ptcms_admin_auth`;
 CREATE TABLE `ptcms_admin_auth` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `key` varchar(50) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `node_id` varchar(255) DEFAULT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE `ptcms_admin_auth` (
   `create_time` int(11) unsigned DEFAULT '0' COMMENT '创建时间',
   `update_time` int(11) unsigned DEFAULT '0' COMMENT '修改时间',
   `status` tinyint(3) DEFAULT '1',
-  PRIMARY KEY (`Id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 #
@@ -36,15 +36,16 @@ CREATE TABLE `ptcms_admin_auth` (
 
 DROP TABLE IF EXISTS `ptcms_admin_group`;
 CREATE TABLE `ptcms_admin_group` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(10) DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(10) NOT NULL DEFAULT '',
+  `intro` varchar(255) NOT NULL DEFAULT '',
   `node` text NOT NULL,
   `auth` text NOT NULL,
   `create_user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人',
   `update_user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改人',
   `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
-  PRIMARY KEY (`Id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='用户组信息表';
 
 #
@@ -52,7 +53,7 @@ CREATE TABLE `ptcms_admin_group` (
 #
 
 /*!40000 ALTER TABLE `ptcms_admin_group` DISABLE KEYS */;
-INSERT INTO `ptcms_admin_group` VALUES (1,'超级管理员','','',0,0,0,0);
+INSERT INTO `ptcms_admin_group` VALUES (1,'超级管理员','','','',1,1,1411978787,1411978787);
 /*!40000 ALTER TABLE `ptcms_admin_group` ENABLE KEYS */;
 
 #
@@ -92,9 +93,10 @@ INSERT INTO `ptcms_admin_node` VALUES (1,'常用',0,'','','',1,1,1,1,1412696793,
 
 DROP TABLE IF EXISTS `ptcms_admin_user`;
 CREATE TABLE `ptcms_admin_user` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
   `passport_id` int(11) NOT NULL DEFAULT '0',
   `group_id` smallint(5) DEFAULT '0' COMMENT '用户组',
-  `intro` varchar(255) DEFAULT NULL,
+  `intro` varchar(255) NOT NULL DEFAULT '',
   `create_user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人',
   `update_user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改人',
   `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
@@ -103,16 +105,17 @@ CREATE TABLE `ptcms_admin_user` (
   `login_ip` varchar(15) DEFAULT NULL,
   `login_time` int(11) unsigned DEFAULT '0' COMMENT '最后登录时间',
   `status` tinyint(3) unsigned DEFAULT '1' COMMENT '用户状态 1正常 0未审核',
-  PRIMARY KEY (`passport_id`),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `passport_id` (`passport_id`),
   KEY `group_id` (`group_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='用户信息表';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='用户信息表';
 
 #
 # Data for table "ptcms_admin_user"
 #
 
 /*!40000 ALTER TABLE `ptcms_admin_user` DISABLE KEYS */;
-INSERT INTO `ptcms_admin_user` VALUES (1,1,NULL,1,1,1411978787,1411978787,7,'127.0.0.1',1412733599,1);
+INSERT INTO `ptcms_admin_user` VALUES (1,1,1,'默认管理员帐号',1,1,1411978787,1411978787,7,'127.0.0.1',1412733599,1);
 /*!40000 ALTER TABLE `ptcms_admin_user` ENABLE KEYS */;
 
 #
@@ -121,11 +124,11 @@ INSERT INTO `ptcms_admin_user` VALUES (1,1,NULL,1,1,1411978787,1411978787,7,'127
 
 DROP TABLE IF EXISTS `ptcms_caption`;
 CREATE TABLE `ptcms_caption` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `key` varchar(50) DEFAULT NULL,
   `name` varchar(100) DEFAULT NULL COMMENT '名称',
   `description` varchar(255) DEFAULT NULL COMMENT '描述信息',
-  PRIMARY KEY (`Id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='key中文解释';
 
 #
@@ -141,7 +144,7 @@ CREATE TABLE `ptcms_caption` (
 
 DROP TABLE IF EXISTS `ptcms_passport`;
 CREATE TABLE `ptcms_passport` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
   `password` char(32) DEFAULT NULL,
   `salt` char(6) DEFAULT NULL,
@@ -149,7 +152,7 @@ CREATE TABLE `ptcms_passport` (
   `reg_time` int(11) unsigned DEFAULT '0',
   `login_ip` varchar(15) DEFAULT NULL,
   `login_time` int(11) unsigned DEFAULT '0',
-  PRIMARY KEY (`Id`),
+  PRIMARY KEY (`id`),
   KEY `name` (`name`(5))
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='用户信息主表';
 
@@ -167,10 +170,10 @@ INSERT INTO `ptcms_passport` VALUES (1,'admin','db4dfadff18f7145ca4f6a2a15ff6303
 
 DROP TABLE IF EXISTS `ptcms_user`;
 CREATE TABLE `ptcms_user` (
-  `user_Id` int(11) NOT NULL DEFAULT '0',
+  `user_id` int(11) NOT NULL DEFAULT '0',
   `group_id` smallint(6) DEFAULT NULL,
   `status` tinyint(3) unsigned DEFAULT '1' COMMENT '用户状态 1正常 0未审核',
-  PRIMARY KEY (`user_Id`)
+  PRIMARY KEY (`user_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户信息表';
 
 #

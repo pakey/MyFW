@@ -30,6 +30,7 @@ class Admin_UserModel extends Model{
         $list=$this->select();
         foreach($list as &$v){
             $v['username']=dc::get('passport',$v['passport_id'],'name');
+            $v['groupname']=dc::get('admin_group',$v['passport_id'],'name');
             $v['create_username']=dc::get('passport',$v['create_user_id'],'name');
             $v['update_username']=dc::get('passport',$v['update_user_id'],'name');
             $v['url_edit']=U('admin.user.edit',array('id'=>$v['id']));
