@@ -29,9 +29,9 @@ class AdminController extends Controller {
         if ($this->tableName){
             $this->model=M($this->tableName);
         }
+        // 当前页面信息
+        $this->menuinfo=M('admin_node')->getMenuInfo();
         // 其他初始化
-        $this->typename='aaaa';
-        $this->actionname='bbbb';
         $this->pagestr='';
     }
 }

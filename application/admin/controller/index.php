@@ -15,7 +15,7 @@ class IndexController extends AdminController {
     // 框架页
     public function indexAction() {
         $tree=new Tree(M('admin_node'));
-        $this->menu=$tree->getSonList(0,'id,name,module,controller,action');
+        $this->menu=$tree->getSonList(0,'id,name,module,controller,action',array('status'=>1));
         $this->display();
     }
 

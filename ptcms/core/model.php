@@ -304,6 +304,10 @@ class Model {
         }
     }
 
+    /**
+     * @param array $data
+     * @return mixed
+     */
     public function update($data = array()) {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
         if ($this->tableName || $this->parts['table']) {

@@ -1,101 +1,91 @@
-<div class = "pt-table-wrap">
-    <h4 class = "pt-msg-title"><b class = "f-fl">{$typename}管理</b></h4>
-    <div class = "pt-list">
-        <form method = "post" action = "{link='bbs.category.mulit'}">
-            <div class = "pt-list-header">
-                <div class="pt-list-operate f-fl">
-                    <a class = "btn btn-success btn-sm" href='{link=admin.node.add}'>添加</a>
-                    <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name="reorder">
+<script type = "text/javascript" src = "__PUBLIC__/script/angular.js"></script>
+<script type = "text/javascript" src = "__PUBLIC__/script/angular.init.js"></script>
+<div class = "pt-table-wrap" ng-app = "ptcms">
+    <h4 class = "pt-msg-title"><b class = "f-fl">{$menuinfo.menu.name}管理</b></h4>
+    <div class = "pt-list" ng-controller = "showlist">
+        <form method = "post" action = "__URL__/multi">
+        <div class = "pt-list-header">
+                <div class = "pt-list-operate f-fl">
+                    <a class = "btn btn-success btn-sm" href = '{link=admin.node.add}'>添加</a>
+                    <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name = "reorder">
                 </div>
-                <div class="f-fr">
-                    <select name = "searchtype" class = "input-box">
-                        <option value = "title">标题</option>
-                    </select>
-                    <input name = "searchkey" class = "input-text w160" type = "text" />
-                    <input type = "submit" class = "btn btn-default btn-sm" value = "搜索" />
-                </div>
-                <div class="f-clear"></div>
+            <div class = "f-fr">
+                <select class = "input-box">
+                    <option value = "title">名称</option>
+                </select>
+                <input ng-model = 'keyword' class = "input-text w160" type = "text" />
+                <input type = "submit" class = "btn btn-default btn-sm" value = "搜索" />
             </div>
-
+            <div class = "f-clear"></div>
+        </div>
             <table class = "pt-list-table">
                 <thead>
                 <tr>
                     <th class = "f-tal">节点名称</th>
-                    <th class = "f-tal" style="width: 200px">参数</th>
+                    <th style = "width: 80px">模块</th>
+                    <th style = "width: 80px">控制器</th>
+                    <th style = "width: 80px">方法</th>
                     <th class = "w-word3">排序</th>
                     <th class = "w-word3">状态</th>
                     <th class = "operate w-operate3">操作</th>
                 </tr>
                 </thead>
                 <tbody>
-                {loop="list"}
-                <tr class="cat{$loop.id}">
-                    <td class = "f-tal">
-                        {$loop.showname}
+                <tr class = "cat{{loop.id}}" ng-repeat = "loop in lists | filter:keyword">
+                    <td class = "f-tal">{{loop.showname}}</td>
+                    <td>{{loop.module}}</td>
+                    <td>{{loop.controller}}</td>
+                    <td>{{loop.action}}</td>
+                    <td>
+                        <input type = "text" name = "ordernum[{{loop.id}}]" value = " {{loop.ordernum}}" class = "input-text" style = "width:100px;" />
                     </td>
-                    <td class = "f-tal">
-                        {if $loop.module}
-                        {$loop.module}.{$loop.controller}.{$loop.action}
-                        {/if}
+                    <td>
+                        <span class = "label label-warning" ng-if = "loop.status==0" ng-click = "changestatus($index,1)">隐藏</span>
+                        <span class = "label label-success" ng-if = "loop.status==1" ng-click = "changestatus($index,0)">显示</span>
                     </td>
-                    <td class = "f-tal">
-                        <input type = "text" name="ordernum[{$loop.id}]" value = "{$loop.ordernum}" class = "input-text" style = "width:100px;" />
-                    </td>
-                    <td>{$loop.status|default='<span class = "label label-warning">禁用</span>','<span class = "label label-success">正常</span>'}</td>
                     <td class = "operate">
-                        <a href = "{link=bbs.category.add pid=$loop.id}"><i class = "icon icon-plus"></i>子类</a>
-                        <a href = "{link=bbs.category.edit id=$loop.id}"><i class = "icon icon-edit"></i>编辑</a>
-                        <a href = "javascript:;" class="del" data-id="{$loop.id}"><i class = "icon icon-trash"></i>删除</a>
+                        <a ng-href = "{{loop.url_son}}"><i class = "icon icon-plus"></i>子类</a>
+                        <a ng-href = "{{loop.url_edit}}"><i class = "icon icon-edit"></i>编辑</a>
+                        <a ng-href = "javascript:;" ng-click = "del($index)"><i class = "icon icon-trash"></i>删除</a>
                     </td>
                 </tr>
-                {/loop}
                 </tbody>
             </table>
             <div class = "pt-list-footer">
-                <div class="pt-list-operate f-fl">
-                    <a class = "btn btn-success btn-sm" href='{link=admin.node.add}'>添加</a>
-                    <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name="reorder">
+                <div class = "pt-list-operate f-fl">
+                    <a class = "btn btn-success btn-sm" href = '{link=admin.node.add}'>添加</a>
+                    <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name = "reorder">
                 </div>
                 <div class = "pt-page f-fr">
                     {$pagestr}
                 </div>
-                <div class="f-clear"></div>
+                <div class = "f-clear"></div>
             </div>
         </form>
     </div>
 </div>
 <script type = "text/javascript">
-    $(function(){
-        $('.changestatus').on('click',function(){
-            var status,obj=$(this);
-            if (obj.find('i').is('.icon-ok-circle')){
-                status=1;
-            }else{
-                status=0;
-            }
-            $.post('{link=bbs.category.changestatus}',{v:status,id:obj.data('id')},function(res){
-                if (res.status==1){
-                    if (status){
-                        obj.html('<i class = "icon icon-ban-circle"></i>禁用').parent().prev().html('<span class = "label label-success">正常</span>');
-                    }else{
-                        obj.html('<i class = "icon icon-ok-circle"></i>启用').parent().prev().html('<span class = "label label-warning">禁用</span>');
-                    }
-                }else{
+    function showlist($scope, $http) {
+        $scope.lists = $.parseJSON('{$list|json_encode}');
+        $scope.changestatus = function (id, value) {
+            var param = {
+                'changestatus': '修改状态',
+                'id[]': $scope.lists[id].id,
+                'value[]': value
+            };
+            console.log(param);
+            $http.post('__URL__/multi', param).success(function (res) {
+                if (res.status == 1) {
+                    $scope.lists[id].status = value;
+                } else {
                     alert(res.info);
                 }
-            },'json');
-        });
-        $('.del').on('click',function(){
-            var id=$(this).data('id');
-            if (confirm('确认删除么？')){
-                $.post('{link=bbs.category.del}',{id:id},function(res){
-                    if (res.status==1){
-                        $('.cat'+id).hide(200).remove();
-                    }else{
-                        alert(res.info);
-                    }
-                },'json')
+            });
+        };
+        $scope.del = function (id) {
+            if (confirm('确认删除么？')) {
+                $scope.lists.splice(id, 1);
             }
-        })
-    });
+        };
+    }
 </script>

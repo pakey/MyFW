@@ -8,6 +8,6 @@
 class IndexController extends CommonController {
 
     public function indexAction() {
-        $this->show('Hello World By PTcms Framework!'.NOW_TIME);
+        $this->show('Hello World By PTcms Framework!');
     }
 }

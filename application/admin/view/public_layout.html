@@ -13,15 +13,18 @@
     <script type = "text/javascript" src = "__PUBLIC__/plugin/layer/layer.js"></script>
     <script type = "text/javascript" src = "__PUBLIC__/script/jquery.validform.js"></script>
     <script type = "text/javascript">
-        var URL = '__URL__', APP = '__APP__', MODULE = '__MODULE__', SELF = '__SELF__', MODULE_NAME = '{$pt.MODULE_NAME}', CONTROLLER_NAME = '{$pt.CONTROLLER_NAME}', ACTION_NAME = '{$pt.ACTION_NAME}', TYPENAME = '{$typename}';
+        var URL = '__URL__', APP = '__APP__', MODULE = '__MODULE__', SELF = '__SELF__', MODULE_NAME = '{$pt.MODULE_NAME}', CONTROLLER_NAME = '{$pt.CONTROLLER_NAME}', ACTION_NAME = '{$pt.ACTION_NAME}';
     </script>
 </head>
 <body>
 <div class = "pt-main-wrap">
     <div class = "pt-path">
-        <span class = "pt-path-icon icon-home"></span>当前位置：{$pt.PRONAME}
-        <span> &gt; </span>{$typename}
-        {if isset($actionname)}<span> &gt; </span>{$actionname}{/if}
+        <span class = "pt-path-icon icon-home"></span>当前位置：
+        <a href="http://www.ptcms.com" target="_blank">{$pt.PRONAME}</a>
+        <span> &gt; </span><a href="{$menuinfo.menu.url}">{$menuinfo.menu.name}</a>
+        {if isset($menuinfo.submenu.name)}
+        <span> &gt; </span><a href="{$menuinfo.submenu.url}">{$menuinfo.submenu.name}</a>
+        {/if}
     </div>
     __CONTENT__
     <div class = "f-clear"></div>
