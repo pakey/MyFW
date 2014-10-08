@@ -1,71 +1,92 @@
-<div class = "pt-table-wrap">
-    <div class = "pt-set-box">
-        <h4 class = "pt-msg-title"><b class="f-fl">{$typename}管理</b></h4>
-        <div class = "pt-list">
-            <form method = "post" action = "{link=friendlink.index.multi}" id = "showtable" onsubmit="return checkselt('id[]','#showtable');">
-                <div class = "pt-list-header">
-                    <div class="pt-list-operate f-fl">
-                        <input type = "button" class = "btn btn-success btn-sm" value = "添加">
-                        <input type = "button" class = "btn btn-danger btn-sm" value = "禁用">
-                    </div>
-                    <div class="f-fr">
-                        <select name = "searchtype" class = "input-box">
-                            <option value = "title">标题</option>
-                        </select>
-                        <input name = "searchkey" class = "input-text w160" type = "text" />
-                        <input type = "submit" class = "btn btn-default btn-sm" value = "搜索" />
-                    </div>
-                    <div class="f-clear"></div>
+<script type = "text/javascript" src = "__PUBLIC__/script/angular.js"></script>
+<script type = "text/javascript" src = "__PUBLIC__/script/angular.init.js"></script>
+<div class = "pt-table-wrap" ng-app = "ptcms">
+    <h4 class = "pt-msg-title"><b class = "f-fl">{$menuinfo.menu.name}管理</b></h4>
+    <div class = "pt-list" ng-controller = "showlist">
+        <form method = "post" action = "__URL__/multi">
+            <div class = "pt-list-header">
+                <div class = "pt-list-operate f-fl">
+                    <a class = "btn btn-success btn-sm" href = '{link=admin.node.add}'>添加</a>
                 </div>
-                <table class = "pt-list-table">
-                    <thead>
-                    <tr>
-                        <th class = "w-checkbox"><input type = "checkbox" class = "checkall" data = "id[]" checked></th>
-                        <th class = "w-word5">用户名</th>
-                        <th class = "w-word5">用户组</th>
-                        <th class = "w-word5">创建人</th>
-                        <th class = "w-time">创建时间</th>
-                        <th class = "w-word5">修改人</th>
-                        <th class = "w-time">修改时间</th>
-                        <th class = "w-word4">登录数</th>
-                        <th class = "w-time">登录时间</th>
-                        <th class = "w-word2">状态</th>
-                        <th class = "operate w-operate2">操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {loop="list"}
-                    <tr>
-                        <td><input type = "checkbox" name = "id[]" value = "{$key}" checked></td>
-                        <td>{$loop.passport_id|dc::get='passport',@,'name'}</td>
-                        <td>{$loop.group_id}</td>
-                        <td>{$loop.create_user_id|dc::get='passport',@,'name'}</td>
-                        <td>{$loop.create_time|date="y-m-d H:i"}</td>
-                        <td>{$loop.update_user_id|dc::get='passport',@,'name'}</td>
-                        <td>{$loop.update_time|date="y-m-d H:i"}</td>
-                        <td>{$loop.login_num}</td>
-                        <td>{$loop.login_time|date="y-m-d H:i"}</td>
-                        <td>{$loop.status|default='<span class = "label label-warning">禁用</span>','<span class = "label label-success">正常</span>'}</td>
-                        <td class = "operate">
-                            <a href = "{link=friendlink.index.edit id=$key}"><i class = "icon icon-edit"></i>编辑</a>
-                            <a href = "javascript:del('{$key}');"><i class = "icon icon-trash"></i>删除</a>
-                        </td>
-                    </tr>
-                    {/loop}
-                    </tbody>
-                </table>
-                <div class = "pt-list-footer">
-                    <div class="pt-list-operate f-fl">
-                        <input type = "button" class = "btn btn-success btn-sm" value = "批量操作">
-                        <input type = "button" class = "btn btn-primary btn-sm" value = "批量操作">
-                    </div>
-                    <div class = "pt-page f-fr">
-                        {$pagestr}
-                    </div>
-                    <div class="f-clear"></div>
+                <div class = "f-fr">
+                    <select class = "input-box">
+                        <option value = "title">用户名</option>
+                    </select>
+                    <input ng-model = 'keyword' class = "input-text w160" type = "text" />
+                    <input type = "submit" class = "btn btn-default btn-sm" value = "搜索" />
                 </div>
-            </form>
-            <div class = "clear"></div>
-        </div>
+                <div class = "f-clear"></div>
+            </div>
+            <table class = "pt-list-table">
+                <thead>
+                <tr>
+                    <th class = "w-word5">用户名</th>
+                    <th class = "w-word5">用户组</th>
+                    <th class = "w-word5">创建人</th>
+                    <th class = "w-time">创建时间</th>
+                    <th class = "w-word5">修改人</th>
+                    <th class = "w-time">修改时间</th>
+                    <th class = "w-word4">登录数</th>
+                    <th class = "w-time">登录时间</th>
+                    <th class = "w-word2">状态</th>
+                    <th class = "operate w-operate2">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat = "loop in lists | filter:keyword">
+                    <td title="{{loop.intro}}">{{loop.username}}</td>
+                    <td>{{loop.group_id}}</td>
+                    <td>{{loop.create_username}}</td>
+                    <td>{{loop.create_time}}</td>
+                    <td>{{loop.update_username}}</td>
+                    <td>{{loop.update_time}}</td>
+                    <td>{{loop.login_num}}</td>
+                    <td>{{loop.login_time}}</td>
+                    <td>
+                        <span class = "label label-warning" ng-if = "loop.status==0" ng-click = "changestatus($index,1)">禁用</span>
+                        <span class = "label label-success" ng-if = "loop.status==1" ng-click = "changestatus($index,0)">正常</span>
+                    </td>
+                    <td class = "operate">
+                        <a ng-href = "{{loop.url_edit}}"><i class = "icon icon-edit"></i>编辑</a>
+                        <a href = "javascript:;" ng-click = "del($index)"><i class = "icon icon-trash"></i>删除</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class = "pt-list-footer">
+                <div class = "pt-list-operate f-fl">
+                    <a class = "btn btn-success btn-sm" href = '{link=admin.node.add}'>添加</a>
+                </div>
+                <div class = "pt-page f-fr">
+                    {$pagestr}
+                </div>
+                <div class = "f-clear"></div>
+            </div>
+        </form>
     </div>
 </div>
+<script type = "text/javascript">
+    function showlist($scope, $http) {
+        $scope.lists = $.parseJSON('{$list|json_encode}');
+        $scope.changestatus = function (id, value) {
+            var param = {
+                'changestatus': '修改状态',
+                'id[]': $scope.lists[id].id,
+                'value[]': value
+            };
+            console.log(param);
+            $http.post('__URL__/multi', param).success(function (res) {
+                if (res.status == 1) {
+                    $scope.lists[id].status = value;
+                } else {
+                    alert(res.info);
+                }
+            });
+        };
+        $scope.del = function (id) {
+            if (confirm('确认删除么？')) {
+                $scope.lists.splice(id, 1);
+            }
+        };
+    }
+</script>

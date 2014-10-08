@@ -2,7 +2,7 @@
 class UserController extends AdminController{
 
     public function indexAction() {
-        $this->list=M('admin_user')->select();
+        $this->list=M('admin_user')->getlist();
         $this->pagestr ='';
         $this->display();
     }
