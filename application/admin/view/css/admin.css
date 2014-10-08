@@ -475,6 +475,14 @@ a.box:hover {
 	text-align: right;
 	display: inline-block
 }
+.pt-set-info .auth b {
+	width: 8em;
+	text-align: right;
+	display: inline-block
+}
+.pt-set-info .auth label {
+	width: 100px;
+}
 .pt-set-info p {
 }
 .pt-set-info label {

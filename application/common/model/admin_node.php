@@ -19,8 +19,12 @@ class Admin_NodeModel extends Model{
         return $this->update($param);
     }
 
-    public function del($id) {
-        $this->where(array('id'=>$id))->delete();
+    /**
+     * 删除数据
+     * @param $where
+     */
+    public function del($where) {
+        $this->where($where)->delete();
     }
 
     /**
@@ -42,5 +46,23 @@ class Admin_NodeModel extends Model{
             $res['submenu']['url']=U(MODULE_NAME.'.'.CONTROLLER_NAME.'.'.ACTION_NAME);
         }
         return $res;
+    }
+
+    public function getParentList($id) {
+        $info=$this->where(array('id'=>$id))->field('id,pid')->find();
+        if ($info['pid']==0) return array();
+        $res[]=$info['pid'];
+        $res=array_merge($res,$this->getParentList($info['pid']));
+        return $res;
+    }
+
+    public function toNodeAuth($arr) {
+        foreach($arr as $v){
+            $plist=$this->getParentList($v);
+            foreach($plist as $id){
+                if (!in_array($id,$arr)) $arr[]=$id;
+            }
+        }
+        return $arr;
     }
 }

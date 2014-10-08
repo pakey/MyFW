@@ -1,5 +1,31 @@
 <?php
 class Admin_GroupModel extends Model{
+    /**
+     * 插入数据
+     * @param $param
+     * @return mixed
+     */
+    public function add($param) {
+        return $this->insert($param);
+    }
+
+    /**
+     * 修改
+     * @param $param
+     * @return mixed
+     */
+    public function edit($param) {
+        return $this->update($param);
+    }
+
+    /**
+     * 删除数据
+     * @param $where
+     */
+    public function del($where) {
+        $this->where($where)->delete();
+    }
+
     // 获取列表
     public function getlist() {
         $list=$this->select();

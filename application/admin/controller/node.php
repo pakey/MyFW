@@ -72,7 +72,7 @@ class NodeController extends AdminController{
 
     public function delAction() {
         $id=I('request.id','int',0);
-        $this->model->del($id);
+        $this->model->del(array('id'=>$id));
         $this->success('删除成功');
     }
 

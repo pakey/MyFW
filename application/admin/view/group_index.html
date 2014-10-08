@@ -20,7 +20,7 @@
             <table class = "pt-list-table">
                 <thead>
                 <tr>
-                    <th style="width:150px">用户组名称</th>
+                    <th class="f-tal" style="width:150px">用户组名称</th>
                     <th>备注信息</th>
                     <th class = "w-word5">创建人</th>
                     <th class = "w-time">创建时间</th>
@@ -31,7 +31,7 @@
                 </thead>
                 <tbody>
                 <tr ng-repeat = "loop in lists | filter:keyword">
-                    <td>{{loop.name}}</td>
+                    <td class="f-tal">{{loop.name}}</td>
                     <td>{{loop.intro}}</td>
                     <td>{{loop.create_username}}</td>
                     <td>{{loop.create_time}}</td>

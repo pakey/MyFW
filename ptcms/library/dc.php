@@ -69,7 +69,7 @@ class Dc {
 
     // 获取数据
     static public function get($type, $id, $field = '') {
-        if ($id == 0) return false;
+        if ($id == 0) return null;
         if (!isset(self::$_data[$type][$id])) {
             // 检索memCache，不存在则读取数据库
             self::$_data[$type][$id] = Cache::get($type . '.' . $id);
