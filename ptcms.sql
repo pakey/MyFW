@@ -1,5 +1,5 @@
 ﻿# Host: localhost  (Version: 5.5.38)
-# Date: 2014-09-29 23:42:36
+# Date: 2014-10-08 08:29:48
 # Generator: MySQL-Front 5.3  (Build 4.120)
 
 /*!40101 SET NAMES utf8 */;
@@ -64,13 +64,10 @@ CREATE TABLE `ptcms_admin_node` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '文档ID',
   `name` varchar(50) NOT NULL DEFAULT '' COMMENT '标题',
   `pid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '上级分类ID',
-  `level` tinyint(3) unsigned DEFAULT NULL,
   `module` varchar(20) DEFAULT NULL,
   `controller` varchar(50) DEFAULT NULL,
   `action` varchar(50) DEFAULT NULL,
-  `param` varchar(255) DEFAULT NULL,
   `ordernum` smallint(10) unsigned NOT NULL DEFAULT '0' COMMENT '排序（同级有效）',
-  `hide` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否隐藏',
   `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态',
   `create_user_id` int(11) unsigned DEFAULT '0' COMMENT '创建人',
   `update_user_id` int(11) unsigned DEFAULT '0' COMMENT '修改人',
@@ -79,13 +76,14 @@ CREATE TABLE `ptcms_admin_node` (
   PRIMARY KEY (`id`),
   KEY `pid` (`pid`),
   KEY `status` (`status`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 #
 # Data for table "ptcms_admin_node"
 #
 
 /*!40000 ALTER TABLE `ptcms_admin_node` DISABLE KEYS */;
+INSERT INTO `ptcms_admin_node` VALUES (1,'常用',0,'','','',1,1,1,0,1412696793,0),(2,'系统',0,'','','',1,1,1,0,1412696797,0),(3,'系统概况',1,'','','',50,1,1,0,1412699544,0),(4,'欢迎界面',3,'admin','index','welcome',50,1,1,0,1412699598,0),(5,'系统探针',3,'admin','index','system',50,1,1,0,1412699662,0),(6,'常用功能',1,'','','',50,1,1,0,1412699681,0),(7,'开发功能',1,'','','',50,1,1,0,1412699705,0),(8,'权限节点',7,'admin','node','index',50,1,1,0,1412699737,0),(9,'添加节点',8,'admin','node','add',50,1,1,0,1412699752,0),(10,'修改节点',8,'admin','node','edit',50,1,1,0,1412699787,0),(11,'删除节点',8,'admin','node','del',50,1,1,0,1412699817,0),(12,'批量操作',8,'admin','node','multi',50,1,1,0,1412700038,0),(13,'系统设置',2,'','','',50,1,1,0,1412701712,0),(14,'基本参数',13,'','','',50,1,1,0,1412701727,0),(15,'添加菜单',6,'','','',50,1,1,0,1412701869,0);
 /*!40000 ALTER TABLE `ptcms_admin_node` ENABLE KEYS */;
 
 #
@@ -114,7 +112,7 @@ CREATE TABLE `ptcms_admin_user` (
 #
 
 /*!40000 ALTER TABLE `ptcms_admin_user` DISABLE KEYS */;
-INSERT INTO `ptcms_admin_user` VALUES (1,1,NULL,1,1,1411978787,1411978787,5,'127.0.0.1',1411989011,1);
+INSERT INTO `ptcms_admin_user` VALUES (1,1,NULL,1,1,1411978787,1411978787,6,'127.0.0.1',1412695652,1);
 /*!40000 ALTER TABLE `ptcms_admin_user` ENABLE KEYS */;
 
 #
@@ -160,7 +158,7 @@ CREATE TABLE `ptcms_passport` (
 #
 
 /*!40000 ALTER TABLE `ptcms_passport` DISABLE KEYS */;
-INSERT INTO `ptcms_passport` VALUES (1,'admin','db4dfadff18f7145ca4f6a2a15ff6303','565795','127.0.0.1',1411978787,'127.0.0.1',1411989011);
+INSERT INTO `ptcms_passport` VALUES (1,'admin','db4dfadff18f7145ca4f6a2a15ff6303','565795','127.0.0.1',1411978787,'127.0.0.1',1412695652);
 /*!40000 ALTER TABLE `ptcms_passport` ENABLE KEYS */;
 
 #
