@@ -1,6 +1,5 @@
 <?php
 return array(
-    'super_user_id'=>1,
     'DB_MYSQL' => array(
         'DRIVER' => 'Pdo',
         'PREFIX' => 'ptcms_',

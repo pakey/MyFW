@@ -1,6 +1,5 @@
 <?php
 return array(
-    'super_user_id'=>1,
     'DB_MYSQL' => array(
         'DRIVER' => 'Pdo',
         'PREFIX' => 'ptcms_',
@@ -17,13 +16,4 @@ return array(
         'SLAVE' => array(
         ),
     ),
-
-    'URL_RULES' => array(
-        'index.article.list' => '/{dir}[/{key}][/{page}]',
-    ),
-
-    'URL_ROUTER' => array(
-        '^(news|course)$' => 'index/article/list?module',
-    ),
-
 );

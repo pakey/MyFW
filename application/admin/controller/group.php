@@ -7,7 +7,7 @@ class GroupController extends AdminController{
     }
 
     public function indexAction() {
-        $this->list=$this->model->getlist();
+        $this->list=$this->model->order('id asc')->getlist();
         $this->display();
     }
 
@@ -15,7 +15,7 @@ class GroupController extends AdminController{
         if (IS_POST){
             $param['name']=I('name','str');
             $param['intro']=I('intro','str');
-            $param['node']=implode(',',M('admin_node')->toNodeAuth($_POST['node']));
+            $param['node']=implode(',',M('admin_node')->toNodeAuth(I('node','arr',array())));
             $param['create_user_id']=$_SESSION['admin']['userid'];
             $param['create_time']=NOW_TIME;
             if($this->model->add($param)){
@@ -30,17 +30,33 @@ class GroupController extends AdminController{
     }
 
     public function editAction() {
+        $id=I('request.id','int',0);
+        $info=$this->model->field('id,name,node,intro')->where(array('id'=>$id))->find();
         if (IS_POST){
+            $param['name']=I('name','str');
+            $param['intro']=I('intro','str');
+            $param['node']=implode(',',M('admin_node')->toNodeAuth(I('node','arr',array())));
             $param['update_user_id']=$_SESSION['admin']['userid'];
             $param['update_time']=NOW_TIME;
+            $param['id']=$id;
+            if ($this->model->edit($param)){
+                $this->success('修改成功');
+            }else{
+                $this->error('修改失败');
+            }
         }
+        $info['node']=explode(',',$info['node']);
+        $tree=new Tree(M('admin_node'));
+        $this->menu=$tree->getAuthList(0,'id,name');
+        $this->info=$info;
+        $this->display();
     }
 
     public function delAction() {
-
+        $id=I('request.id','int',0);
+        $this->model->del(array('id'=>$id));
+        $this->success('删除成功');
     }
 
-    public function multiAction() {
 
-    }
 }

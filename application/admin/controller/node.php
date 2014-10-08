@@ -94,7 +94,6 @@ class NodeController extends AdminController{
             }
             $this->success('排序成功');
         }else{
-            var_dump($_POST);
         }
 
     }

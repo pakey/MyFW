@@ -11,6 +11,8 @@ class Admin_UserModel extends Model{
         //设置登录信息
         $_SESSION['admin']['userid']=$userid;
         $_SESSION['admin']['username']=M('passport')->where(array('id'=>$userid))->getField('name');
+        $_SESSION['admin']['groupid']=$this->where(array('passport_id'=>$userid))->getField('group_id');
+        $_SESSION['admin']['groupname']=dc::get('admin_group',$_SESSION['admin']['groupid'],'name');
         // 更新通行证登录时间
         $data['login_ip']=get_ip();
         $data['login_time']=NOW_TIME;

@@ -2,6 +2,7 @@
 //程序相关信息
 define('PRONAME', 'PTFramework');
 define('PROVERSION', '2.0.0.1');
+define('PROTIME', '20141008');
 
 
 //运行开始

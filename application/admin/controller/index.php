@@ -14,8 +14,9 @@ class IndexController extends AdminController {
 
     // 框架页
     public function indexAction() {
+        //获取用户权限
         $tree=new Tree(M('admin_node'));
-        $this->menu=$tree->getSonList(0,'id,name,module,controller,action',array('status'=>1));
+        $this->menu=$tree->getSonList(0,'id,name,module,controller,action',array('status'=>1,'id'=>array('in',dc::get('admin_group',$_SESSION['admin']['groupid'],'node'))));
         $this->display();
     }
 
@@ -29,11 +30,10 @@ class IndexController extends AdminController {
         if (C('adminpath') == 'admin') {
             $tips[] = array('type' => 'warning', 'content' => '您后台目录为默认的admin，为安全考虑，请您更改目录地址！<a href="' . U('admin.set.base') . '">点击这里更换</a>');
         }
-        $usernum = M('user')->getNum();
-        $ads = include DATA_PATH . '/ad.php';
+        $usernum = M('passport')->count();
         $this->sitenum = 1;
         $this->usernum = $usernum;
-        $this->adnum = count($ads);
+        $this->adnum = 1;
         $this->friendlinknum = count(C('friendlink'));
         $this->tips = $tips;
         $this->display();

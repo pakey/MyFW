@@ -32,7 +32,7 @@ class Admin_NodeModel extends Model{
      * @return mixed
      */
     public function getMenuInfo() {
-        $info=$this->field('name,pid')->where(array('module'=>MODULE_NAME,'controller'=>CONTROLLER_NAME,'action'=>ACTION_NAME))->find();
+        $info=$this->field('id,name,pid')->where(array('module'=>MODULE_NAME,'controller'=>CONTROLLER_NAME,'action'=>ACTION_NAME))->find();
         $parentinfo=$this->field('name,pid,module,controller,action')->where(array('id'=>$info['pid']))->find();
         if (empty($parentinfo['module'])){
             $res['menu']['name']=$info['name'];
@@ -45,6 +45,7 @@ class Admin_NodeModel extends Model{
             $res['submenu']['name']=$info['name'];
             $res['submenu']['url']=U(MODULE_NAME.'.'.CONTROLLER_NAME.'.'.ACTION_NAME);
         }
+        $res['nodeid']=$info['id'];
         return $res;
     }
 

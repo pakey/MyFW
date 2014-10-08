@@ -13,6 +13,7 @@ class AdminController extends Controller {
         C('tpl_theme', '');
         C('layout', true);
         C('layout_name', '/application/admin/view/public_layout.html');
+        $this->skipnode=array('admin.index.index');
     }
 
     public function init() {
@@ -31,7 +32,20 @@ class AdminController extends Controller {
         }
         // 当前页面信息
         $this->menuinfo=M('admin_node')->getMenuInfo();
+        //判断是否有权限访问当前页面
+        if (!in_array($this->menuinfo['nodeid'],explode(',',dc::get('admin_group',$_SESSION['admin']['groupid'],'node')))
+            && !in_array(MODULE_NAME.'.'.CONTROLLER_NAME.'.'.ACTION_NAME,$this->skipnode)
+            && ACTION_NAME!='ajax'){
+            $this->error('您没有权限访问这个页面！',0,0);
+        }
         // 其他初始化
         $this->pagestr='';
     }
+
+    // 防止进入空控制器
+    public function addAction() {}
+    public function editAction() {}
+    public function delAction() {}
+    public function multiAction() {}
+    public function ajaxAction() {}
 }

@@ -15,6 +15,8 @@ class Admin_GroupModel extends Model{
      * @return mixed
      */
     public function edit($param) {
+        //更新缓存
+        dc::refresh('admin_group',$param['id']);
         return $this->update($param);
     }
 
@@ -28,7 +30,7 @@ class Admin_GroupModel extends Model{
 
     // 获取列表
     public function getlist() {
-        $list=$this->select();
+        $list=(array)$this->select();
         foreach($list as &$v){
             $v['create_username']=dc::get('passport',$v['create_user_id'],'name');
             $v['update_username']=dc::get('passport',$v['update_user_id'],'name');
