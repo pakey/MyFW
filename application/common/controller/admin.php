@@ -41,7 +41,6 @@ class AdminController extends Controller {
             $this->error('您没有权限访问这个页面！',0,0);
         }
         // 其他初始化
-        $this->pagestr='';
     }
 
     // 防止进入空控制器

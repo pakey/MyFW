@@ -538,7 +538,6 @@ function F($file, $content = false, $mod = '') {
             } else {
                 $content = str_replace('\\\\', '\\', strip_whitespace('<?php' . PHP_EOL . 'return ' . var_export($content, true) . ';'));
             }
-
         }
         if ($mod) {
             return file_put_contents($file, strval($content), LOCK_EX | $mod);
