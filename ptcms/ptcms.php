@@ -851,7 +851,7 @@ function B($class, $param) {
 
 function runinfo() {
     if (C('is_gen_html')) return '';
-    $tpl = C('runinfo', null, 'Power by PTCMS(ptcms.com),Processed in {time}(s), Memory usage: {mem}MB.');
+    $tpl = C('runinfo', null, 'Power by PTCMS, Processed in {time}(s), Memory usage: {mem}MB.');
     $from[] = '{time}';
     $to[] = number_format(microtime(true) - $GLOBALS['_startTime'], 3);
     $from[] = '{mem}';

@@ -23,7 +23,7 @@ class Driver_Cache_File {
         $file = self::key2file($key);
         if (is_file($file)) {
             $data = pt::import($file);
-            if ($data || ($data['time'] > 0 && $data['time'] < NOW_TIME)) {
+            if ($data && ($data['time'] > 0 && $data['time'] < NOW_TIME)) {
                 self::rm($key);
                 return null;
             }
@@ -42,7 +42,7 @@ class Driver_Cache_File {
 
     public function key2file($key) {
         $key = md5($key);
-        $file = CACHE_PATH . '/data/' . substr($key, 0, 1) . '/' . substr($key, 1, 2) . '/' . $key . '.ptc';
+        $file = CACHE_PATH . '/data/' . substr($key, 0, 1) . '/' . substr($key, 1, 2) . '/' . $key . '.php';
         return $file;
     }
 

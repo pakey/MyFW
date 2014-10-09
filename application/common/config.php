@@ -1,6 +1,7 @@
 <?php
 return array(
     'tpl_theme'=>'default',
+    'runinfo'=>'Processed in {time}(s), Memory: {mem}MB, Sqls: {sql}, cacheread: {cacheread}, cachewrite: {cachewrite}, net:{net}.',
     'DB_MYSQL' => array(
         'DRIVER' => 'Pdo',
         'PREFIX' => 'ptcms_',

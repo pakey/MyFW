@@ -22,12 +22,12 @@ class Cache {
     }
 
     public static function set($key, $value, $time = 0) {
-        $GLOBALS['_cacheRead']++;
+        $GLOBALS['_cacheWrite']++;
         return self::getInstance()->set($key, $value, $time);
     }
 
     public static function get($key) {
-        $GLOBALS['_cacheWrite']++;
+        $GLOBALS['_cacheRead']++;
         return self::getInstance()->get($key);
     }
 
