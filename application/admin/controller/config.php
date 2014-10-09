@@ -14,13 +14,9 @@ class ConfigController extends AdminController{
 
     public function addAction() {
         if (IS_POST){
-            $param['passport_id']=M('passport')->where(array('name'=>I('name','username','')))->getfield('id');
-            $param['intro']=I('intro','str');
-            $param['group_id']=I('groupid','int',0);
-            $param['status']=I('status','int',0);
+            var_dump($_POST);exit;;
             $param['create_user_id']=$_SESSION['admin']['userid'];
             $param['create_time']=NOW_TIME;
-            $param['login_num']=0;
             if($this->model->add($param)){
                 $this->success('添加成功',U('index'));
             }else{
