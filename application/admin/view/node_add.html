@@ -15,7 +15,7 @@
                         <label><select class = "input-box w450" name = "pid">
                             <option value = "0">根节点</option>
                             {loop=parentlist}
-                            <option value = "{$loop.id}" {if $loop.id==$_GET['pid']}selected{/if}>{$loop.showname}</option>
+                            <option value = "{$loop.id}" {if isset($_GET['pid']) && $loop.id==$_GET['pid']}selected{/if}>{$loop.showname}</option>
                             {/loop}
                         </select></label>
                     </div>

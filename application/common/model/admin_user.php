@@ -32,14 +32,40 @@ class Admin_UserModel extends Model{
         $list=$this->select();
         foreach($list as &$v){
             $v['username']=dc::get('passport',$v['passport_id'],'name');
-            $v['groupname']=dc::get('admin_group',$v['passport_id'],'name');
+            $v['groupname']=dc::get('admin_group',$v['group_id'],'name');
             $v['create_username']=dc::get('passport',$v['create_user_id'],'name');
             $v['update_username']=dc::get('passport',$v['update_user_id'],'name');
             $v['url_edit']=U('admin.user.edit',array('id'=>$v['id']));
-            $v['create_time']=date('Y-m-d H:i',$v['create_time']);
-            $v['update_time']=date('Y-m-d H:i',$v['update_time']);
-            $v['login_time']=date('Y-m-d H:i',$v['login_time']);
+            $v['create_time']=$v['create_time']?date('Y-m-d H:i',$v['create_time']):'';
+            $v['update_time']=$v['update_time']?date('Y-m-d H:i',$v['update_time']):'';
+            $v['login_time']=$v['login_time']?date('Y-m-d H:i',$v['login_time']):'';
         }
         return $list;
+    }
+
+    /**
+     * 插入数据
+     * @param $param
+     * @return mixed
+     */
+    public function add($param) {
+        return $this->insert($param);
+    }
+
+    /**
+     * 修改
+     * @param $param
+     * @return mixed
+     */
+    public function edit($param) {
+        return $this->update($param);
+    }
+
+    /**
+     * 删除数据
+     * @param $where
+     */
+    public function del($where) {
+        $this->where($where)->delete();
     }
 }

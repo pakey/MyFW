@@ -2140,7 +2140,7 @@ button.close {
 }
 .Validform_loading {
 	padding-left: 20px;
-	background: url(../images/onLoad.gif) no-repeat left center;
+	background: url(../image/onLoad.gif) no-repeat left center;
 }
 .Validform_error {
 	background-color: #ffe7e7;

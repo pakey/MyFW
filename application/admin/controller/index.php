@@ -16,7 +16,13 @@ class IndexController extends AdminController {
     public function indexAction() {
         //获取用户权限
         $tree=new Tree(M('admin_node'));
-        $this->menu=$tree->getSonList(0,'id,name,module,controller,action',array('status'=>1,'id'=>array('in',dc::get('admin_group',$_SESSION['admin']['groupid'],'node'))));
+        if($_SESSION['admin']['userid']=='1'){
+            //创始人
+            $this->menu=$tree->getSonList(0,'id,name,module,controller,action',array('status'=>1));
+        }else{
+            //其他
+            $this->menu=$tree->getSonList(0,'id,name,module,controller,action',array('status'=>1,'id'=>array('in',dc::get('admin_group',$_SESSION['admin']['groupid'],'node'))));
+        }
         $this->display();
     }
 

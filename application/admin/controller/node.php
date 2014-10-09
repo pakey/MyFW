@@ -70,12 +70,6 @@ class NodeController extends AdminController{
         $this->display();
     }
 
-    public function delAction() {
-        $id=I('request.id','int',0);
-        $this->model->del(array('id'=>$id));
-        $this->success('删除成功');
-    }
-
     public function multiAction() {
         $param['update_user_id']=$_SESSION['admin']['userid'];
         $param['update_time']=NOW_TIME;
@@ -95,6 +89,5 @@ class NodeController extends AdminController{
             $this->success('排序成功');
         }else{
         }
-
     }
 }

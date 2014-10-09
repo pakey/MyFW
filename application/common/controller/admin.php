@@ -33,8 +33,9 @@ class AdminController extends Controller {
         }
         // 当前页面信息
         $this->menuinfo=M('admin_node')->getMenuInfo();
-        //判断是否有权限访问当前页面
-        if (!in_array($this->menuinfo['nodeid'],explode(',',dc::get('admin_group',$_SESSION['admin']['groupid'],'node')))
+        //判断是否有权限访问当前页面 创始人 访问权限 免验节点 ajax
+        if ($_SESSION['admin']['userid']!='1'
+            && !in_array($this->menuinfo['nodeid'],explode(',',dc::get('admin_group',$_SESSION['admin']['groupid'],'node')))
             && !in_array(MODULE_NAME.'.'.CONTROLLER_NAME.'.'.ACTION_NAME,$this->skipnode)
             && ACTION_NAME!='ajax'){
             $this->error('您没有权限访问这个页面！',0,0);
@@ -46,7 +47,11 @@ class AdminController extends Controller {
     // 防止进入空控制器
     public function addAction() {}
     public function editAction() {}
-    public function delAction() {}
+    public function delAction() {
+        $id=I('request.id','int',0);
+        $this->model->del(array('id'=>$id));
+        $this->success('删除成功');
+    }
     public function multiAction() {}
     public function ajaxAction() {}
 }
