@@ -541,9 +541,9 @@ function F($file, $content = false, $mod = '') {
 
         }
         if ($mod) {
-            return file_put_contents($file, strval($content), LOCK_EX|$mod);
+            return file_put_contents($file, strval($content), LOCK_EX | $mod);
         } else {
-            return file_put_contents($file, strval($content),LOCK_EX);
+            return file_put_contents($file, strval($content), LOCK_EX);
         }
     }
     return false;
@@ -563,11 +563,11 @@ function M($name = '', $layer = '') {
     }
     if (empty($_model[$name])) {
         if ($name) {
-            $name=strtolower($name);
+            $name = strtolower($name);
             $classname = "{$name}{$layer}";
             //采用自动加载加载类 不存在则加载默认类
             if (MODULE_NAME == 'plugin') {
-                $file = APP_PATH . '/common/plugin/' . MODULE_NAME . '/'.$layer.'/' . $name . '.php';
+                $file = APP_PATH . '/common/plugin/' . MODULE_NAME . '/' . $layer . '/' . $name . '.php';
             } else {
                 $file = APP_PATH . '/' . MODULE_NAME . '/model/' . $layer . '.php';
             }
