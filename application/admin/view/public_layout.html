@@ -29,8 +29,18 @@
     __CONTENT__
     <div class = "f-clear"></div>
 </div>
+<div class="footinfo">__RUNINFO__</div>
 <div style = "display: none">
     <script language = "javascript" type = "text/javascript" src = "__ROOT__/application/admin/view/script/tongji.js"></script>
 </div>
+<script type = "text/javascript">
+    $(function(){
+        //设置高度
+        var h1=$(document).height(),h2=$('.pt-main-wrap').height();
+        if (h2+60<h1){
+            $('.pt-main-wrap').height(h1-60)
+        }
+    })
+</script>
 </body>
 </html>

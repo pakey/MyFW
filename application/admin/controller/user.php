@@ -21,7 +21,7 @@ class UserController extends AdminController{
             $param['create_time']=NOW_TIME;
             $param['login_num']=0;
             if($this->model->add($param)){
-                $this->success('添加成功');
+                $this->success('添加成功',U('index'));
             }else{
                 $this->error('添加失败');
             }
@@ -32,9 +32,8 @@ class UserController extends AdminController{
 
     public function editAction() {
         $id=I('request.id','int',0);
-        $info=$this->model->field('id,name,node,intro')->where(array('id'=>$id))->find();
+        $info=$this->model->field('id,passport_id,group_id,intro,status')->where(array('id'=>$id))->find();
         if (IS_POST){
-            $param['passport_id']=M('passport')->where(array('name'=>I('name','username','')))->getfield('id');
             $param['intro']=I('intro','str');
             $param['group_id']=I('groupid','int',0);
             $param['status']=I('status','int',0);
@@ -42,14 +41,13 @@ class UserController extends AdminController{
             $param['update_time']=NOW_TIME;
             $param['id']=$id;
             if ($this->model->edit($param)){
-                $this->success('修改成功');
+                $this->success('修改成功',U('index'));
             }else{
                 $this->error('修改失败');
             }
         }
-        $info['node']=explode(',',$info['node']);
-        $tree=new Tree(M('admin_node'));
-        $this->menu=$tree->getAuthList(0,'id,name');
+        $this->grouplist=M('admin_group')->field('id,name')->select();
+        $info['name']=dc::get('passport',$info['passport_id'],'name');
         $this->info=$info;
         $this->display();
     }

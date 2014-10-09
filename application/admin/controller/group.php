@@ -19,7 +19,7 @@ class GroupController extends AdminController{
             $param['create_user_id']=$_SESSION['admin']['userid'];
             $param['create_time']=NOW_TIME;
             if($this->model->add($param)){
-                $this->success('添加成功');
+                $this->success('添加成功',U('index'));
             }else{
                 $this->error('添加失败');
             }
@@ -40,7 +40,7 @@ class GroupController extends AdminController{
             $param['update_time']=NOW_TIME;
             $param['id']=$id;
             if ($this->model->edit($param)){
-                $this->success('修改成功');
+                $this->success('修改成功',U('index'));
             }else{
                 $this->error('修改失败');
             }

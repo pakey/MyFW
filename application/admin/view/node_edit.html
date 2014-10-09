@@ -70,5 +70,7 @@
 <script type = "text/javascript" src = "__PUBLIC__/plugin/validator/jquery.validator.js"></script>
 <script type = "text/javascript" src = "__PUBLIC__/plugin/datepicker/WdatePicker.js"></script>
 <script type = "text/javascript">
-    $('input[name=status][value={$info.status}]').attr('checked','checked');
+    $(function(){
+        $('input[name=status][value={$info.status}]').attr('checked','checked');
+    });
 </script>

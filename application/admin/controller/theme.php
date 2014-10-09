@@ -3,7 +3,6 @@
 class themeController extends AdminController {
 
     public function init() {
-        $this->typename = '模版管理';
         parent::init();
     }
 
@@ -22,7 +21,6 @@ class themeController extends AdminController {
     }
 
     public function configAction() {
-        $this->actionname = '模版参数设置';
         $key = I('get.tpl', 'str', '');
         $file = TPL_PATH . '/' . $key . '/config.php';
         if (!$this->config = pt::import($file)) {

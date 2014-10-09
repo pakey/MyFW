@@ -1,5 +1,6 @@
 <?php
 return array(
+    'tpl_theme'=>'default',
     'DB_MYSQL' => array(
         'DRIVER' => 'Pdo',
         'PREFIX' => 'ptcms_',
