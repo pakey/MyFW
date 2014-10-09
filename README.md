@@ -17,8 +17,3 @@
 ##文档
 正在编写中
 地址：[PTCMS文档中心](http://www.ptcms.com/manual/dir_1.html)
-
-##todo
-1、其他程序的index.php文件引用绝对路径
-2、版权网址错误
-3、小说小偷的namelist区块 改为模版中传递参数的值 不传递模版参数的key
