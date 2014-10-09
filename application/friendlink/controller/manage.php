@@ -1,5 +1,5 @@
 <?php
-class indexController extends AdminController{
+class ManageController extends AdminController{
     public function init() {
         $this->tableName='friendlink';
         parent::init();
