@@ -509,7 +509,7 @@ function cookie($name, $value = '', $option = null) {
  *
  * @param string $file  需要写入的文件，系统的绝对路径加文件名
  * @param bool $content 不填写 读取 null 删除 其他 写入
- * @param string $mod   写入模式，默认为wb，wb清空写入  ab末尾插入
+ * @param string $mod   写入模式，
  * @return mixed
  */
 function F($file, $content = false, $mod = '') {
@@ -541,9 +541,9 @@ function F($file, $content = false, $mod = '') {
 
         }
         if ($mod) {
-            return file_put_contents($file, strval($content), $mod);
+            return file_put_contents($file, strval($content), LOCK_EX|$mod);
         } else {
-            return file_put_contents($file, strval($content));
+            return file_put_contents($file, strval($content),LOCK_EX);
         }
     }
     return false;
