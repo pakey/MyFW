@@ -3,6 +3,7 @@
 <script type = "text/javascript">
     function showlist($scope, $http) {
         $scope.lists = $.parseJSON('{$list|json_encode}');
+        $scope.aa='<b>aa</b>'
         $scope.changestatus = function (id, value) {
             var param = {
                 'changestatus': '修改状态',

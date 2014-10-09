@@ -8,9 +8,6 @@
                     <input type = "submit" class = "btn btn-primary btn-sm" value = "排序" name = "reorder">
                 </div>
             <div class = "f-fr">
-                <select class = "input-box">
-                    <option value = "title">名称</option>
-                </select>
                 <input ng-model = 'keyword' class = "input-text w160" type = "text" onkeypress="if(event.keyCode==13) {return false;}"/>
                 <input type = "button" class = "btn btn-default btn-sm" value = "搜索" />
             </div>
@@ -35,7 +32,7 @@
                     <td>{{loop.controller}}</td>
                     <td>{{loop.action}}</td>
                     <td>
-                        <input type = "text" name = "ordernum[{{loop.id}}]" value = " {{loop.ordernum}}" class = "input-text" style = "width:100px;" />
+                        <input type = "text" name = "ordernum[{{loop.id}}]" value = " {{loop.ordernum}}" class = "input-text f-tac" style = "width:40px;" />
                     </td>
                     <td>
                         <span class = "label label-warning" ng-if = "loop.status==0" ng-click = "changestatus($index,1)">隐藏</span>
