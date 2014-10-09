@@ -490,6 +490,7 @@ function defaultvar() {
  * @return mixed
  */
 function datevar($time, $format) {
+    if ($time=='0') return '';
     return date($format, $time);
 }
 
