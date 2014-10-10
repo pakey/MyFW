@@ -29,7 +29,7 @@ class Admodel extends  Model{
 
     //获取列表
     public function getlist() {
-        $list=$this->select();
+        $list=(array)$this->select();
         foreach($list as &$v){
             if (isset($v['create_username'])){
                 //后台
