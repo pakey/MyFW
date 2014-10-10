@@ -32,11 +32,11 @@ class FriendlinkModel extends Model{
         $list=(array)$this->select();
         foreach($list as &$v){
             $v['showname']=$this->getshowname($v);
-            if (isset($v['create_username'])){
+            if (isset($v['create_user_id'])){
                 //后台
                 $v['create_username']=dc::get('passport',$v['create_user_id'],'name');
                 $v['update_username']=dc::get('passport',$v['update_user_id'],'name');
-                $v['url_edit']=U('friendlink.index.edit',array('id'=>$v['id']));
+                $v['url_edit']=U('friendlink.manage.edit',array('id'=>$v['id']));
                 $v['create_time']=$v['create_time']?date('Y-m-d H:i',$v['create_time']):'';
                 $v['update_time']=$v['update_time']?date('Y-m-d H:i',$v['update_time']):'';
             }

@@ -16,16 +16,16 @@ class ManageController extends AdminController{
             if (!$param['name']){
                 $this->error('请输入链接名称');
             }
-            $param['url']=I('url','url','');
-            if (!$param['url']){
+            $param['key']=I('key','en','');
+            if (!$param['key']){
                 $this->error('请输入链接地址');
             }
-            $param['logo']=I('logo','str','');
-            $param['description']=I('description','str','');
-            $param['color']=I('color','str','');
-            $param['ordernum']=I('ordernum','int',50);
-            $param['status']=I('status','int',50);
-            $param['isblod']=I('isblod','int',50);
+            $param['width']=I('width','int',0);
+            $param['height']=I('height','int',0);
+            $param['code']=I('code','str','');
+            $param['intro']=I('intro','str','');
+            $param['status']=I('status','int',1);
+            $param['type']=I('isblod','int',1);
             $param['create_user_id']=$_SESSION['admin']['userid'];
             $param['create_time']=NOW_TIME;
             if($this->model->add($param)){
@@ -45,16 +45,14 @@ class ManageController extends AdminController{
             if (!$param['name']){
                 $this->error('请输入链接名称');
             }
-            $param['url']=I('url','url','');
-            if (!$param['url']){
-                $this->error('请输入链接地址');
-            }
-            $param['logo']=I('logo','str','');
-            $param['description']=I('description','str','');
-            $param['color']=I('color','str','');
-            $param['ordernum']=I('ordernum','int',50);
-            $param['status']=I('status','int',50);
-            $param['isblod']=I('isblod','int',50);
+            $param['width']=I('width','int',0);
+            $param['height']=I('height','int',0);
+            $param['code']=I('code','str','');
+            $param['intro']=I('intro','str','');
+            $param['status']=I('status','int',1);
+            $param['type']=I('isblod','int',1);
+            $param['update_user_id']=$_SESSION['admin']['userid'];
+            $param['update_time']=NOW_TIME;
             $param['id']=$id;
             if ($this->model->edit($param)){
                 $this->success('修改成功',U('index'));

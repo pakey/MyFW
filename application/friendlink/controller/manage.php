@@ -24,8 +24,8 @@ class ManageController extends AdminController{
             $param['description']=I('description','str','');
             $param['color']=I('color','str','');
             $param['ordernum']=I('ordernum','int',50);
-            $param['status']=I('status','int',50);
-            $param['isblod']=I('isblod','int',50);
+            $param['status']=I('status','int',1);
+            $param['isblod']=I('isblod','int',0);
             $param['create_user_id']=$_SESSION['admin']['userid'];
             $param['create_time']=NOW_TIME;
             if($this->model->add($param)){
@@ -55,6 +55,8 @@ class ManageController extends AdminController{
             $param['ordernum']=I('ordernum','int',50);
             $param['status']=I('status','int',50);
             $param['isblod']=I('isblod','int',50);
+            $param['update_user_id']=$_SESSION['admin']['userid'];
+            $param['update_time']=NOW_TIME;
             $param['id']=$id;
             if ($this->model->edit($param)){
                 $this->success('修改成功',U('index'));
