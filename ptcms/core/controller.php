@@ -5,23 +5,18 @@
  * @Email : admin@ptcms.com
  * @File  : controller.php
  */
-class Controller {
 
-    protected function getView() {
+class PT_Controller extends PT_Base {
+    public function getView() {
         static $view;
         if (!isset($view)) {
-            plugin::call('view_start');
+            $this->plugin->call('view_start');
             //实例化view
-            $view = new View();
+            $view = new PT_View();
             //初始化模版
             $view->getTheme();
         }
         return $view;
-    }
-
-    public function assign($name, $value = null) {
-        $this->getView()->assign($name, $value);
-        return $this; //支持连贯操作
     }
 
     /**
@@ -33,8 +28,8 @@ class Controller {
      * @param string $theme  所属模版
      * @return void
      */
-    protected function display($tpl = null, $module = null, $theme = null) {
-        $content = $this->render($tpl, $module, $theme);
+    public function display($tpl = null, $module = null, $theme = null) {
+        $content = $this->fetch($tpl, $module, $theme);
         $this->show($content);
     }
 
@@ -47,123 +42,96 @@ class Controller {
      * @return void
      */
     protected function show($content, $mimeType = 'text/html') {
-        pt::show($content, $mimeType);
+        $this->response->setBody($content, $mimeType);
     }
 
-    protected function render($tpl = null, $module = null, $theme = null) {
-        if (C('html', null, false)) {
-            $rules = C('URL_RULES');
-            $key = $_GET['m'] . '.' . $_GET['c'] . '.' . $_GET['a'];
-            if (isset($rules[$key])) {
-                $param = $_GET;
-                unset($param['m'], $param['c'], $param['a'], $param['s'], $param['t']);
-                C('is_gen_html', true);
-                $content = $this->getView()->render($tpl, $module, $theme);
-                $url = empty($this->htmlurl) ? U($key, $param, C('link_ignore', null, array())) : $this->htmlurl;
-                html::create($url, $content);
-                return $content;
-            }
+    protected function fetch($tpl = null, $module = null, $theme = null) {
+        return $this->view->fetch($tpl, $module, $theme);
+    }
+
+    protected function render($var){
+        if ($var===true){
+            $this->response->enableRender();
+        }elseif($var===false){
+            $this->response->disableRender();
+        }else{
+            $this->view->setFile($var);
         }
-        return $this->getView()->render($tpl, $module, $theme);
     }
 
-    // 实现 $this->name=value 的赋值方法
-    public function __set($name, $value) {
-        $this->getView()->assign($name, $value);
-    }
-
-    // 获取 $this->name 的值
-    public function __get($name) {
-        return $this->getView()->getassign($name);
-    }
-
-    protected function success($info, $jumpUrl = '', $second = 1) {
+    public function success($info, $jumpUrl = '', $second = 1) {
         $this->dispatchJump($info, 1, $jumpUrl, $second);
     }
 
-    protected function error($info, $jumpUrl = '', $second = 3) {
+    public function error($info, $jumpUrl = '', $second = 3) {
         $this->dispatchJump($info, 0, $jumpUrl, $second);
     }
 
     protected function dispatchJump($message, $status = 1, $jumpurl = '', $second = 1) {
-        C('LAYOUT', false);
-        if (IS_AJAX or $second === true) {
+        $this->config->set('layout', false);
+        if ($this->request->isAjax() or $second === true) {
             $data['status'] = $status;
-            $data['info'] = $message;
-            $data['url'] = $jumpurl;
+            $data['info']   = $message;
+            $data['url']    = $jumpurl;
             $this->ajax($data);
         } else {
-            defined('PT_SITENAME') ? $this->assign('msgname', PT_SITENAME) : $this->assign('msgname', C('SITENAME', null, 'PTFrameWork'));
+            defined('PT_SITENAME') ? $this->view->set('msgname', PT_SITENAME) : $this->view->set('msgname', $this->config->get('sitename', null, 'PTFrameWork'));
             //如果设置了关闭窗口，则提示完毕后自动关闭窗口
-            $this->assign('status', $status); // 状态
-            $this->assign('waitsecond', $second);
-            $this->assign('message', $message); // 提示信息
-            $this->assign('msgtitle', $status ? '成功' : '失败');
+            $this->view->set('status', $status); // 状态
+            $this->view->set('waitsecond', $second);
+            $this->view->set('message', $message); // 提示信息
+            $this->view->set('msgtitle', $status ? '成功' : '失败');
             if ($status) { //发送成功信息
-                $this->assign('msgtype', 'success'); // 提示类型
+                $this->view->set('msgtype', 'success'); // 提示类型
                 // 默认操作成功自动返回操作前页面
                 if ($jumpurl) {
-                    $this->assign("jumpurl", $jumpurl);
+                    $this->view->set("jumpurl", $jumpurl);
                 } elseif (!empty($_SERVER['HTTP_REFERER'])) {
-                    $this->assign("jumpurl", $_SERVER["HTTP_REFERER"]);
+                    $this->view->set("jumpurl", $_SERVER["HTTP_REFERER"]);
                 } else {
-                    $this->assign('jumpurl', $_SERVER['REQUEST_URI']);
+                    $this->view->set('jumpurl', $_SERVER['REQUEST_URI']);
                 }
             } else {
-                $this->assign('msgtype', 'error'); // 提示类型
+                $this->view->set('msgtype', 'error'); // 提示类型
                 // 默认发生错误的话自动返回上页
                 if ($jumpurl) {
-                    $this->assign("jumpurl", $jumpurl);
+                    $this->view->set("jumpurl", $jumpurl);
                 } elseif (!empty($_SERVER['HTTP_REFERER'])) {
-                    $this->assign("jumpurl", '#back#');
+                    $this->view->set("jumpurl", '#back#');
                 } else {
-                    $this->assign('jumpurl', $_SERVER['REQUEST_URI']);
+                    $this->view->set('jumpurl', $_SERVER['REQUEST_URI']);
                 }
             }
-            $this->display('message', 'common', C('tpl_theme') ? C('tpl_theme') : 'default');
+            $this->display('message', 'common', $this->config->get('tpl_theme') ? $this->config->get('tpl_theme') : 'default');
             exit;
         }
     }
 
-    protected function ajax($data, $type = 'json') {
+    public function ajax($data, $type = 'json') {
+        // 跨域
+        header('Access-Control-Allow-Origin:*');
+        header('Access-Control-Allow-Headers:accept, content-type');
+
         switch (strtoupper($type)) {
             case 'JSON' :
                 // 返回JSON数据格式到客户端 包含状态信息
-                pt::show(json_encode($data), 'application/json');
+                $data=$this->response->jsonEncode($data);
                 break;
             case 'JSONP':
-                // 返回JSON数据格式到客户端 包含状态信息
-                $handler = isset($_GET[C('VAR_JSONP_HANDLER')]) ? $_GET[C('VAR_JSONP_HANDLER')] : 'ptcms_jsonp';
-                pt::show($handler . '(' . json_encode($data) . ');', 'application/json');
+                // 返回JSONP数据格式到客户端 包含状态信息
+                $data=$this->response->jsonpEncode($data);
                 break;
             case 'EVAL' :
                 // 返回可执行的js脚本
-                pt::show($data);
                 break;
             default     :
-                // 用于扩展其他返回格式数据
         }
+        $this->response->setBody($data, 'application/json');
         exit;
     }
 
     public function redirect($url, $type = 302) {
-        if ($type == 302) {
-            header('HTTP/1.1 302 Moved Temporarily');
-            header('Status:302 Moved Temporarily'); // 确保FastCGI模式下正常
-        } else {
-            header('HTTP/1.1 301 Moved Permanently');
-            header('Status:301 Moved Permanently');
-        }
-        header('Location: ' . $url);
-        exit;
-    }
-
-    public function _empty($msg) {
-        if (APP_DEBUG) {
-            $this->error($msg, '', 0);
-        } else {
-            halt($msg);
-        }
+        $this->response->redirect($url, $type);
     }
 
 }

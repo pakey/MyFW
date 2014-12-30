@@ -1,7 +1,7 @@
 <?php
 
 // todo f函数改为storage
-class log {
+class PT_log extends PT_Base {
 
     public static $logstr = array();
 
@@ -13,7 +13,7 @@ class log {
      */
     public static function write($str, $type = 'pt') {
         $str = "[" . date('Y-m-d H:i:s') . "] " . $str . PHP_EOL;
-        F(CACHE_PATH . '/log/' . $type . '_' . date('Ymd') . '.log', $str, FILE_APPEND);
+        F(CACHE_PATH . '/log/' . $type . '_' . date('Ymd') . '.txt', $str, FILE_APPEND);
     }
 
     /**
@@ -32,7 +32,7 @@ class log {
     public static function build() {
 
         foreach (self::$logstr as $type => $log) {
-            $file = CACHE_PATH . '/log/' . $type . '_' . date('Ymd') . '.log';
+            $file = CACHE_PATH . '/log/' . $type . '_' . date('Ymd') . '.txt';
             if (is_array($log)) {
                 foreach ($log as $v) {
                     F($file, $v, FILE_APPEND);

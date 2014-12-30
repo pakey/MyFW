@@ -70,7 +70,7 @@ class Verify {
      */
     static function buildImageVerify($length = 4, $mode = 1, $type = 'png', $width = 48, $height = 22, $verifyName = 'verify') {
         $randval = self::randString($length, $mode);
-        $_SESSION[$verifyName] = strtolower($randval);
+        PT_Base::getInstance()->session->set($verifyName, strtolower($randval));
         $width = ($length * 10 + 10) > $width ? $length * 10 + 10 : $width;
         if ($type != 'gif' && function_exists('imagecreatetruecolor')) {
             $im = imagecreatetruecolor($width, $height);

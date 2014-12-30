@@ -5,14 +5,14 @@
  * @Email : admin@ptcms.com
  * @File  : File.php
  */
-class Driver_Storage_File {
+class Driver_Storage_File extends PT_Base {
 
     protected static $path = null;
-    protected static $url = null;
+    protected static $url  = null;
 
     public function __construct($domain = '') {
-        self::$path = PT_ROOT . '/' . C('storage_path') . '/';
-        self::$url = PT_DIR . '/' . C('storage_path') . '/';
+        self::$path = PT_ROOT . '/' . $this->config->get('storage_path') . '/';
+        self::$url  = PT_DIR . '/' . $this->config->get('storage_path') . '/';
     }
 
     public function exist($file) {
@@ -37,6 +37,10 @@ class Driver_Storage_File {
 
     public function getUrl($file) {
         return self::$url . $file;
+    }
+
+    public function getPath($file) {
+        return self::$path . $file;
     }
 
     public function error() {

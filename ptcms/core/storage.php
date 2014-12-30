@@ -5,20 +5,21 @@
  * @Email : admin@ptcms.com
  * @File  : Storage.php
  */
-class Storage {
+class PT_Storage extends PT_Base {
 
     protected static $handler = null;
 
     /**
+     * @param string $type
      * @return Driver_Storage_File
      */
-    static public function getInstance() {
-        $key = C('storage_type', null, 'file') . '_' . C('storage_path', null, 'storage');
-        if (empty(self::$handler[$key])) {
-            $class = 'Driver_Storage_' . C('storage_type');
-            self::$handler[$key] = new $class(C('storage_option', null, array()));
+    static public function getInstance($type = '') {
+        $type = $type ? $type : PT_Base::getInstance()->config->get('storage_type', 'file') . '_' . PT_Base::getInstance()->config->get('storage_path', 'storage');
+        if (empty(self::$handler[$type])) {
+            $class                = 'Driver_Storage_' . PT_Base::getInstance()->config->get('storage_type');
+            self::$handler[$type] = new $class(PT_Base::getInstance()->config->get('storage_option', array()));
         }
-        return self::$handler[$key];
+        return self::$handler[$type];
     }
 
     public static function exist($file) {
@@ -47,6 +48,10 @@ class Storage {
 
     public static function getUrl($file) {
         return self::getInstance()->getUrl($file);
+    }
+
+    public static function getPath($file) {
+        return self::getInstance()->getPath($file);
     }
 
     public static function error() {

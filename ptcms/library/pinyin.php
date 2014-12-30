@@ -7,9 +7,9 @@
  */
 class pinyin {
 
-    static $data = null;
+    protected static $data = null;
 
-    public static function getdata() {
+    protected static function getdata() {
         if (self::$data === null) {
             $fp = fopen(dirname(__FILE__) . '/data/pinyin.dat', 'r') or exit('读取字典失败');
             while (!feof($fp)) {
@@ -29,7 +29,7 @@ class pinyin {
      * @param string $default 匹配不到默认显示字符
      * @return string
      */
-    public static function change($str, $isfirst = false, $default = '-') {
+    public static function change($str, $isfirst = false, $default = '0') {
         $str = iconv('UTF-8', 'GBK//ignore', $str);
         $data = self::getdata();
         $restr = '';

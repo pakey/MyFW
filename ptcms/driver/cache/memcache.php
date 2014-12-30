@@ -5,15 +5,30 @@
  * @Email : admin@ptcms.com
  * @File  : Memcache.php
  */
-class Driver_Cache_Memcache {
+class Driver_Cache_Memcache extends PT_Base {
 
     protected static $handler = null;
-    protected static $prefix = null;
+    protected static $prefix  = null;
 
     public function __construct($option = array()) {
-        self::$handler = new Memcache();
-        self::$handler->connect(C('memcache_host', null, '127.0.0.1'), C('memcache_port', null, '11211'));
-        self::$prefix = C('cache_prefix', null, substr(md5(PT_URL), 0, 3) . '_');
+        if ((function_exists('saeAutoLoader') or function_exists('sae_auto_load')) && function_exists('memcache_init')) {
+            self::$handler = memcache_init();
+        } elseif (isset($_SERVER['HTTP_BAE_LOGID'])) {
+            include PT_PATH . '/library/bae/BaeMemcache.class.php';
+            $cacheid       = $this->config->get('bae_cache_id');
+            $host          = $this->config->get('bae_cache_host');
+            $port          = $this->config->get('bae_cache_port');
+            $user          = $this->config->get('bae_cache_user');
+            $pwd           = $this->config->get('bae_cache_pwd');
+            self::$handler = new BaeMemcache($cacheid, $host . ': ' . $port, $user, $pwd);
+        } else {
+            self::$handler = new Memcache();
+            self::$handler->connect($this->config->get('memcache_host', '127.0.0.1'), $this->config->get('memcache_port', null, '11211'));
+        }
+        if (!self::$handler) {
+            PT_Log::record('链接缓存驱动失败');
+        }
+        self::$prefix = $this->config->get('cache_prefix', substr(md5(PT_URL), 3, 3) . '_');
     }
 
     public function set($key, $value, $time = 0) {
@@ -21,14 +36,21 @@ class Driver_Cache_Memcache {
     }
 
     public function get($key) {
-        if ($return=self::$handler->get(self::$prefix . $key)){
-            return $return;
-        }
-        return null;
+        $return = self::$handler->get(self::$prefix . $key);
+        if ($return === false) return null;
+        return $return;
     }
 
     public function rm($key) {
         return self::$handler->delete(self::$prefix . $key);
+    }
+
+    public function inc($key, $num = 1) {
+        return self::$handler->increment(self::$prefix . $key, $num);
+    }
+
+    public function dec($key, $num = 1) {
+        return self::$handler->decrement(self::$prefix . $key, $num);
     }
 
     public function clear() {

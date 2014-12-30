@@ -5,11 +5,15 @@
  * @Email : admin@ptcms.com
  * @File  : plugin.php
  */
-class plugin {
+class PT_Plugin extends PT_Base {
 
-    public $tag = '';
+    protected $pt;
+    //子类hook点
     public static $_tags = array();
 
+    public function __construct() {
+        $this->pt=PT_Base::getInstance();
+    }
     /**
      * 调用插件
      *
@@ -83,6 +87,10 @@ class plugin {
         }
     }
 
+    /**
+     * 获取开启的所有的插件
+     * @return array
+     */
     public static function getlist() {
         $list = array();
         foreach (self::$_tags as $v) {
@@ -91,50 +99,19 @@ class plugin {
         return array_unique($list);
     }
 
-    /**
-     * 安装插件
-     */
-    public function install() {
-        $name = substr(get_class($this), 0, -6);
-        if ($this->checkstatus($name)) {
-            return 0;
-        } elseif ($this->tag == '') {
-            return -1;
-        }
-        self::add($this->tag, $name);
-        $config = include APP_PATH . '/common/config.php';
-        $config['plugin'] = self::$_tags;
-        F(APP_PATH . '/common/config.php', $config);
-        return 1;
-    }
-
-    // 卸载插件
-    public function uninstall() {
-        $name = substr(get_class($this), 0, -6);
-        if (!$this->checkstatus($name)) {
-            return 0;
-        } elseif ($this->tag == '') {
-            return -1;
-        }
-        self::del($this->tag, substr(get_class($this), 0, -6));
-        $config = include APP_PATH . '/common/config.php';
-        $config['plugin'] = self::$_tags;
-        F(APP_PATH . '/common/config.php', $config);
-        return 1;
-    }
-
-    // 检查插件是否被安装
-    public function checkstatus($plugin) {
-        if (substr($plugin, -4) == '.php') $plugin = substr($plugin, 0, -4);
-        foreach (self::$_tags as $tag) {
-            if (in_array($plugin, $tag)) return true;
-        }
-        return false;
-    }
 
     // 返回插件的配置项
-    public function getconfig($key) {
+    public function loadconfig() {
         $name = substr(get_class($this), 0, -6);
-        return C('plugin_config.' . $name . '.' . $key);
+        $list=pt::import(APP_PATH.'/common/plugin/'.$name.'/config.php');
+        if ($list){
+            $config=array();
+            foreach($list as $v){
+                $config[$v['key']]=$v['value'];
+            }
+            $this->pt->config->set(array('pluginconfig'=>$config));
+            return $config;
+        }
+        return array();
     }
 }

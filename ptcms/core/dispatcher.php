@@ -5,41 +5,53 @@
  * @Email : admin@ptcms.com
  * @File  : dispatcher.php
  */
-class dispatcher {
+class PT_Dispatcher extends PT_Base {
 
     // 入口文件
-    public static function run() {
-        if (!empty($_POST['s'])) $_GET['s'] = $_POST['s'];
-        if (!empty($_POST['m'])) $_GET['m'] = $_POST['m'];
-        if (!empty($_POST['c'])) $_GET['c'] = $_POST['c'];
-        if (!empty($_POST['a'])) $_GET['a'] = $_POST['a'];
+    public function run() {
+        // 暂时去掉post设置参数
+        //if (!empty($_POST['s'])) $_GET['s'] = $_POST['s'];
+        //if (!empty($_POST['m'])) $_GET['m'] = $_POST['m'];
+        //if (!empty($_POST['c'])) $_GET['c'] = $_POST['c'];
+        //if (!empty($_POST['a'])) $_GET['a'] = $_POST['a'];
         if (empty($_GET['s'])) {
             //设置默认值
-            $_GET['m']=empty($_GET['m'])?C('default_module', null, 'index'):$_GET['m'];
-            $_GET['c']=empty($_GET['c'])?C('default_controller', null, 'index'):$_GET['c'];
-            $_GET['a']=empty($_GET['a'])?C('default_action', null, 'index'):$_GET['a'];
+            $_GET['m'] = empty($_GET['m']) ? $this->config->get('default_module', 'index') : $_GET['m'];
+            $_GET['c'] = empty($_GET['c']) ? $this->config->get('default_controller', 'index') : $_GET['c'];
+            $_GET['a'] = empty($_GET['a']) ? $this->config->get('default_action', 'index') : $_GET['a'];
         } else {
             $_GET['s'] = trim($_GET['s'], '/');//去除左右的/防止干扰
-            self::router();//路由校验
-            self::parseSuperVar();//解析超级变量
+            $this->router();//路由校验
+            $this->parseSuperVar();//解析超级变量
         }
+        $_GET['f'] = empty($_GET['f']) ? $this->config->get('default_format', 'html') : $_GET['f'];
         //module映射
-        $mapModule = C('map_module', null, array());
+        $mapModule = $this->config->get('map_module', array());
         if (isset($mapModule[$_GET['m']])) {
             halt('当前模块已经改名', __FILE__, __LINE__ - 1);
         } elseif (in_array($_GET['m'], $mapModule)) {
             $_GET['_m'] = $_GET['m'];
             $_GET['m'] = array_search($_GET['m'], $mapModule);
         }
+        //过滤xss及参数前后空白
+        foreach($_GET as &$v){
+            $v=trim(strip_tags($v));
+        }
         $_REQUEST = array_merge($_GET, $_POST);
     }
 
     // 解析超级变量
-    public static function parseSuperVar() {
-        $param = explode('/', $_GET['s']);
-        $var['m'] = isset($param['0']) ? array_shift($param) : C('default_module', null, 'index');
-        $var['c'] = isset($param['0']) ? array_shift($param) : C('default_controller', null, 'index');
-        $var['a'] = isset($param['0']) ? array_shift($param) : C('default_action', null, 'index');
+    public function parseSuperVar() {
+        if (strpos($_GET['s'], '.')) {
+            $param = explode('.', $_GET['s'], 2);
+            $_GET['f'] = $param['1'];
+            $param = explode('/', $param['0']);
+        } else {
+            $param = explode('/', $_GET['s']);
+        }
+        $var['m'] = isset($param['0']) ? array_shift($param) : $this->config->get('default_module', 'index');
+        $var['c'] = isset($param['0']) ? array_shift($param) : $this->config->get('default_controller', 'index');
+        $var['a'] = isset($param['0']) ? array_shift($param) : $this->config->get('default_action', 'index');
         while ($k = each($param)) {
             $var[$k['value']] = current($param);
             next($param);
@@ -48,8 +60,8 @@ class dispatcher {
     }
 
     // 解析路由
-    public static function router() {
-        if ($router = C('url_router')) {
+    public function router() {
+        if ($router = $this->config->get('url_router')) {
             foreach ($router as $rule => $url) {
                 if (preg_match('{' . $rule . '}isU', $_GET['s'], $match)) {
                     unset($match['0']);

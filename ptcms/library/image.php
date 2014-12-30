@@ -286,9 +286,10 @@ class Image {
      */
     public function text($text, $font, $size = 20, $color = '#ff0000', $locate = Image::IMAGE_WATER_SOUTHEAST, $margin = '', $offset = 0, $angle = 0) {
         //资源检测
-        if (!is_file($font)) return false;
+        //if (!is_file($font)) return false;
         if ($margin === '') $margin = ceil($size / 2);
         //获取文字信息
+
         $info = imagettfbbox($size, $angle, $font, $text);
         $minx = min($info[0], $info[2], $info[4], $info[6]);
         $maxx = max($info[0], $info[2], $info[4], $info[6]);

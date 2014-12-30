@@ -1,13 +1,13 @@
 <?php
 
-class Driver_Storage_Sae {
+class Driver_Storage_Sae extends PT_Base {
 
     protected static $handler = null;
-    protected static $domain = null;
+    protected static $domain  = null;
 
     public function __construct($domain = '') {
         self::$handler = new SaeStorage();
-        self::$domain = $domain ? $domain : C('storage_path');
+        self::$domain  = $domain ? $domain : $this->config->get('storage_path');
         return self::$handler;
     }
 
@@ -35,6 +35,10 @@ class Driver_Storage_Sae {
     }
 
     public function getUrl($file) {
+        return self::$handler->getUrl(self::$domain, $file);
+    }
+
+    public function getPath($file) {
         return self::$handler->getUrl(self::$domain, $file);
     }
 

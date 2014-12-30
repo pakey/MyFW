@@ -2,6 +2,33 @@
 
 class collect {
 
+    public static function getcontent($data) {
+        if(is_string($data)) $data=array('rule'=>$data,'charset'=>'auto');
+        $content=http::get($data['rule']);
+        if ($content){
+            // 处理编码
+            if (!in_array($data['charset'], array('auto', 'utf-8', 'gbk'))) {
+                $data['charset'] = 'auto';
+            }
+            if ($data['charset'] == 'auto') {
+                if (!mb_check_encoding($content,'UTF-8')) {
+                    $content = mb_convert_encoding ($content,'UTF-8','GBK' );
+                }
+            } elseif ($data['charset'] == 'gbk') {
+                $content = mb_convert_encoding ($content,'UTF-8','GBK' );
+            }
+            //错误标识
+            if (!empty($data['error']) && strpos($content,$data['error'])!==false){
+                return '';
+            }
+            if (!empty($data['replace'])) {
+                $content=collect::replace($content, $data['replace']);
+            }
+            return $content;
+        }
+        return '';
+    }
+
     /**
      * 根据正则批量获取
      *
@@ -12,7 +39,7 @@ class collect {
      */
     public static function getMatchAll($pregArr, $code, $needposition = 0) {
         if (is_string($pregArr)) {
-            $pregArr = array('rule' => $pregArr);
+            $pregArr = array('rule' => self::parseMatchRule($pregArr));
         } elseif (empty($pregArr['rule'])) {
             return array();
         }
@@ -51,7 +78,11 @@ class collect {
                         }
                     }
                 }
-                $matchvar = $match['1'];
+                if (isset($match['1'])){
+                    $matchvar = $match['1'];
+                }else{
+                    return false;
+                }
             }
             if (!empty($pregArr['replace'])) {
                 foreach ($matchvar as $k => $v) {
@@ -72,7 +103,7 @@ class collect {
      */
     public static function getMatch($pregArr, $code) {
         if (is_string($pregArr)) {
-            $pregArr = array('rule' => $pregArr);
+            $pregArr = array('rule' => self::parseMatchRule($pregArr));
         } elseif (empty($pregArr['rule'])) {
             return '';
         }
@@ -111,7 +142,7 @@ class collect {
                 $replace = isset($tmp['1']) ? $tmp['1'] : '';
                 $v['option'] = isset($v['option']) ? $v['option'] : '';
                 if ($v['method'] == 1) { //正则
-                    $con = preg_replace("{{$rule}}{$v['option']}", $replace, $con);
+                    $con = preg_replace("{".$rule."}{$v['option']}", $replace, $con);
                 } else {
                     if (strpos($v['option'], 'i') === false) {
                         $con = str_replace($rule, $replace, $con);
@@ -132,17 +163,21 @@ class collect {
      * @return string
      */
     public static function parseUrl($url, $path) {
-        if (strpos($url, '://') === false) {
-            if (substr($url, 0, 1) == '/') {
-                $tmp = parse_url($path);
-                $url = $tmp['scheme'] . '://' . $tmp['host'] . $url;
-            } elseif (substr($path, -1) == '/') {
-                $url = $path . $url;
-            } else {
-                $url = dirname($path) . '/' . $url;
+        if ($url){
+            if (strpos($url, '://') === false) {
+                if (substr($url, 0, 1) == '/') {
+                    $tmp = parse_url($path);
+                    $url = $tmp['scheme'] . '://' . $tmp['host'] . $url;
+                } elseif (substr($path, -1) == '/') {
+                    $url = $path . $url;
+                } else {
+                    $url = dirname($path) . '/' . $url;
+                }
             }
+            return $url;
+        }else{
+            return '';
         }
-        return $url;
     }
 
     /**
@@ -176,4 +211,20 @@ class collect {
         }
         return ($args);
     }
+
+    public static function parseMatchRule($rules) {
+        $replace_pairs=array(
+            '{'=>'\{',
+            '}'=>'\}',
+            '[内容]'=>'(.*?)',
+            '[数字]'=>'\d*',
+            '[空白]'=>'\s*',
+            '[任意]'=>'.*?',
+            '[参数]'=>'[^\>\<]*?',
+            '[属性]'=>'[^\>\<\'"]*?',
+        );
+        return strtr($rules,$replace_pairs);
+    }
+
+
 }

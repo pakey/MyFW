@@ -108,8 +108,8 @@ abstract class oauth {
      */
     public static function getInstance($type, $token = null) {
         if (empty(self::$_instance[$type])) {
-            $config['appid'] = C("oauth_{$type}_appid");
-            $config['appsecret'] = C("oauth_{$type}_appsecret");
+            $config['appid'] = PT_Base::getInstance()->config->get("oauth_{$type}_appid");
+            $config['appsecret'] = PT_Base::getInstance()->config->get("oauth_{$type}_appsecret");
             $classname = 'Driver_Oauth_' . $type;
             self::$_instance[$type] = new $classname($config, $token);
         }

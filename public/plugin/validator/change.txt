@@ -1,1 +1,0 @@
-remote增加tp ajax返回支持

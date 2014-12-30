@@ -5,37 +5,43 @@
  * @Email : admin@ptcms.com
  * @File  : Cache.php
  */
-class Cache {
+class PT_Cache{
 
     protected static $handler = null;
+    protected $pt;
+
+    public function __construct() {
+        $this->pt=PT_Base::getInstance();
+    }
 
     /**
+     * @param string $type;
      * @return Driver_Cache_File
      */
-    public static function getInstance() {
-        $key = C('cache_type', null, 'file');
-        if (empty(self::$handler[$key])) {
-            $class = 'Driver_Cache_' . C('cache_type');
-            self::$handler[$key] = new $class(C('cache_option', null, array()));
+    public function getInstance($type = '') {
+        $type = $type ? $type : $this->pt->config->get('cache_driver', 'file');
+        if (empty(self::$handler[$type])) {
+            $class                = 'Driver_Cache_' . $this->pt->config->get('cache_driver');
+            self::$handler[$type] = new $class($this->pt->config->get('cache_option', array()));
         }
-        return self::$handler[$key];
+        return self::$handler[$type];
     }
 
-    public static function set($key, $value, $time = 0) {
+    public function set($key, $value, $time = 0) {
         $GLOBALS['_cacheWrite']++;
-        return self::getInstance()->set($key, $value, $time);
+        return $this->getInstance()->set($key, $value, $time);
     }
 
-    public static function get($key) {
+    public function get($key) {
         $GLOBALS['_cacheRead']++;
-        return self::getInstance()->get($key);
+        return $this->getInstance()->get($key);
     }
 
-    public static function rm($key) {
-        return self::getInstance()->rm($key);
+    public function rm($key) {
+        return $this->getInstance()->rm($key);
     }
 
-    public static function clear() {
-        self::getInstance()->clear();
+    public function clear() {
+        $this->getInstance()->clear();
     }
 }

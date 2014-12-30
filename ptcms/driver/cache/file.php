@@ -16,13 +16,13 @@ class Driver_Cache_File {
         $file = self::key2file($key);
         $data['data'] = $value;
         $data['time'] = ($time == 0) ? 0 : (NOW_TIME + $time);
-        return F($file, $data);
+        return F($file, serialize($data));
     }
 
     public function get($key) {
         $file = self::key2file($key);
         if (is_file($file)) {
-            $data = pt::import($file);
+            $data = unserialize(F($file));
             if ($data && ($data['time'] > 0 && $data['time'] < NOW_TIME)) {
                 self::rm($key);
                 return null;
@@ -42,8 +42,28 @@ class Driver_Cache_File {
 
     public function key2file($key) {
         $key = md5($key);
-        $file = CACHE_PATH . '/data/' . substr($key, 0, 1) . '/' . substr($key, 1, 2) . '/' . $key . '.php';
+        $file = CACHE_PATH . '/data/cache/' . $key{0} . '/' . $key{1} . '/' . $key . '.php';
         return $file;
+    }
+
+    public function inc($key,$num=1){
+        $data=$this->get($key);
+        if ($data){
+            $data+=$num;
+            $this->set($key,$data);
+            return $data;
+        }
+        return false;
+    }
+
+    public function dec($key,$num=1){
+        $data=$this->get($key);
+        if ($data){
+            $data-=$num;
+            $this->set($key,$data);
+            return $data;
+        }
+        return false;
     }
 
     public function clear() {

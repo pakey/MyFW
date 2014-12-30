@@ -16,7 +16,7 @@ class upload {
     //自定义文件存放完整路径
     public $filePath;
     //自定义允许文件后缀
-    public $allowType = "jpg|png|gif|txt|bmp|doc|xls|jpeg|zip|rar";
+    public $allowType = "jpg|png|gif|txt|bmp|ico|doc|xls|jpeg|zip|rar";
     //自定义允许文件mime
     public $allowMime = array();
     //自定义文件大小 Kb
@@ -131,7 +131,7 @@ class upload {
         // 上传操作
         if ($this->save(F($this->fileinfo['tmp_name']))) {
             $info['ext'] = $this->get_type();
-            $info['fileurl'] = Storage::geturl($this->filePath);
+            $info['fileurl'] = PT_Base::getInstance()->storage->geturl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];
             $info['hash'] = md5_file($this->fileinfo['tmp_name']);
@@ -151,7 +151,7 @@ class upload {
                 $content = $img->save();
             }
         }
-        return storage::write($this->filePath, $content);
+        return PT_Base::getInstance()->storage->write($this->filePath, $content);
     }
 
     protected function geterrorinfo($num) {
@@ -184,7 +184,7 @@ class upload {
         $this->getpath();
         if ($this->save($content)) {
             $info['ext'] = $this->get_type();
-            $info['fileurl'] = Storage::geturl($this->filePath);
+            $info['fileurl'] = PT_Base::getInstance()->storage->geturl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];
             $info['hash'] = md5($content);

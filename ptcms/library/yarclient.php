@@ -1,10 +1,6 @@
 <?php
-if (class_exists('Yar_Client')) {
-    class Yarclient extends Yar_Client {
-
-    }
-} else {
-    class Yarclient {
+if (!class_exists('Yar_Client')) {
+    class Yar_client {
 
         protected $uri;
 
