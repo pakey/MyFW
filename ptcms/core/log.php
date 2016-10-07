@@ -1,7 +1,7 @@
 <?php
 
 // todo f函数改为storage
-class PT_log extends PT_Base {
+class PT_Log extends PT_Base {
 
     public static $logstr = array();
 
@@ -43,3 +43,4 @@ class PT_log extends PT_Base {
         }
     }
 }
+class log extends PT_log{}

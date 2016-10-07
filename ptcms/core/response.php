@@ -20,6 +20,11 @@ class PT_Response extends PT_Base {
             header("Cache-control: private");
             //版权标识
             header("X-Powered-By: PTcms Studio (www.ptcms.com)");
+            // 跨域
+            if (strpos($mimeType, 'json')) {
+                header('Access-Control-Allow-Origin:*');
+                header('Access-Control-Allow-Headers:accept, content-type');
+            }
         }
     }
 
@@ -46,16 +51,18 @@ class PT_Response extends PT_Base {
     public function jsonEncode($data, $format = 0) {
         if (APP_DEBUG && $format == 0) {
             $format = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE;
+            return json_encode($data, $format);
         }
-        return json_encode($data, $format);
+        return json_encode($data);
     }
 
     public function jsonpEncode($data, $format = 0) {
+        $callback = $this->input->get($this->config->get('jsonp_callback'), 'en', 'ptcms_jsonp');
         if (APP_DEBUG && $format == 0) {
             $format = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE;
+            return $callback . '(' . json_encode($data, $format) . ');';
         }
-        $callback = $this->input->get($this->config->get('jsonp_callback'), 'en', 'ptcms_jsonp');
-        return $callback . '(' . json_encode($data, $format) . ');';
+        return $callback . '(' . json_encode($data) . ');';
     }
 
     /**
@@ -68,30 +75,18 @@ class PT_Response extends PT_Base {
      * @return string
      */
     public function xmlEncode($data, $root = 'ptcms', $attr = '', $encoding = 'utf-8') {
-        if (is_array($attr)) {
-            $_attr = array();
-            foreach ($attr as $key => $value) {
-                $_attr[] = "{$key}=\"{$value}\"";
-            }
-            $attr = implode(' ', $_attr);
-        }
-        $attr = trim($attr);
-        $attr = empty($attr) ? '' : " {$attr}";
-        $xml  = "<?xml version=\"1.0\" encoding=\"{$encoding}\"?>";
-        $xml .= "<{$root}{$attr}>";
-        $xml .= $this->dataToXml($data);
-        $xml .= "</{$root}>";
-        return preg_replace('/[\x00-\x1f]/', '', $xml);
+        return $this->load('xml')->encode($data, $root, $attr, $encoding);
     }
 
     public function error($msg = '找不到指定的页面', $level = 'f') {
+        header('HTTP/1.1 404 Not Found');
+        header("status: 404 Not Found");
         if (APP_DEBUG) {
             halt($msg);
         } else {
             if ($level != 'f') {
                 $this->controller->error($msg, 0, 0);
             } else {
-                $this->error($msg, '', 0);
                 $file = PT_ROOT . '/' . $this->config->get('404file', '404.html');
                 $this->log->write($msg);
                 if (is_file($file)) {
@@ -115,14 +110,18 @@ class PT_Response extends PT_Base {
     }
 
     public function redirect($url, $type = 302) {
-        if ($type == 302) {
-            header('HTTP/1.1 302 Moved Temporarily');
-            header('Status:302 Moved Temporarily'); // 确保FastCGI模式下正常
-        } else {
-            header('HTTP/1.1 301 Moved Permanently');
-            header('Status:301 Moved Permanently');
+        if (!headers_sent()) {
+            if ($type == 302) {
+                header('HTTP/1.1 302 Moved Temporarily');
+                header('Status:302 Moved Temporarily'); // 确保FastCGI模式下正常
+            } else {
+                header('HTTP/1.1 301 Moved Permanently');
+                header('Status:301 Moved Permanently');
+            }
+            header('Location: ' . $url);
+        }else{
+            echo '<script>window.location.href="'.$url.'"</script>';
         }
-        header('Location: ' . $url);
         exit;
     }
 
@@ -159,38 +158,8 @@ class PT_Response extends PT_Base {
 
 
     /**
-     * 数据XML编码
-     *
-     * @param mixed  $data 数据
-     * @param string $parentkey
-     * @return string
-     */
-    protected function dataToXml($data, $parentkey = '') {
-        $xml = '';
-        foreach ($data as $key => $val) {
-            if (is_numeric($key)) {
-                $key = $parentkey;
-            }
-            $xml .= "<{$key}>";
-            if (is_array($val) || is_object($val)) {
-                $len = strlen("<{$key}>");
-                $con = $this->dataToXml($val, $key);
-                if (strpos($con, "<{$key}>") === 0) {
-                    $con = substr($con, $len, -($len + 1));
-                }
-                $xml .= $con;
-            } elseif (strlen($val) > 150 || preg_match('{[<>&\'|"]+}', $val)) {
-                $xml .= '<![CDATA[' . $val . ']]>';
-            } else {
-                $xml .= $val;
-            }
-            $xml .= "</{$key}>";
-        }
-        return $xml;
-    }
-
-    /**
      * 下载文件
+     *
      * @param        $con
      * @param        $name
      * @param string $type
@@ -202,7 +171,7 @@ class PT_Response extends PT_Base {
         header("Content-Length: " . $length);
         header('Pragma: cache');
         header('Cache-Control: public, must-revalidate, max-age=0');
-        header('Content-Disposition: attachment; filename="' . urlencode($name) . '.txt"; charset=utf-8'); //下载显示的名字,注意格式
+        header('Content-Disposition: attachment; filename="' . urlencode($name) . '"; charset=utf-8'); //下载显示的名字,注意格式
         header("Content-Transfer-Encoding: binary ");
         if ($type == 'file') {
             readfile($con);
@@ -210,6 +179,8 @@ class PT_Response extends PT_Base {
             echo $con;
         }
     }
+}
 
+class response extends PT_response {
 
 }

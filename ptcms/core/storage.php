@@ -58,3 +58,4 @@ class PT_Storage extends PT_Base {
         return self::getInstance()->error();
     }
 }
+class storage extends PT_storage{}

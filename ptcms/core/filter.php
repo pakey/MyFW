@@ -1,8 +1,10 @@
 <?php
 
-class PT_Filter{
+class PT_Filter
+{
 
-    public function filter($value, $filter, $default) {
+    public function filter($value, $filter, $default)
+    {
         //指定值
         if (is_array($filter)) return in_array($value, $filter) ? $value : $default;
         //判断filter的合法性
@@ -12,16 +14,21 @@ class PT_Filter{
             case 'int':
                 return is_null($value) ? (is_null($default) ? 0 : $default) : intval($value);
             case 'str':
+            case 'string':
                 return is_null($value) ? (is_null($default) ? '' : $default) : strval($value);
             case 'arr':
                 return is_array($value) ? $value : (is_array($default) ? $default : array());
+            case 'time':
+                $res = strtotime($value);
+                return $res ? $res : 0;
             default:
                 return empty($value) ? $default : ($this->regex($value, $filter) ? $value : $default);
         }
     }
 
-    public function regex($value, $rule) {
-        $validate = array(
+    public function regex($value, $rule)
+    {
+        $validate = [
             //必填
             'require'    => '/.+/',
             //邮箱
@@ -54,16 +61,17 @@ class PT_Filter{
             'cn'         => '/^[\w\s\-\x{4e00}-\x{9fa5}]+$/u',
             //安全字符串
             'safestring' => '/^[^\$\?]+$/'
-        );
+        ];
         // 检查是否有内置的正则表达式
-        if (isset($validate[ strtolower($rule) ])) $rule = $validate[ strtolower($rule) ];
+        if (isset($validate[strtolower($rule)])) $rule = $validate[strtolower($rule)];
         return preg_match($rule, strval($value)) === 1;
     }
 
     //安全的剔除字符 单行等 用于搜索 链接等地方
-    public function safeStrip($kw) {
+    public function safeStrip($kw)
+    {
         if (strlen($kw) == 0) return '';
-        $kw=strip_tags($kw);
+        $kw        = strip_tags($kw);
         $badString = '~!@#$%^&*()+|=\\{}[];\'"/<>?';
         $length    = strlen($badString);
         $pos       = 0;
@@ -71,16 +79,18 @@ class PT_Filter{
             $kw = str_replace($badString{$pos}, '', $kw);
             $pos++;
         }
-        return preg_replace('/([\r\n\t]+)/', '', $kw);
+        return preg_replace('/([\:\r\n\t]+)/', '', $kw);
     }
 
     /**
      * 过滤掉html字符
+     *
      * @param string $text
      * @param string $tags 允许的html标签
      * @return mixed|string
      */
-    public function safetext($text,$tags='br') {
+    public function safetext($text, $tags = 'br')
+    {
         $text = trim($text);
         //完全过滤注释
         $text = preg_replace('/<!--?.*-->/', '', $text);
@@ -132,4 +142,9 @@ class PT_Filter{
         $text = str_replace('  ', ' ', $text);
         return $text;
     }
+}
+
+class filter extends PT_filter
+{
+
 }

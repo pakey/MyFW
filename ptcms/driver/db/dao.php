@@ -81,7 +81,7 @@ class Driver_Db_Dao {
     /**
      * 从数据库实例化对象
      *
-     * @var object
+     * @var Driver_Db_Mysql_Pdo
      */
     protected static $slave = null;
 
@@ -116,32 +116,36 @@ class Driver_Db_Dao {
         $this->pt->response->error('不具备的Model操作' . $method);
     }
 
-    public function sum($value='') {
-        $value = empty($value) ? '*' : $value;
+    public function sum($value = '') {
+        $value                = empty($value) ? '*' : $value;
         $this->parts['field'] = "sum({$value}) as pt_num";
         return $this->getField('pt_num');
     }
-    public function avg($value='') {
-        $value = empty($value) ? '*' : $value;
+
+    public function avg($value = '') {
+        $value                = empty($value) ? '*' : $value;
         $this->parts['field'] = "avg({$value}) as pt_num";
         return $this->getField('pt_num');
     }
 
-    public function min($value='') {
-        $value = empty($value) ? '*' : $value;
+    public function min($value = '') {
+        $value                = empty($value) ? '*' : $value;
         $this->parts['field'] = "min({$value}) as pt_num";
         return $this->getField('pt_num');
     }
-    public function max($value='') {
-        $value = empty($value) ? '*' : $value;
+
+    public function max($value = '') {
+        $value                = empty($value) ? '*' : $value;
         $this->parts['field'] = "max({$value}) as pt_num";
         return $this->getField('pt_num');
     }
-    public function count($value='') {
-        $value = empty($value) ? '*' : $value;
+
+    public function count($value = '') {
+        $value                = empty($value) ? '*' : $value;
         $this->parts['field'] = "count({$value}) as pt_num";
         return $this->getField('pt_num');
     }
+
     public function where($v) {
         if (is_string($v)) {
             $this->parts['where'][] = array('_string' => $v);
@@ -152,55 +156,74 @@ class Driver_Db_Dao {
         }
         return $this;
     }
+
     public function option($value) {
-        if (isset($value['where'])) $value['where']=array($value['where']);
-        $this->parts=$value;
+        if (isset($value['where'])) $value['where'] = array($value['where']);
+        $this->parts = $value;
         return $this;
     }
+
     public function data($value) {
-        $this->data=$value;
+        $this->data = $value;
         return $this;
     }
-    public function db($value) {
-        $this->parts['db']=$value;
+
+    public function database($value) {
+        $this->parts['db'] = $value;
         return $this;
     }
+
     public function distinct($value) {
-        $this->parts['distinct']=$value;
+        $this->parts['distinct'] = $value;
         return $this;
     }
+
     public function table($value) {
-        $this->parts['table']=$value;
+        $this->parts['table'] = $value;
         return $this;
     }
+
     public function having($value) {
-        $this->parts['having']=$value;
+        $this->parts['having'] = $value;
         return $this;
     }
+
     public function group($value) {
-        $this->parts['group']=$value;
+        $this->parts['group'] = $value;
         return $this;
     }
+
     public function page($value) {
-        $this->parts['page']=$value;
+        $this->parts['page'] = $value;
         return $this;
     }
+
     public function limit($value) {
-        $this->parts['limit']=$value;
+        $this->parts['limit'] = $value;
         return $this;
     }
+
     public function order($value) {
-        $this->parts['order']=$value;
+        $this->parts['order'] = $value;
         return $this;
     }
 
     public function field($value) {
-        $this->parts['field']=$value;
+        $this->parts['field'] = $value;
+        return $this;
+    }
+
+    public function join($table, $on = array(), $type = 'left') {
+        if (is_array($table)) {
+            $this->parts['join'] = $table;
+        } else {
+            $this->parts['join'] = array('table' => $table, 'on' => $on, 'type' => $type);
+        }
         return $this;
     }
 
     public function setTable($tablename) {
-        $this->tableName = self::$_config['prefix'] . $tablename;
+        $this->tableName = self::$_config['prefix'] . strtolower($tablename);
         $this->getTableField();
     }
 
@@ -212,36 +235,36 @@ class Driver_Db_Dao {
         if (self::$master) {
             return self::$master;
         }
-        $driverclass      = 'Driver_Db_' . self::$_config['type'] . '_' . self::$_config['driver'];
-        $config           = self::$_config['master'][array_rand(self::$_config['master'])];
+        $driverclass       = 'Driver_Db_' . self::$_config['type'] . '_' . self::$_config['driver'];
+        $config            = self::$_config['master'][array_rand(self::$_config['master'])];
         $config['charset'] = self::$_config['charset'];
-        self::$master     = new $driverclass($config);
+        self::$master      = new $driverclass($config);
         if (self::$_config['singleton']) self::$slave = self::$master;
         return self::$master;
     }
 
     /**
-     * @return mixed
+     * @return Driver_Db_Mysql_Pdo
      */
     protected function slave() {
         if (self::$slave) {
             return self::$slave;
         }
-        $driverclass      = 'Driver_Db_' . self::$_config['type'] . '_' . self::$_config['driver'];
-        $config           = self::$_config['slave'][array_rand(self::$_config['slave'])];
+        $driverclass       = 'Driver_Db_' . self::$_config['type'] . '_' . self::$_config['driver'];
+        $config            = self::$_config['slave'][array_rand(self::$_config['slave'])];
         $config['charset'] = self::$_config['charset'];
-        self::$slave      = new $driverclass($config);
+        self::$slave       = new $driverclass($config);
         if (self::$_config['singleton']) self::$master = self::$slave;
         return self::$slave;
     }
 
-    protected function getTableField($tablename = '') {
+    public function getTableField($tablename = '') {
         $tablename = empty($tablename) ? $this->tableName : $tablename;
         if (!$tablename) {
             halt('您必须设置表名后才可以使用该方法');
         }
         $data = $this->pt->cache->get('tablefield_' . $tablename);
-        if (!APP_DEBUG && $data) {
+        if (!APP_DEBUG && !empty($data['0'])) {
             list($this->pk, $this->fields) = $data;
         } else {
             $pks = $fields = array();
@@ -409,7 +432,7 @@ class Driver_Db_Dao {
         if (is_scalar($id)) $this->parts['where'][] = array($this->pk => $id);
         $this->parts['limit'] = 1;
         $this->sql            = "SELECT " . $this->parseField() . ' FROM '
-            . $this->parseTable()
+            . $this->parseTable() . ' as a'
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -435,7 +458,7 @@ class Driver_Db_Dao {
 
     public function select() {
         $this->sql       = "SELECT " . $this->parseField() . ' FROM '
-            . $this->parseTable()
+            . $this->parseTable() . 'as a'
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -451,7 +474,7 @@ class Driver_Db_Dao {
             $this->errorinfo = $db->errno() . ':' . $db->error();
         } else {
             if (!$row) {
-                $row = null;
+                $row = array();
             }
         }
         return $row;
@@ -588,7 +611,11 @@ class Driver_Db_Dao {
             $k = key($var);
             $v = current($var);
             if (in_array($k, $this->fields, true)) {
-                $wheres[] = '(' . $this->parseWhereItem($this->parseKey($k), $v) . ')';
+                if(empty($this->parts['join'])){
+                    $wheres[] = '(' . $this->parseWhereItem($this->parseKey($k), $v) . ')';
+                }else{
+                    $wheres[] = '(' . $this->parseWhereItem('a.'.$this->parseKey($k), $v) . ')';
+                }
             } elseif ($k == '_logic' && in_array(strtolower($v), array('or', 'and', 'xor'))) {
                 $logic = ' ' . strtoupper($v) . ' ';
             } elseif ($k == '_string') {
@@ -628,6 +655,7 @@ class Driver_Db_Dao {
                 case 'not between':
                     if (is_string($var['1']))
                         $var['1'] = explode(',', $var['1']);
+                    $var['1'] = $this->parseValue($var['1']);
                     return "{$field} {$var['0']} {$var['1']['0']} and {$var['1']['1']}";
                 case 'exp':
                     return "{$field} {$var['1']}";
@@ -689,7 +717,19 @@ class Driver_Db_Dao {
     }
 
     protected function parseJoin() {
-
+        if (empty($this->parts['join'])) return '';
+        $table=$this->parts['join']['table'];
+        $type=$this->parts['join']['type'];
+        $on=$this->parts['join']['on'];
+        if (empty($table)) {
+            return '';
+        } elseif (strpos($table, self::$_config['prefix']) === false) {
+            $table = self::$_config['prefix'] . $table;
+        }
+        if (empty($on)) {
+            $on = 'a.' . $this->pk . ' = b.' . $this->pt->model(str_replace(self::$_config['prefix'], '', $table))->getPk();
+        }
+        return ' '.$type . ' JOIN ' . $table . ' as b ON ' . $on;
     }
 
     protected function parseField() {
@@ -713,11 +753,11 @@ class Driver_Db_Dao {
                 return false;
             }
         } else {
-            $table = (strpos($this->parts['table'], self::$_config['prefix']) === false) ? self::$_config['prefix'] . $this->parts['table'] : $this->parts['table'];
+            $table = strtolower(strpos($this->parts['table'], self::$_config['prefix']) === false) ? self::$_config['prefix'] . $this->parts['table'] : $this->parts['table'];
         }
         $table = $this->parseKey($table);
         //判断是否带数据库
-        return (empty($this->parts['db'])) ? $table : $this->parseKey($this->parts['db']) . '.' . $table;
+        return ((empty($this->parts['db'])) ? $table : $this->parseKey($this->parts['db']) . '.' . $table);
     }
 
     protected function parseDistinct() {
@@ -745,7 +785,7 @@ class Driver_Db_Dao {
         $this->errorinfo = ''; //清空存储
         $db              = $this->slave();
         $row             = $db->fetch($sql);;
-        if (!$db->error()) {
+        if ($row!==false) {
             if ($row) {
                 return $row;
             } else {
@@ -761,7 +801,7 @@ class Driver_Db_Dao {
         $this->errorinfo = ''; //清空存储
         $db              = $this->slave();
         $row             = $db->fetchall($sql);;
-        if (!$db->error()) {
+        if ($row!==false) {
             if ($row) {
                 return $row;
             } else {
@@ -778,15 +818,8 @@ class Driver_Db_Dao {
         if (self::$_config['prefix'] != 'ptcms_' && strpos($sql, 'ptcms_')) {
             $sql = str_replace('ptcms_', self::$_config['prefix'], $sql);
         }
-        $db = $this->slave();
-        if (APP_DEBUG || isset($_GET['debug'])) {
-            $t   = microtime(true);
-            $row = $db->query($sql);;
-            $GLOBALS['_sql'][] = number_format(microtime(true) - $t, 5) . ' - ' . $sql;
-        } else {
-            $row = $db->query($sql);;
-        }
-        $GLOBALS['_sqlnum']++;
+        $db  = $this->slave();
+        $row = $db->query($sql);;
         if (!$db->error()) {
             if ($row || $row === 0) {
                 return $row;
@@ -804,16 +837,8 @@ class Driver_Db_Dao {
         if (self::$_config['prefix'] != 'ptcms_' && strpos($sql, 'ptcms_')) {
             $sql = str_replace('ptcms_', self::$_config['prefix'], $sql);
         }
-        $db = $this->master();
-        if (APP_DEBUG || isset($_GET['debug'])) {
-            $t   = microtime(true);
-            $row = $db->execute($sql);;
-            $GLOBALS['_sql'][] = number_format(microtime(true) - $t, 5) . ' - ' . $sql;
-        } else {
-            $row = $db->execute($sql);;
-        }
-        $GLOBALS['_sqlnum']++;
-
+        $db  = $this->master();
+        $row = $db->execute($sql);;
         if (!$db->error()) {
             if ($row || $row === 0) {
                 return $row;

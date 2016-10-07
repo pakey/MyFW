@@ -99,6 +99,7 @@ abstract class oauth {
         $this->appid = $config['appid'];
         $this->appsecret = $config['appsecret'];
         $this->token = $token;
+        PT_Base::getInstance()->config->set('user_agent','');
     }
 
     /**

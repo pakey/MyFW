@@ -10,13 +10,32 @@ class http {
             CURLOPT_FOLLOWLOCATION => 1,
             CURLOPT_HEADER         => false,
             CURLOPT_USERAGENT      => PT_Base::getInstance()->config->get('user_agent', 'PTCMS Spider'),
-            CURLOPT_REFERER        => $url,
+            CURLOPT_REFERER        => isset($header['referer'])?$header['referer']:$url,
             CURLOPT_NOSIGNAL       => 1,
             CURLOPT_ENCODING       => 'gzip, deflate',
-            CURLOPT_HTTPHEADER     => $header,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
         );
+
+        if(isset($header['cookie'])){
+            $opts[CURLOPT_COOKIE]=$header['cookie'];
+            unset($header['cookie']);
+        }
+
+        if(isset($header['useragent'])){
+            $opts[CURLOPT_USERAGENT]=$header['useragent'];
+            unset($header['useragent']);
+        }
+
+        if(isset($header['showheader'])){
+            $opts[CURLOPT_HEADER]=true;
+            unset($header['showheader']);
+        }
+
+        if(!empty($header)){
+            $opts[CURLOPT_HTTPHEADER]=$header;
+        }
+
         //补充配置
         foreach ($option as $k => $v) {
             $opts[$k] = $v;
@@ -56,7 +75,7 @@ class http {
     }
 
     public static function filegc($url, $params = array(), $method = 'GET', $header = array(), $option = array()) {
-        $header  = array_merge(array("Referer: $url", "User-Agent: " . PT_Base::getInstance()->config->get('user_agent', 'PTCMS Spider', "Accept-Encoding: gzip,deflate")), $header);
+        $header  = array_merge(array("Referer: ".PT_Base::getInstance()->config->get('referer', $url), "User-Agent: " . PT_Base::getInstance()->config->get('user_agent', 'PTCMS Spider', "Accept-Encoding: gzip,deflate")), $header);
         $context = array(
             'http' => array(
                 'method'  => $method,
@@ -89,7 +108,7 @@ class http {
         $in .= "Connection: Close\r\n";
         $in .= "Hostname: {$urlinfo['host']}\r\n";
         $in .= "User-Agent: " . PT_Base::getInstance()->config->get('user_agent', 'PTCMS Spider') . "\r\n";
-        $in .= "Referer: {$url}\r\n";
+        $in .= "Referer: ".PT_Base::getInstance()->config->get('referer', $url)."\r\n";
         $in .= "Accept-Encoding: gzip,deflate\r\n";
         if ($method == 'POST') {
             $params = is_array($params) ? http_build_query($params) : $params;
@@ -132,7 +151,13 @@ class http {
         } else {
             $res = self::$func($url, $data, 'GET');
         }
-        $GLOBALS['_apinum']++;
+        if(strpos($res,'<script>window.location=') && strpos($res,'jdfwkey')){
+            //金盾防火墙
+            $url='http://'.parse_url($url,PHP_URL_HOST).collect::getMatch('window.location="(.+?)"',$res);
+            $res=self::get($url,$data);
+        }else{
+            $GLOBALS['_apinum']++;
+        }
         return $res;
     }
 
@@ -167,17 +192,24 @@ class http {
     public static function trigger($url) {
         if (stripos($url, 'http') === 0) {
             $func = PT_Base::getInstance()->config->get('httpmethod', 'curl');
+            if (APP_DEBUG || isset($_GET['debug'])) {
+                $t                 = microtime(true);
+            }
             if ($func == 'curl') {
                 http::curl($url, array(), 'GET', array(), array(
-                    CURLOPT_TIMEOUT_MS        => 20,
-                    CURLOPT_CONNECTTIMEOUT_MS => 20,
+                    CURLOPT_TIMEOUT_MS        => 500,
+                    CURLOPT_CONNECTTIMEOUT_MS => 500,
                 ));
             } else {
                 http::filegc($url, array(), 'GET', array(), array(
                     'timeout' => 0,
                 ));
             }
+            if (APP_DEBUG || isset($_GET['debug'])) {
+                $GLOBALS['_api'][] = $func . ' trigger ' . number_format(microtime(true) - $t, 5) . '  ' . $url;
+            }
         }
+        $GLOBALS['_apinum']++;
         return;
     }
 

@@ -8,40 +8,36 @@
 class PT_Cache{
 
     protected static $handler = null;
-    protected $pt;
-
-    public function __construct() {
-        $this->pt=PT_Base::getInstance();
-    }
 
     /**
      * @param string $type;
      * @return Driver_Cache_File
      */
-    public function getInstance($type = '') {
-        $type = $type ? $type : $this->pt->config->get('cache_driver', 'file');
+    public static function getInstance($type = '') {
+        $type = $type ? $type : PT_Base::getInstance()->config->get('cache_driver', 'file');
         if (empty(self::$handler[$type])) {
-            $class                = 'Driver_Cache_' . $this->pt->config->get('cache_driver');
-            self::$handler[$type] = new $class($this->pt->config->get('cache_option', array()));
+            $class                = 'Driver_Cache_' . PT_Base::getInstance()->config->get('cache_driver');
+            self::$handler[$type] = new $class(PT_Base::getInstance()->config->get('cache_option', array()));
         }
         return self::$handler[$type];
     }
 
-    public function set($key, $value, $time = 0) {
+    public static function set($key, $value, $time = 0) {
         $GLOBALS['_cacheWrite']++;
-        return $this->getInstance()->set($key, $value, $time);
+        return self::getInstance()->set($key, $value, $time);
     }
 
-    public function get($key) {
+    public static function get($key) {
         $GLOBALS['_cacheRead']++;
-        return $this->getInstance()->get($key);
+        return self::getInstance()->get($key);
     }
 
-    public function rm($key) {
-        return $this->getInstance()->rm($key);
+    public static function rm($key) {
+        return self::getInstance()->rm($key);
     }
 
-    public function clear() {
-        $this->getInstance()->clear();
+    public static function clear() {
+        self::getInstance()->clear();
     }
 }
+class Cache extends PT_Cache{}

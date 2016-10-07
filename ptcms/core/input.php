@@ -48,6 +48,5 @@ class PT_Input extends PT_Base {
         $value = isset($param[ $name ]) ? $param[ $name ] : null;
         return $this->filter->filter($value, $filter, $default);
     }
-
-
 }
+class Input extends PT_Input{}

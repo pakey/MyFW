@@ -68,3 +68,5 @@ class PT_Api extends PT_Base {
         return $this->handle->call($url, $param, $method, $header);
     }
 }
+
+class Api extends PT_Api{}

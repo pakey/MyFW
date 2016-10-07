@@ -46,16 +46,16 @@ class PT_View {
             //值不为空 则为自动侦测目录
             if (isset($_GET['t'])) {
                 $auto = $_GET['t'];
-                $this->pt->cookie->set('THEME_' . MODULE_NAME, $auto, 25920000);
-            } elseif ($this->pt->cookie->get('THEME_' . MODULE_NAME)) {
-                $auto = $this->pt->cookie->get('THEME_' . MODULE_NAME);
+                $this->pt->cookie->set('THEME', $auto, 25920000);
+            } elseif ($this->pt->cookie->get('THEME')) {
+                $auto = $this->pt->cookie->get('THEME');
             }
             if (isset($auto)) {
                 if (is_dir($this->tplpath . '/' . $auto)) {
                     $this->theme = $auto;
                     $this->pt->config->set('tpl_theme', $this->theme);
                 } else {
-                    $this->pt->cookie->del('THEME_' . MODULE_NAME);
+                    $this->pt->cookie->del('THEME');
                 }
             }
             //读取模版配置文件
@@ -160,16 +160,16 @@ class PT_View {
             $suffix  = $this->pt->config->get('tpl_suffix', 'html');
             if ($theme) {
                 // 设置了模版 模版目录为template下对应的设置的模版目录
-                $tplfile = rtrim($this->tplpath . "/{$theme}/{$module}/{$protect}", '/') . "/{$tpl}.{$suffix}";
+                $tplfile = rtrim($this->tplpath . ($protect?"/{$theme}/{$protect}/{$module}":"/{$theme}/{$module}"), '/') . "/{$tpl}.{$suffix}";
                 if (!is_file($tplfile)) {
                     //没有找到的模版默认使用default匹配一次
                     if (is_file($this->tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}")) {
                         //去掉保护目录
                         $tplfile = $this->tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}";
-                        $this->log->record('指定的模版（' . $tplfile . '）不存在，尝试使用' . $tplfile . '模版成功');
+                        $this->pt->log->record('指定的模版（' . $tplfile . '）不存在，尝试使用' . $tplfile . '模版成功');
                     } elseif ($theme !== 'default' && is_file($this->tplpath . "/default/{$module}/{$tpl}.{$suffix}")) {
                         //使用默认模版
-                        $this->log->record('指定的模版（' . $tplfile . '）不存在，尝试使用默认模版成功');
+                        $this->pt->log->record('指定的模版（' . $tplfile . '）不存在，尝试使用默认模版成功');
                         $tplfile = $this->tplpath . "/default/{$module}/{$tpl}.{$suffix}";
                         $theme   = 'default';
                     }
@@ -231,6 +231,7 @@ class PT_View {
             '__ACTION__'  => '<?php echo __ACTION__;?>', // 当前操作地址
             '__SELF__'    => '<?php echo __SELF__;?>', // 当前页面地址
             '__URL__'     => '<?php echo  __URL__;?>', // 当前控制器地址
+            '__DIR__'  => '<?php echo PT_DIR;?>', // 站点公共目录
             '__PUBLIC__'  => '<?php echo PT_DIR;?>' . '/public', // 站点公共目录
             '__RUNINFO__' => '<?php echo $this->pt->response->runinfo();?>', // 站点公共目录
         );
@@ -249,7 +250,9 @@ class PT_View {
 function defaultvar() {
     $args  = func_get_args();
     $value = array_shift($args);
-    if (isset($args[$value])) {
+    if(!is_numeric($value)){
+        return $value;
+    }elseif (isset($args[$value])) {
         return $args[$value];
     } else {
         return '';
@@ -274,6 +277,7 @@ function datevar($time, $format) {
  * @return string
  */
 function parseTpl($content) {
+    if ($content=='') return '';
     $cachefile = CACHE_PATH . '/template/parsetpl/' . md5($content) . '.php';
     if (!is_file($cachefile)) {
         $driverclass = 'Driver_View_' . PT_Base::getInstance()->config->get('view_driver', 'Mc');
@@ -284,4 +288,4 @@ function parseTpl($content) {
     }
     return $cachefile;
 }
-
+class view extends PT_view{}

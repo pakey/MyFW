@@ -5,18 +5,38 @@
  * @Email : admin@ptcms.com
  * @File  : pay.php
  */
-abstract class pay {
+class pay extends PT_Base{
+    protected static $_c;
+    /**
+     * @var Driver_Pay_Alipay
+     */
+    protected $handler;
 
-    public static function getInstance($type) {
-
+    public function __construct($type='alipay') {
+        $this->handler=self::getInstance($type);
     }
 
-    abstract public function to();
+    /**
+     * @param string $type
+     * @return Driver_Pay_Alipay
+     */
+    public static function getInstance($type='alipay') {
+        if (empty(self::$_c[$type])){
+            $class='Driver_Pay_'.$type;
+            self::$_c[$type]=new $class();
+        }
+        return self::$_c[$type];
+    }
 
-    abstract public function signfunc();
+    public function go($param){
+        $url=$this->handler->go($param);
 
-    abstract public function verifyNotify();
+        //echo '<br /><a href="' . $url . '">支付</a>';exit;
+        //echo '<br /><a href="' . $url . '" target="_blank">支付</a>';exit;
+        $this->response->redirect($url);
+    }
 
-    abstract public function notify();
-
+    public function notify($param) {
+        return $this->handler->notify($param);
+    }
 }

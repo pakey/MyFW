@@ -5,15 +5,16 @@
  * @Email : admin@ptcms.com
  * @File  : Pdo.php
  */
-class Driver_Db_Mysql_Pdo {
-
+class Driver_Db_Mysql_Pdo
+{
+    
     /**
      * 单例模式实例化对象
      *
      * @var object
      */
     public static $instance;
-
+    
     /**
      * 数据库连接ID
      *
@@ -26,19 +27,20 @@ class Driver_Db_Mysql_Pdo {
      * @var boolean
      */
     protected $Transactions;
-
+    
     /**
      * 构造函数
-     *
      * 用于初始化运行环境,或对基本变量进行赋值
      *
      * @param array $params 数据库连接参数,如主机名,数据库用户名,密码等
      */
-    public function __construct($params = array()) {
+    public function __construct($params = [])
+    {
         //连接数据库 ,PDO::ATTR_PERSISTENT => true
-        $params['charset']=empty($params['charset'])?'utf8':$params['charset'];
-        $this->db_link = @new PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$params['charset']}"));
-
+        $params['charset'] = empty($params['charset']) ? 'utf8' : $params['charset'];
+        $this->db_link     = @new PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], []);
+        $this->query("SET NAMES {$params['charset']}");
+        $this->query("SET sql_mode='NO_ENGINE_SUBSTITUTION'");
         if (!$this->db_link) {
             trigger_error($params['driver'] . ' Server connect fail! <br/>Error Message:' . $this->error() . '<br/>Error Code:' . $this->errno(), E_USER_ERROR);
         }
@@ -60,7 +62,14 @@ class Driver_Db_Mysql_Pdo {
         if (!$sql) {
             return false;
         }
-        $result = $this->db_link->query($sql);
+        if (APP_DEBUG || isset($_GET['debug'])) {
+            $t   = microtime(true);
+            $result = $this->db_link->query($sql);
+            $GLOBALS['_sql'][] = number_format(microtime(true) - $t, 5) . ' - ' . $sql;
+        } else {
+            $result = $this->db_link->query($sql);
+        }
+        $GLOBALS['_sqlnum']++;
         return $result;
     }
 
@@ -69,7 +78,13 @@ class Driver_Db_Mysql_Pdo {
         if (!$sql) {
             return false;
         }
-        $result = $this->db_link->exec($sql);
+        if (APP_DEBUG || isset($_GET['debug'])) {
+            $t   = microtime(true);
+            $result = $this->db_link->exec($sql);
+            $GLOBALS['_sql'][] = number_format(microtime(true) - $t, 5) . ' - ' . $sql;
+        } else {
+            $result = $this->db_link->exec($sql);
+        }
         $GLOBALS['_sqlnum']++;
         return $result;
     }
@@ -82,7 +97,7 @@ class Driver_Db_Mysql_Pdo {
      */
     public function error() {
         $info = $this->db_link->errorInfo();
-        return $info[2];
+        return isset($info[2])?$info['2']:'';
     }
 
     /**
@@ -215,6 +230,9 @@ class Driver_Db_Mysql_Pdo {
         }
     }
 
+    /**
+     * 关闭数据库连接
+     */
     public function __destruct() {
 
         if ($this->db_link == true) {

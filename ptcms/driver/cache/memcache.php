@@ -23,12 +23,12 @@ class Driver_Cache_Memcache extends PT_Base {
             self::$handler = new BaeMemcache($cacheid, $host . ': ' . $port, $user, $pwd);
         } else {
             self::$handler = new Memcache();
-            self::$handler->connect($this->config->get('memcache_host', '127.0.0.1'), $this->config->get('memcache_port', null, '11211'));
+            self::$handler->connect($this->config->get('memcache_host', '127.0.0.1'), $this->config->get('memcache_port', '11211'));
         }
         if (!self::$handler) {
             PT_Log::record('链接缓存驱动失败');
         }
-        self::$prefix = $this->config->get('cache_prefix', substr(md5(PT_URL), 3, 3) . '_');
+        self::$prefix = $this->config->get('cache_prefix', substr(md5(PT_ROOT), 3, 3) . '_');
     }
 
     public function set($key, $value, $time = 0) {

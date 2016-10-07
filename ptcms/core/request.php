@@ -3,19 +3,25 @@
 class PT_Request extends PT_Base {
 
     public function isGet() {
-        defined('IS_GET') || define('IS_GET', $_SERVER['REQUEST_METHOD'] === 'GET' ? true : false);
-        return IS_GET;
+        if (defined('IS_GET')) {
+            return IS_GET;
+        }
+        return $_SERVER['REQUEST_METHOD'] === 'GET' ? true : false;
 
     }
 
     public function isPost() {
-        defined('IS_POST') || define('IS_POST', $_SERVER['REQUEST_METHOD'] === 'POST' ? true : false);
-        return IS_POST;
+        if (defined('IS_POST')) {
+            return IS_POST;
+        }
+        return $_SERVER['REQUEST_METHOD'] === 'POST' ? true : false;
     }
 
     public function isAjax() {
-        defined('IS_AJAX') || define('IS_AJAX', ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || !empty($_POST['isajax']) || !empty($_GET['isajax'])) ? true : false);
-        return IS_AJAX;
+        if (defined('IS_AJAX')) {
+            return IS_AJAX;
+        }
+        return ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || !empty($_POST['isajax']) || !empty($_GET['isajax'])) ? true : false;
     }
 
     public function isMobile() {
@@ -35,6 +41,7 @@ class PT_Request extends PT_Base {
         if (isset ($_SERVER['HTTP_USER_AGENT'])) {
             $clientkeywords = array('nokia', 'sony', 'ericsson', 'mot', 'samsung', 'htc', 'sgh', 'lg', 'sharp', 'sie-', 'philips', 'panasonic', 'alcatel', 'lenovo', 'iphone', 'ipod', 'blackberry', 'meizu', 'android', 'netfront', 'symbian', 'ucweb', 'windowsce', 'palm', 'operamini', 'operamobi', 'openwave', 'nexusone', 'cldc', 'midp', 'wap', 'mobile', 'UCBrowser');
             // 从HTTP_USER_AGENT中查找手机浏览器的关键字
+            // 'Mozilla/5.0 (Linux;u;Android 4.2.2;zh-cn;) AppleWebKit/534.46 (KHTML,like Gecko) Version/5.1 Mobile Safari/10600.6.3 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html）';
             if (preg_match("/(" . implode('|', $clientkeywords) . ")/i", strtolower($_SERVER['HTTP_USER_AGENT']))) {
                 return true;
             }
@@ -47,10 +54,13 @@ class PT_Request extends PT_Base {
                 return true;
             }
         }
+        if($_SERVER['HTTP_HOST']==parse_url($this->config->get('wap_domain'),PHP_URL_HOST)){
+            return true;
+        }
         return false;
     }
 
-    public function isSpider() {
+    public function isSpider($ua=null) {
         if (defined('IS_SPIDER')) return IS_SPIDER;
         empty($ua) && $ua = $_SERVER['HTTP_USER_AGENT'];
         $ua      = strtolower($ua);
@@ -70,7 +80,7 @@ class PT_Request extends PT_Base {
     }
 
     public function getActionNAME() {
-        return ACTION_NAME ;
+        return ACTION_NAME;
     }
 
     public function getIp($default = '0.0.0.0') {
@@ -78,10 +88,10 @@ class PT_Request extends PT_Base {
         $i  = explode('.', $ip);
         if ($i[0] == 10 || ($i[0] == 172 && $i[1] > 15 && $i[1] < 32) || ($i[0] == 192 && $i[1] == 168)) {
             //如果是内网ip重新获取
-            $keys = array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP');
+            $keys = array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP','HTTP_X_REAL_IP');
             foreach ($keys as $key) {
-                if (empty($_SERVER[ $key ])) continue;
-                $ips = explode(',', $_SERVER[ $key ], 1);
+                if (empty($_SERVER[$key])) continue;
+                $ips = explode(',', $_SERVER[$key], 1);
                 $ip  = $ips[0];
                 break;
             }
@@ -93,17 +103,22 @@ class PT_Request extends PT_Base {
 
     /**
      * 获取host
+     *
      * @param null $domain
      * @return mixed|null|string
      */
     public static function getSiteCode($domain = null) {
-        $domain = ($domain!==null) ? parse_url($domain,PHP_URL_HOST) : $_SERVER['HTTP_HOST'];
+        $domain = ($domain !== null) ? (strpos($domain, '://') ? parse_url($domain, PHP_URL_HOST) : $domain) : $_SERVER['HTTP_HOST'];
         // 替换域名中的-为_
         $domain = str_replace('-', '_', $domain);
         // 去掉端口
         if (strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':'));
         // 去掉开始的www.
         if (stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
-        return $domain;
+        return strtolower($domain);
     }
+}
+
+class Request extends PT_Request {
+
 }

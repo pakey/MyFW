@@ -109,6 +109,8 @@ class Verify {
      * @param string $filename 保存为文件
      */
     static function output($im, $type = 'png', $filename = '') {
+        error_reporting(0);
+        ob_end_clean();
         header("Content-type: image/" . $type);
         $ImageFun = 'image' . $type;
         if (empty($filename)) {
@@ -117,6 +119,7 @@ class Verify {
             $ImageFun($im, $filename);
         }
         imagedestroy($im);
+        exit;
     }
 
 }

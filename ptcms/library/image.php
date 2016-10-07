@@ -35,11 +35,10 @@ class Image {
         } elseif (is_file($var)) {
             $content = F($var);
         } else {
-            return false;
+            $content=(string)$var;
         }
         $this->info['type'] = $this->gettype($content);
         $this->info['mime'] = 'image/' . $this->info['type'];
-        $this->img = imagecreatefromstring($content);
         if ('gif' == $this->info['type']) {
             $this->gif = new extend_gif($content);
             $this->img = imagecreatefromstring($this->gif->image());

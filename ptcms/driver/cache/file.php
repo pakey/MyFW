@@ -41,6 +41,7 @@ class Driver_Cache_File {
     }
 
     public function key2file($key) {
+        if (is_array($key)) $key=serialize($key);
         $key = md5($key);
         $file = CACHE_PATH . '/data/cache/' . $key{0} . '/' . $key{1} . '/' . $key . '.php';
         return $file;

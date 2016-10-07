@@ -29,19 +29,44 @@ class PT_Block{
         $cachetime = $this->pt->input->param('cachetime','int',$this->pt->config->get('cachetime', 600),$param);
         $data = $this->pt->cache->get($key);
         $hander=$this->getInstance($name);
-        if ($hander && (APP_DEBUG || $data === null)) {
-            $data = $hander->run($param);
-            if (!empty($param['template'])) {
-                $this->pt->view->set($param);
-                if ($layout=$this->pt->config->get('layout')){
-                    $this->pt->config->get('layout',false);
-                    $data = $this->pt->view->fetch($param['template']);
-                    $this->pt->config->get('layout',$layout);
-                }else{
-                    $data = $this->pt->view->fetch($param['template']);
+        if ($name){
+            if ($hander && (APP_DEBUG || $data === null)) {
+                $data = $hander->run($param);
+                if (!empty($param['template'])) {
+                    $this->pt->view->set($param);
+                    if ($layout=$this->pt->config->get('layout')){
+                        $this->pt->config->set('layout',false);
+                        $data = $this->pt->view->fetch($param['template']);
+                        $this->pt->config->set('layout',$layout);
+                    }else{
+                        $data = $this->pt->view->fetch($param['template']);
+                    }
                 }
+                $this->pt->cache->set($key, $data, $cachetime);
             }
-            $this->pt->cache->set($key, $data, $cachetime);
+        }else{
+            $this->pt->view->set($param);
+            if ($layout=$this->pt->config->get('layout')){
+                $this->pt->config->set('layout',false);
+                $data = $this->pt->view->fetch($param['template']);
+                $this->pt->config->set('layout',$layout);
+            }else{
+                $data = $this->pt->view->fetch($param['template']);
+            }
+        }
+        if (isset($param['order']) && $param['order']=='rand'){
+            $param['num']=empty($param['num'])?count($data):$param['num'];
+            $list=array();
+            if(count($data)>=$param['num']){
+                $num=$param['num'];
+                $num=($num==0)?count($data):$num;
+                $keys=array_rand($data,$num);
+                if ($num==1) $keys=array($keys);
+                foreach($keys as $v){
+                    $list[]=$data[$v];
+                }
+                $data=$list;
+            }
         }
         return $data;
     }
@@ -64,5 +89,12 @@ class PT_Block{
     public function getKey($name,$param) {
         return md5($name . serialize($param));
     }
+    
+    public function run($param)
+    {
+        return [];
+    }
 
 }
+
+class Block extends PT_Block{}

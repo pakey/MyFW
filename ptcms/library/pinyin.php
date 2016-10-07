@@ -38,7 +38,7 @@ class pinyin {
                 $c = $str[$i] . $str[$i + 1];
                 ++$i;
                 if (isset($data[$c])) {
-                    $restr .= $isfirst ? $data[$c]{0} : ucfirst($data[$c]);
+                    $restr .= $isfirst ? $data[$c]{0} : (C('pinyin_uc_first',null,1)?ucfirst($data[$c]):$data[$c]);
                 } else {
                     $restr .= $default;
                 }

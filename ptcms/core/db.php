@@ -44,11 +44,11 @@ class PT_Db{
             case 'mysql':
                 $config_params['master'] = array(
                     array(
-                        'host'    => $this->pt->config->get('db_mysql_master_host', 'localhost'),
-                        'port'    => $this->pt->config->get('db_mysql_master_port', '3306'),
-                        'name'    => $this->pt->config->get('db_mysql_master_name', 'ptcms'),
-                        'user'    => $this->pt->config->get('db_mysql_master_user', 'root'),
-                        'pwd'     => $this->pt->config->get('db_mysql_master_pwd', ''),
+                        'host'    => $this->pt->config->get('db_mysql_master_host', $this->pt->config->get('mysql_master_host','localhost')),
+                        'port'    => $this->pt->config->get('db_mysql_master_port', $this->pt->config->get('mysql_master_port','3306')),
+                        'name'    => $this->pt->config->get('db_mysql_master_name', $this->pt->config->get('mysql_master_name','ptcms')),
+                        'user'    => $this->pt->config->get('db_mysql_master_user', $this->pt->config->get('mysql_master_user','root')),
+                        'pwd'     => $this->pt->config->get('db_mysql_master_pwd', $this->pt->config->get('mysql_master_pwd','')),
                     )
                 );
                 if ($this->pt->config->get('db_mysql_salve_host')){
@@ -58,7 +58,7 @@ class PT_Db{
                             'host'    => $this->pt->config->get('db_mysql_salve_host', 'localhost'),
                             'port'    => $this->pt->config->get('db_mysql_salve_port', '3306'),
                             'name'    => $this->pt->config->get('db_mysql_salve_name', 'ptcms'),
-                            'user'    => $this->pt->config->get('db_mysql_salve_user', 'root'),
+                            'user'    => $this->pt->config->get('db_mysql_salve_user','root'),
                             'pwd'     => $this->pt->config->get('db_mysql_salve_pwd', ''),
                         )
                     );
@@ -66,12 +66,12 @@ class PT_Db{
                     $config_params['singleton']=true;
                     $config_params['slave']  = $config_params['master'];
                 }
-                $config_params['driver']=$this->pt->config->get('db_mysql_driver', 'pdo');
-                $config_params['prefix']=$this->pt->config->get('db_mysql_prefix', 'ptcms_');
+                $config_params['driver']=$this->pt->config->get('db_mysql_driver', $this->pt->config->get('mysql_driver','pdo'));
+                $config_params['prefix']=$this->pt->config->get('db_mysql_prefix', $this->pt->config->get('mysql_prefix','ptcms_'));
                 $config_params['charset']=$this->pt->config->get('db_mysql_charset', 'utf8');
                 break;
         }
         return $config_params;
     }
 }
-
+class db extends PT_db{}

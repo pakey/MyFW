@@ -115,3 +115,6 @@ class PT_Plugin extends PT_Base {
         return array();
     }
 }
+
+
+class Plugin extends PT_Plugin{}

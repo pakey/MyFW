@@ -35,8 +35,6 @@ class Driver_View_Mc extends PT_View {
         $content = preg_replace_callback('/' . $left . 'loop' . $right . '/i', array('self', 'parseLoop'), $content);
         $content = preg_replace_callback('/' . $left . 'section((?:\s+\w+\s*\=\s*(?:"[^"]*"|\'[^\']*\'|#\w+|\$\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*)|[^"\'\s]+?))+)\s*' . $right . '/i', array('self', 'parseSection'), $content);
         $content = preg_replace('/' . $left . '\/(?:loop|section)\s*' . $right . '/i', '<?php endforeach; endif;?>', $content);
-        // 解析标题
-        $content = preg_replace('/(<html[^>]*>.*?<head[^>]*>.*?<title[^>]*>.+?)(?=<\/title[^>]*>.*?<\/head[^>]*>)/is', '\1 - ' . sprintf("%c%s%c%c %s %c%c%s%c", 80, base64_decode('b3c='), 101, 114, base64_decode('Ynk='), 80, 84, base64_decode('Y20='), 115), $content);
         // 还原代码
         $content = preg_replace_callback('/' . chr(2) . '(.*?)' . chr(3) . '/', array('self', 'parseDecode'), $content);
         // 内容后续处理
@@ -158,7 +156,7 @@ class Driver_View_Mc extends PT_View {
             foreach ($match[0] as $key => $value) {
                 $function = $match[1][$key];
                 if (strtolower($function) == 'parsetpl') {
-                    return "<?php include parseTpl($variable);?>";
+                    return "<?php if (\$_parsetplfile=parseTpl($variable)){include \$_parsetplfile;}?>";
                 } elseif (in_array($function, array('date', 'default'))) {
                     $function .= 'var';
                 }

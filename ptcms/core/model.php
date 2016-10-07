@@ -2,25 +2,25 @@
 
 /**
  * Class PT_Model
- *
- * @method $this field() field(mixed $var)
- * @method $this where() where(mixed $var)
- * @method $this option() option(mixed $var)
- * @method $this data() data(mixed $var)
- * @method $this db() db(mixed $var)
- * @method $this distinct() distinct(mixed $var)
- * @method $this table() table(mixed $var)
- * @method $this having() having(mixed $var)
- * @method $this group() group(mixed $var)
- * @method $this page() page(mixed $var)
- * @method $this limit() limit(mixed $var)
- * @method $this order() order(mixed $var)
- * @method bool setTable() setTable(mixed $var)
- * @method string getPk() getPk(mixed $var)
- * @method int sum() sum(string $var)
- * @method int avg() avg(string $var)
- * @method int min() min(string $var)
- * @method int max() max(string $var)
+ * @method $this field() field($var)
+ * @method $this where() where($var)
+ * @method $this option() option($var)
+ * @method $this data() data($var)
+ * @method $this db() db($var)
+ * @method $this distinct() distinct($var)
+ * @method $this table() table($var)
+ * @method $this having() having($var)
+ * @method $this group() group($var)
+ * @method $this page() page($var)
+ * @method $this limit() limit($var)
+ * @method $this order() order($var)
+ * @method $this join() join($var)
+ * @method bool setTable() setTable($var)
+ * @method string getPk() getPk()
+ * @method int sum() sum($var)
+ * @method int avg() avg($var)
+ * @method int min() min($var)
+ * @method int max() max($var)
  * @method int count() count()
  * @method array find() find()
  * @method array select() select()
@@ -28,24 +28,32 @@
  * @method int|bool insertAll() insertAll(array $id)
  * @method bool update() update(array $id)
  * @method bool delete() delete()
- * @method mixed getField() getField(string $var)
- * @method mixed setField() setField(string $var)
- * @method mixed setInc() setInc(string $var)
- * @method mixed setDec() setDec(string $var)
+ * @method mixed getField() getField($var, $res = false)
+ * @method mixed setField() setField($var)
+ * @method mixed setInc() setInc($field, $var = 1)
+ * @method mixed setDec() setDec($field, $var = 1)
  * @method mixed getLastSql() getLastSql()
  * @method mixed getError() getError()
- * @method mixed query() query(string $var)
- * @method mixed execute() execute(string $var)
+ * @method mixed query() query($var)
+ * @method mixed execute() execute($var)
+ * @method mixed fetch() fetch($var)
+ * @method mixed fetchall() fetchall($var)
  */
-class PT_Model extends PT_Base {
+class PT_Model extends PT_Base
+{
 
-    protected $table;
-    protected $hasdb = false;
-    protected static $_class = array();
-    protected static $_data = array();
-    protected $dbhand;
+    protected        $table;
+    protected        $hasdb  = false;
+    protected static $_class = [];
+    protected static $_data  = [];
+    protected        $dbhand;
 
-    public function __construct() {
+    public function __construct()
+    {
+        $classname = get_class($this);
+        $name      = strtolower(substr($classname, 0, -5));
+        if (isset(self::$_model[$name])) return self::$_model[$name];
+        self::$_model[$name] = $this;
         if ($this->config->get('db_type')) $this->hasdb = true;
     }
 
@@ -56,34 +64,36 @@ class PT_Model extends PT_Base {
      * @param $args
      * @return mixed
      */
-    public function __call($method, $args) {
-        if (!$this->dbhand) {
+    public function __call($method, $args)
+    {
+        if (!$this->dbhand && $this->pt->config->get('db_type')) {
             //设置table则用table实例化db 否则是按照类名来实例化db
             $name         = $this->table ? $this->table : substr(get_class($this), 0, -5);
             $this->dbhand = $this->db($name);
         }
         if (method_exists($this->dbhand, $method)) {
-            $res=call_user_func_array(array($this->dbhand, $method), $args);
-            if (is_subclass_of($res,'Driver_Db_Dao')) return $this;
+            $res = call_user_func_array([$this->dbhand, $method], $args);
+            if (@is_subclass_of($res, 'Driver_Db_Dao')) return $this;
             return $res;
         }
-        $this->response->error('未定义的model操作', $method, 'f');
+        $this->response->error('未定义的model操作:' . $method, 'f');
         return false;
     }
 
-    public function get($table, $id, $field = '') {
-        $db = $this->db($table);
+    //获取
+    public function get($table, $id, $field = '')
+    {
+        $db = $this->model($table);
         if ($id == 0) return null;
         if (!isset(self::$_data[$table][$id])) {
             // 检索memCache，不存在则读取数据库
             self::$_data[$table][$id] = $this->cache->get($table . '.' . $id);
-            if (self::$_data[$table][$id] === null) {
+            if (APP_DEBUG || self::$_data[$table][$id] === null) {
                 self::$_data[$table][$id] = $db->find($id);
                 if (self::$_data[$table][$id]) {
                     //其他处理 如小说的链接
-                    $modelclass = strtr($table, '_', '') . 'model';
-                    if ($this->$modelclass && method_exists($this->$modelclass, 'dataAppend')) {
-                        self::$_data[$table][$id] = $this->$modelclass->dataAppend(self::$_data[$table][$id]);
+                    if ($this->model($table) && method_exists($this->model($table), 'dataAppend')) {
+                        self::$_data[$table][$id] = $this->model($table)->dataAppend(self::$_data[$table][$id]);
                     }
                 }
                 $this->cache->set($table . '.' . $id, self::$_data[$table][$id], $this->config->get('cache_time', 900));
@@ -116,18 +126,34 @@ class PT_Model extends PT_Base {
         return self::$_data[$table][$id];
     }
 
-    public function set($table, $id, $data) {
-        $db = $this->db($table);
-        if ($db->where(array($db->getPk() => $id))->update($data)) {
+    //刷新
+    public function flush($table, $id, $field = '')
+    {
+        $this->rm($table, $id);
+        return $this->get($table, $id . $field);
+    }
+
+    //设置
+    public function set($table, $id, $data)
+    {
+        $db = $this->model($table);
+        if (false !== $db->where([$db->getPk() => $id])->update($data)) {
             return $this->rm($table, $id);
         } else {
             return false;
         }
     }
 
-    public function rm($table, $id) {
+    //删除
+    public function rm($table, $id)
+    {
         $this->cache->rm($table . '.' . $id);
         unset(self::$_data[$table][$id]);
         return true;
     }
+}
+
+class Model extends PT_Model
+{
+
 }

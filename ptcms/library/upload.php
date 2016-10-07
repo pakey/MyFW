@@ -5,7 +5,8 @@
  * @Email : admin@ptcms.com
  * @File  : upload.php
  */
-class upload {
+class upload
+{
 
     //$_FILES的文件信息
     public $fileinfo;
@@ -24,56 +25,64 @@ class upload {
 
 
     //临时文件
-    public function setFile($fileinfo) {
+    public function setFile($fileinfo)
+    {
         $this->fileinfo = $fileinfo;
     }
 
     /**
      *设置上传的文件名
      */
-    public function setName($filename) {
+    public function setName($filename)
+    {
         $this->fileName = $filename;
     }
 
     /**
      *设置上传的文件路径
      */
-    public function setDir($filedir) {
+    public function setDir($filedir)
+    {
         $this->fileDir = $filedir;
     }
 
     /**
      *设置上传的文件后缀
      */
-    public function setType($filetype) {
+    public function setType($filetype)
+    {
         $this->allowType = $filetype;
     }
 
     /**
      *设置上传的文件大小
      */
-    public function setSize($filesize) {
+    public function setSize($filesize)
+    {
         $this->allowMaxSize = $filesize;
     }
 
     /**
      *检测文件大小
      */
-    private function check_size() {
+    private function check_size()
+    {
         return $this->fileinfo['size'] > 0 && ($this->fileinfo['size'] <= $this->allowMaxSize * 1024);
     }
 
     /**
      *检测文件后缀
      */
-    private function check_type() {
+    private function check_type()
+    {
         return in_array($this->get_type(), explode("|", strtolower($this->allowType)));
     }
 
     /**
      *获取文件后缀
      */
-    private function get_type() {
+    private function get_type()
+    {
         return strtolower(pathinfo($this->fileinfo['name'], PATHINFO_EXTENSION));
     }
 
@@ -81,7 +90,8 @@ class upload {
     /**
      *获取文件完整路径
      */
-    private function getpath() {
+    private function getpath()
+    {
         if (empty($this->fileDir)) $this->fileDir = date('Ym') . '/' . date('d');
         if (!$this->fileName) $this->fileName = md5($this->fileinfo['name'] . $this->fileinfo['size']);
         $this->filePath = $this->fileDir . '/' . $this->fileName . "." . $this->get_type();
@@ -92,21 +102,24 @@ class upload {
      *
      * @return bool
      */
-    protected function check_mime() {
+    protected function check_mime()
+    {
         return !(!empty($this->allowMime) && !in_array($this->fileinfo['type'], $this->allowMime));
     }
 
     /**
      * 错误返回
      **/
-    private function error($info) {
+    private function error($info)
+    {
         return array('status' => 0, 'info' => $info);
     }
 
     /**
      *上传文件
      */
-    public function uploadone() {
+    public function uploadone()
+    {
         if ($this->fileinfo['error'] !== 0) {
             $this->error($this->geterrorinfo($this->fileinfo['error']));
         }
@@ -130,31 +143,30 @@ class upload {
         $this->getpath();
         // 上传操作
         if ($this->save(F($this->fileinfo['tmp_name']))) {
-            $info['ext'] = $this->get_type();
-            $info['fileurl'] = PT_Base::getInstance()->storage->geturl($this->filePath);
+            $info['ext']      = $this->get_type();
+            $info['fileurl']  = PT_Base::getInstance()->storage->geturl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];
-            $info['hash'] = md5_file($this->fileinfo['tmp_name']);
-            $info['size'] = $this->fileinfo['size'];
-            return array(
-                'status' => 1, 'info' => $info);
+            $info['hash']     = md5_file($this->fileinfo['tmp_name']);
+            $info['size']     = $this->fileinfo['size'];
+            return ['status' => 1, 'info' => $info];
         } else {
             return $this->error("上传失败！");
         }
     }
 
-    protected function save($content) {
+    protected function save($content)
+    {
         if (in_array($this->get_type(), array('gif', 'jpg', 'jpeg', 'bmp', 'png'))) {
-            $imginfo = getimagesize($this->fileinfo['tmp_name']);
-            if (empty($imginfo)) {
-                $img = new image($this->fileinfo['tmp_name']);
-                $content = $img->save();
-            }
+            //$imginfo = getimagesize($this->fileinfo['tmp_name']);
+            $img     = new image($this->fileinfo['tmp_name']);
+            $content = $img->save();
         }
         return PT_Base::getInstance()->storage->write($this->filePath, $content);
     }
 
-    protected function geterrorinfo($num) {
+    protected function geterrorinfo($num)
+    {
         switch ($num) {
             case 1:
                 return '上传的文件超过了 php.ini 中 upload_max_filesize 选项限制的值';
@@ -173,22 +185,23 @@ class upload {
         }
     }
 
-    public function uploadurl($url, $content = '') {
+    public function uploadurl($url, $content = '')
+    {
         $this->fileName = $this->filePath = '';
         if ($content == '') $content = http::get($url);
         $this->fileinfo = array(
-            'name' => basename(parse_url($url, PHP_URL_PATH)),
-            'size' => strlen($content),
+            'name'     => basename(parse_url($url, PHP_URL_PATH)),
+            'size'     => strlen($content),
             'tmp_name' => $url,
         );
         $this->getpath();
         if ($this->save($content)) {
-            $info['ext'] = $this->get_type();
-            $info['fileurl'] = PT_Base::getInstance()->storage->geturl($this->filePath);
+            $info['ext']      = $this->get_type();
+            $info['fileurl']  = PT_Base::getInstance()->storage->geturl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];
-            $info['hash'] = md5($content);
-            $info['size'] = $this->fileinfo['size'];
+            $info['hash']     = md5($content);
+            $info['size']     = $this->fileinfo['size'];
             return array(
                 'status' => 1, 'info' => $info);
         } else {
