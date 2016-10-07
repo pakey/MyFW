@@ -1,2 +1,2 @@
 # PTCMS Framework
-自己用的一些类库
+自用的轻量级PHP开发框架
