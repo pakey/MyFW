@@ -62,7 +62,6 @@ class Response
             self::setHeader();
         }
         echo $content;
-        echo number_format(microtime(true) - $GLOBALS['t'], 5);
     }
     
     public static function disableRender()
