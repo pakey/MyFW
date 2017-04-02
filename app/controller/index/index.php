@@ -8,7 +8,12 @@ class Index extends Controller  {
     
     public function index()
     {
-        var_dump(get_included_files());
-        return 'hello world!';
+        phpinfo();
+        //ini_set('yaconf.check_delay',100);
+        var_dump(\Yaconf::get('app'));
+        var_dump(\Yaconf::get('storage'));
+        var_dump(\Yaconf::get('storage.children.children'));
+
+        
     }
 }
