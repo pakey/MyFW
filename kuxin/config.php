@@ -1,9 +1,9 @@
 <?php
 
 namespace Kuxin;
+
 class Config
 {
-    
     protected static $_config = [];
     
     /**
@@ -22,7 +22,9 @@ class Config
             $c      = self::$_config;
             $fields = explode('.', $name);
             foreach ($fields as $field) {
-                if (!isset($c[$field])) return $default;
+                if (!isset($c[$field])){
+                    return $default;
+                }
                 $c = $c[$field];
             }
             return $c;
@@ -69,29 +71,12 @@ class Config
     /**
      * 注册配置
      *
-     * @param array $config
+     * @param $config
      */
-    public static function register(array $config)
+    public static function register($config)
     {
-        self::$_config = array_merge_recursive(self::$_config, array_change_key_case($config));
-    }
-    
-    /**
-     * 从文件加载配置
-     *
-     * @param $file
-     */
-    public static function load($file, $group = null)
-    {
-        if (is_file($file)) {
-            $config = include $file;
-            if (is_array($config)) {
-                if ($group) {
-                    self::register([$group => $config]);
-                } else {
-                    self::register($config);
-                }
-            }
+        if (is_array($config)) {
+            self::$_config = array_merge(self::$_config, $config);
         }
     }
 }
