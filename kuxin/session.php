@@ -9,34 +9,8 @@ class Session
     public function init($name = [])
     {
         $name = array_merge(Config::get('session', []), $name);
-        if (Config::get('var_session_id') && isset($_REQUEST[Config::get('var_session_id')])) {
-            session_id($_REQUEST[Config::get('var_session_id')]);
-        } elseif (isset($name['id'])) {
-            session_id($name['id']);
-        }
-        if (empty($name['type']) && Config::get('driver_session')) {
-            $name['type'] = Config::get('driver_session');
-        }
-        if (isset($name['name'])) session_name($name['name']);
-        if (isset($name['path'])) session_save_path($name['path']);
-        if (isset($name['domain'])) ini_set('session.cookie_domain', $name['domain']);
-        if (isset($name['expire'])) ini_set('session.gc_maxlifetime', $name['expire']);
-        if (isset($name['use_trans_sid'])) ini_set('session.use_trans_sid', $name['use_trans_sid'] ? 1 : 0);
-        if (isset($name['use_cookies'])) ini_set('session.use_cookies', $name['use_cookies'] ? 1 : 0);
-        if (isset($name['cache_limiter'])) session_cache_limiter($name['cache_limiter']);
-        if (isset($name['cache_expire'])) session_cache_expire($name['cache_expire']);
-        if (isset($name['type'])) {
-            $type   = $name['type'];
-            $class  = 'Driver_Session_' . $type;
-            $hander = new $class();
-            session_set_save_handler(
-                [&$hander, "open"],
-                [&$hander, "close"],
-                [&$hander, "read"],
-                [&$hander, "write"],
-                [&$hander, "destroy"],
-                [&$hander, "gc"]);
-        }
+        //ini_set("session.save_handler", "memcache");
+        //ini_set("session.save_path", "tcp://127.0.0.1:11211");
         session_start();
     }
     

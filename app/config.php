@@ -103,8 +103,10 @@ return [
     ],
     
     'session' => [
-    
+        'handler' => '',
+        'path'    => '',
+        'host'    => '',
+        'port'    => '',
     ],
-
 
 ];
