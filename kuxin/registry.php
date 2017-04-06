@@ -19,7 +19,7 @@ class Registry
      * @param $default
      * @return mixed
      */
-    public static function get($key, $default=null)
+    public static function get($key, $default = null)
     {
         return isset(self::$_data[$key]) ? self::$_data[$key] : (is_callable($default) ? $default($key) : $default);
     }
@@ -30,11 +30,9 @@ class Registry
      * @param      $key
      * @param null $value
      */
-    public static function set($key, $value = null)
+    public static function set($key, $value)
     {
-        if ($value === null) {
-            if (isset(self::$_data[$key])) unset(self::$_data[$key]);
-        } elseif (is_array($key)) {
+        if (is_array($key)) {
             self::$_data = array_merge(self::$_data, $key);
         } else {
             self::$_data[$key] = $value;
@@ -43,14 +41,27 @@ class Registry
     
     /**
      * 合并信息
+     *
      * @param $key
      * @param $value
      */
     public static function merge($key, $value)
     {
-        $data=(array)self::get($key);
-        $data[]=$value;
-        self::set($key,$data);
+        $data   = (array)self::get($key);
+        $data[] = $value;
+        self::set($key, $data);
+    }
+    
+    /**
+     * 移除
+     *
+     * @param $key
+     */
+    public static function remove($key)
+    {
+        if (isset(self::$_data[$key])) {
+            unset(self::$_data[$key]);
+        }
     }
     
     /**

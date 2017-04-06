@@ -10,6 +10,5 @@ class Index extends Controller  {
     {
         //ini_set('yaconf.check_delay',100);
         return 'hello world';
-        
     }
 }
