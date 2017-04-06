@@ -2,9 +2,6 @@
 
 namespace Kuxin\Cache;
 
-use Kuxin\Config;
-
-
 class Memcache
 {
     
@@ -17,8 +14,8 @@ class Memcache
     public function __construct($option)
     {
         self::$handler = new \Memcache();
-        self::$handler->connect($option['host'], $option['port']);
-        self::$prefix = isset($option['prefix']) ? $option['prefix'] : '';
+        self::$handler->connect($option['host'] ?? '127.0..1', $option['port'] ?? '11211');
+        self::$prefix = $option['prefix'] ?? '';
     }
     
     public function set($key, $value, $time = 0)
