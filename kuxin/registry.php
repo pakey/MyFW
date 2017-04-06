@@ -16,12 +16,12 @@ class Registry
      * 获取
      *
      * @param $key
-     * @param $defaultvar
+     * @param $default
      * @return mixed
      */
-    public static function get($key, $defaultvar = null)
+    public static function get($key, $default=null)
     {
-        return isset(self::$_data[$key]) ? self::$_data[$key] : (is_callable($defaultvar) ? $defaultvar($key) : $defaultvar);
+        return isset(self::$_data[$key]) ? self::$_data[$key] : (is_callable($default) ? $default($key) : $default);
     }
     
     /**
@@ -32,17 +32,54 @@ class Registry
      */
     public static function set($key, $value = null)
     {
-        if (is_array($key)) {
+        if ($value === null) {
+            if (isset(self::$_data[$key])) unset(self::$_data[$key]);
+        } elseif (is_array($key)) {
             self::$_data = array_merge(self::$_data, $key);
         } else {
             self::$_data[$key] = $value;
         }
     }
     
-    public static function remove($key)
+    /**
+     * 合并信息
+     * @param $key
+     * @param $value
+     */
+    public static function merge($key, $value)
+    {
+        $data=(array)self::get($key);
+        $data[]=$value;
+        self::set($key,$data);
+    }
+    
+    /**
+     * 对值增加
+     *
+     * @param     $key
+     * @param int $num
+     */
+    public static function setInc($key, $num = 1)
     {
         if (isset(self::$_data[$key])) {
-            unset(self::$_data[$key]);
+            self::$_data[$key] += $num;
+        } else {
+            self::$_data[$key] = $num;
+        }
+    }
+    
+    /**
+     * 对值减少
+     *
+     * @param $key
+     * @param $num
+     */
+    public static function setDec($key, $num)
+    {
+        if (isset(self::$_data[$key])) {
+            self::$_data[$key] -= $num;
+        } else {
+            self::$_data[$key] = $num;
         }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Kuxin\Ext\Cache;
+namespace Kuxin\Cache;
 
 use Kuxin\Config;
 

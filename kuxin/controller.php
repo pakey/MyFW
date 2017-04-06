@@ -14,4 +14,10 @@ class Controller
     {
         //do somethings
     }
+    
+    public function ajax($data, $type = 'json')
+    {
+        Response::type($type);
+        return $data;
+    }
 }

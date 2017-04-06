@@ -2,16 +2,13 @@
 
 namespace Kuxin;
 
-use Kuxin\Ext\Json;
-use Kuxin\Ext\Jsonp;
-use Kuxin\Ext\Xml;
+use Kuxin\Helper\Json;
+use Kuxin\Helper\Jsonp;
+use Kuxin\Helper\Xml;
 use ReflectionClass;
 
 class Kuxin
 {
-    
-    static $_importFiles = [];
-    static $_class       = [];
     
     public static function init()
     {
@@ -27,8 +24,9 @@ class Kuxin
     {
         self::init();
         Router::dispatcher();
-        $controllerName = 'app\\controller\\' . Router::$module . '\\' . Router::$controller;
-        $controller     = self::instance($controllerName);
+        $controllerName = 'app\\controller\\' . Router::$controller;
+        /** @var \Kuxin\Controller $controller */
+        $controller     = Loader::instance($controllerName);
         $actionName     = Router::$action;
         $controller->init();
         if (method_exists($controller, $actionName)) {
@@ -46,13 +44,13 @@ class Kuxin
                         break;
                     default:
                         if (Request::isAjax()) {
+                            Response::type('json');
                             $body = Json::encode($return);
-                        } elseif (is_array($return)) {
-                            $body = View::make(null, $return);
-                        } else {
+                        } elseif (is_string($return)) {
                             $body = $return;
+                        } else{
+                            $body = View::make(null, $return);
                         }
-                        break;
                 }
             } else {
                 $body = $return;
@@ -67,30 +65,16 @@ class Kuxin
     protected static function autoload($classname)
     {
         $file = PT_ROOT . '/' . strtr(strtolower($classname), '\\', '/') . '.php';
-        self::import($file);
+        Loader::import($file);
     }
     
-    public static function import($filename)
-    {
-        if (!isset(self::$_importFiles[$filename])) {
-            self::$_importFiles[$filename] = include $filename;
-        }
-        return self::$_importFiles[$filename];
-    }
     
-    public static function instance($class, $args = [])
-    {
-        $key = md5($class . '_' . serialize($args));
-        if (empty(self::$_class[$key])) {
-            self::$_class[$key] = (new ReflectionClass($class))->newInstanceArgs($args);;
-        }
-        return self::$_class[$key];
-    }
 }
 
 
-date_default_timezone_set('PRC');
+include __DIR__.'/loader.php';
 
+date_default_timezone_set('PRC');
 //项目根目录
 defined('PT_ROOT') || define('PT_ROOT', str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_FILENAME']))));
 

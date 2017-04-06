@@ -1,5 +1,5 @@
 <?php
-namespace Kuxin\Ext;
+namespace Kuxin\Helper;
 
 
 class Xml

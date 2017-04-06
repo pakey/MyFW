@@ -1,6 +1,7 @@
 <?php
 return [
     'app' => [
+        'debug' => true,
         'power' => [
             'rewrite' => 0,//伪静态开关
         ],

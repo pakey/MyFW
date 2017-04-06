@@ -1,6 +1,6 @@
 <?php
 
-namespace Kuxin;
+namespace Kuxin\Helper;
 
 class Url{
     

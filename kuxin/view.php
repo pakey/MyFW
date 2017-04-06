@@ -3,6 +3,8 @@
 namespace Kuxin;
 
 
+use Kuxin\Cookie;
+
 class View
 {
     
@@ -75,7 +77,7 @@ class View
      * @param array  $data 附加数据
      * @return string
      */
-    public static function make($tpl = null, array $data = [])
+    public static function make($tpl = null, $data = [])
     {
         //获取风格
         self::getTheme();

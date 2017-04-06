@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Kuxin\Ext;
+namespace Kuxin;
 
 class Cookie
 {

@@ -1,4 +1,5 @@
 <?php
+
 namespace Kuxin;
 
 //兼容行定义
@@ -17,7 +18,15 @@ class Response
     public static function type($type = null)
     {
         if ($type === null) {
-            return self::$type;
+            if (Request::isAjax()) {
+                if (in_array(self::$type, ['json', 'jsonp'])) {
+                    return self::$type;
+                } else {
+                    return 'json';
+                }
+            } else {
+                return self::$type;
+            }
         } elseif (in_array($type, self::$types)) {
             return self::$type = $type;
         } else {
