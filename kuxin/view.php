@@ -127,7 +127,9 @@ class View
                 }
             }
             //读取模版配置文件
-            if ($tplconfig = Loader::import(self::$tplpath . '/' . self::$theme . '/config.php')) {
+            $configFile=self::$tplpath . '/' . self::$theme . '/config.php';
+            if (is_file($configFile)) {
+                $tplconfig = Loader::import($configFile);
                 foreach ($tplconfig as $k => $v) {
                     Config::set("tplconfig.{$k}", $v['value']);
                 }
@@ -147,7 +149,6 @@ class View
     {
         $tpl     = ($tpl === null) ? self::$tplfile : $tpl;
         $theme   = self::$theme;
-        $module  = MODULE_NAME;
         $protect = Config::get('tpl_protect', '');
         if (substr($tpl, 0, 1) === '/') { //绝对目录 可以设置模版
             $tplfile = PT_ROOT . $tpl;
@@ -157,38 +158,14 @@ class View
             $tmpl    = self::$tplpath . "/{$theme}/public";
         } else {
             if (!$tpl) {
-                $tpl = CONTROLLER_NAME . '_' . ACTION_NAME;
+                $tpl = 'app/view/'.strtolower(str_replace(['\\'],['/'],Router::$controller)) . '/' . Router::$action.'.'.Config::get('app.view.suffix', 'html');
             }
-            //判断模版目录
-            $suffix = Config::get('tpl_suffix', 'html');
-            if ($theme) {
-                // 设置了模版 模版目录为template下对应的设置的模版目录
-                $tplfile = rtrim(self::$tplpath . ($protect ? "/{$theme}/{$protect}/{$module}" : "/{$theme}/{$module}"), '/') . "/{$tpl}.{$suffix}";
-                if (!is_file($tplfile)) {
-                    //没有找到的模版默认使用default匹配一次
-                    if (is_file(self::$tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}")) {
-                        //去掉保护目录
-                        $tplfile = self::$tplpath . "/{$theme}/{$module}/{$tpl}.{$suffix}";
-                        Log::debug('指定的模版（' . $tplfile . '）不存在，去除模板保护目录成功');
-                    } elseif ($theme !== 'default' && is_file(self::$tplpath . "/default/{$module}/{$tpl}.{$suffix}")) {
-                        //使用默认模版
-                        $tplfile     = self::$tplpath . "/default/{$module}/{$tpl}.{$suffix}";
-                        self::$theme = $theme = 'default';
-                        Log::debug('指定的模版（' . $tplfile . '）不存在，尝试使用默认模版成功');
-                    }
-                }
-                $tmpl = self::$tplpath . "/{$theme}/public";
-            } else {
-                //未设置模版 模版目录为对应模块的view目录 后台专属
-                $tplfile = APP_PATH . "/{$module}/view/{$tpl}.{$suffix}";
-                $tmpl    = APP_PATH . "/{$module}/view/";
-            }
+            $tplfile=PT_ROOT.'/'.$tpl;
         }
         $realtpl = str_replace('\\', '/', realpath($tplfile));
         if (!$realtpl) {
-            trigger_error("模版{$tpl}不存在:" . $tplfile, E_USER_ERROR);
+            trigger_error("模版{$tpl}不存在[" . $tplfile.']', E_USER_ERROR);
         }
-        defined('__TMPL__') || define('__TMPL__', rtrim(PT_DIR . str_replace(PT_ROOT, '', $tmpl), '/'));
         return $realtpl;
     }
     
