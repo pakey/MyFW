@@ -33,7 +33,7 @@ class Memcache
         return $return;
     }
     
-    public function rm($key)
+    public function remove($key)
     {
         return self::$handler->delete(self::$prefix . $key);
     }
