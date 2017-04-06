@@ -9,22 +9,22 @@ return [
     
     'cache' => [
         'common' => [
-            'driver'  => 'memcache',
+            'driver' => 'memcache',
             'option' => [
-                'host' => '127.0.0.1',
-                'port' => '11211',
+                'host'   => '127.0.0.1',
+                'port'   => '11211',
             ],
         ],
         
         'other' => [
-            'driver'  => 'memcached',
+            'driver' => 'memcached',
             'option' => [
                 'host' => '127.0.0.1',
                 'port' => '11211',
             ],
         ],
         'redis' => [
-            'driver'  => 'redis',
+            'driver' => 'redis',
             'option' => [
                 'host'     => '127.0.0.1',
                 'port'     => '6379',
@@ -62,13 +62,13 @@ return [
     
     'storage' => [
         'runtime' => [
-            'driver'  => 'file',
+            'driver' => 'file',
             'option' => [
                 'path' => PT_ROOT . '/runtime',
             ],
         ],
         'ftp'     => [
-            'driver'  => 'ftp',
+            'driver' => 'ftp',
             'option' => [
                 'host'     => '',
                 'port'     => '',
@@ -78,7 +78,7 @@ return [
             ],
         ],
         'mongodb' => [
-            'driver'  => 'mongodb',
+            'driver' => 'mongodb',
             'option' => [
                 'host'     => '',
                 'port'     => '',
