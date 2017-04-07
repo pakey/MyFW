@@ -9,7 +9,7 @@ defined('JSON_UNESCAPED_UNICODE') || define('JSON_UNESCAPED_UNICODE', 256);
 class Response
 {
     
-    protected static $type = 'html';
+    protected static $type;
     
     protected static $types = ['html', 'json', 'xml', 'jsonp'];
     
@@ -18,14 +18,12 @@ class Response
     public static function type($type = null)
     {
         if ($type === null) {
-            if (Request::isAjax()) {
-                if (in_array(self::$type, ['json', 'jsonp'])) {
-                    return self::$type;
-                } else {
-                    return 'json';
-                }
-            } else {
+            if (self::$type) {
                 return self::$type;
+            } else if (Request::isAjax()) {
+                return 'json';
+            } else {
+                return 'html';
             }
         } elseif (in_array($type, self::$types)) {
             return self::$type = $type;

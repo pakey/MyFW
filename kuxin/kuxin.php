@@ -26,8 +26,8 @@ class Kuxin
         Router::dispatcher();
         $controllerName = 'app\\controller\\' . Router::$controller;
         /** @var \Kuxin\Controller $controller */
-        $controller     = Loader::instance($controllerName);
-        $actionName     = Router::$action;
+        $controller = Loader::instance($controllerName);
+        $actionName = Router::$action;
         $controller->init();
         if (method_exists($controller, $actionName)) {
             $return = $controller->$actionName();
@@ -43,12 +43,12 @@ class Kuxin
                         $body = Xml::encode($return);
                         break;
                     default:
-                        if (Request::isAjax()) {
+                        if (is_string($return)) {
+                            $body = $return;
+                        } else if (Request::isAjax()) {
                             Response::type('json');
                             $body = Json::encode($return);
-                        } elseif (is_string($return)) {
-                            $body = $return;
-                        } else{
+                        } else {
                             $body = View::make(null, $return);
                         }
                 }
@@ -72,7 +72,7 @@ class Kuxin
 }
 
 
-include __DIR__.'/loader.php';
+include __DIR__ . '/loader.php';
 
 date_default_timezone_set('PRC');
 //项目根目录
