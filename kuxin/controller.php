@@ -17,7 +17,7 @@ class Controller
     
     public function ajax($data, $type = 'json')
     {
-        Response::type($type);
+        Response::setType($type);
         return $data;
     }
 }

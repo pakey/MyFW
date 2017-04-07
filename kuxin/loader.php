@@ -17,7 +17,7 @@ class Loader{
     public static function import($filename)
     {
         if (!isset(self::$_importFiles[$filename])) {
-            self::$_importFiles[$filename] = include $filename;
+            self::$_importFiles[$filename] = require $filename;
         }
         return self::$_importFiles[$filename];
     }

@@ -32,7 +32,7 @@ class Kuxin
         if (method_exists($controller, $actionName)) {
             $return = $controller->$actionName();
             if (Response::isAutoRender()) {
-                switch (Response::type()) {
+                switch (Response::getType()) {
                     case 'json':
                         $body = Json::encode($return);
                         break;
@@ -46,7 +46,7 @@ class Kuxin
                         if (is_string($return)) {
                             $body = $return;
                         } else if (Request::isAjax()) {
-                            Response::type('json');
+                            Response::setType('json');
                             $body = Json::encode($return);
                         } else {
                             $body = View::make(null, $return);

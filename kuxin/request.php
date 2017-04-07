@@ -18,7 +18,7 @@ class Request
     
     public static function isAjax()
     {
-        return ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || !empty($_POST['isajax']) || !empty($_GET['isajax'])) ? true : false;
+        return ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || isset($_POST['isajax']) || isset($_GET['isajax'])) ? true : false;
     }
     
     public static function isMobile()
@@ -56,9 +56,8 @@ class Request
         return false;
     }
     
-    public static function isSpider($ua = null)
+    public static function isSpider($ua = '')
     {
-        if (defined('IS_SPIDER')) return IS_SPIDER;
         empty($ua) && $ua = $_SERVER['HTTP_USER_AGENT'];
         $ua      = strtolower($ua);
         $spiders = ['bot', 'crawl', 'spider', 'slurp', 'sohu-search', 'lycos', 'robozilla'];
@@ -68,7 +67,7 @@ class Request
         return false;
     }
     
-    public static function getIp($default = '0.0.0.0')
+    public static function getIp($defaultIp = '0.0.0.0')
     {
         $ip = $_SERVER['REMOTE_ADDR'];
         $i  = explode('.', $ip);
@@ -84,24 +83,6 @@ class Request
         }
         $l = ip2long($ip);
         if ((false !== $l) && ($ip === long2ip($l))) return $ip;
-        return $default;
-    }
-    
-    /**
-     * 获取host
-     *
-     * @param null $domain
-     * @return mixed|null|string
-     */
-    public static function getSiteCode($domain = null)
-    {
-        $domain = ($domain !== null) ? (strpos($domain, '://') ? parse_url($domain, PHP_URL_HOST) : $domain) : $_SERVER['HTTP_HOST'];
-        // 替换域名中的-为_
-        $domain = str_replace('-', '_', $domain);
-        // 去掉端口
-        if (strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':'));
-        // 去掉开始的www.
-        if (stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
-        return strtolower($domain);
+        return $defaultIp;
     }
 }

@@ -13,19 +13,21 @@ class Router
      */
     public static function dispatcher()
     {
-        //判断是否需要进行rewrite转换
-        if (Config::get('app.power.rewrite')) {
-            self::rewrite();
-        }
+        
         //解析s变量
         if (isset($_GET['s'])) {
-            if (strpos($_GET['s'], '/')) {
-                if (strpos($_GET['s'], '.')) {
-                    $param = explode('.', $_GET['s'], 2);
-                    Response::type($param['1']);
+            $superVar = $_GET['s'];
+            //判断是否需要进行rewrite转换
+            if (Config::get('power.rewrite')) {
+                $superVar = self::rewrite($superVar);
+            }
+            if (strpos($superVar, '/')) {
+                if (strpos($superVar, '.')) {
+                    $param = explode('.', $superVar, 2);
+                    Response::setType($param['1']);
                     $param = explode('/', $param['0']);
                 } else {
-                    $param = explode('/', $_GET['s']);
+                    $param = explode('/', $superVar);
                 }
                 self::$action     = array_pop($param);
                 self::$controller = implode('\\', $param);
@@ -37,16 +39,16 @@ class Router
     /**
      * 正则模式解析
      */
-    public static function rewrite()
+    public static function rewrite($superVar)
     {
         if ($router = Config::get('app.router.rewrite')) {
             foreach ($router as $rule => $url) {
-                if (preg_match('{' . $rule . '}isU', $_GET['s'], $match)) {
+                if (preg_match('{' . $rule . '}isU', $superVar, $match)) {
                     unset($match['0']);
                     if (strpos($url, '?')) {
                         list($url, $query) = explode('?', $url);
                     }
-                    $_GET['s'] = rtrim($url, '/');
+                    $superVar = rtrim($url, '/');
                     if ($match && !empty($query)) {//组合后面的参数
                         $param = explode('&', $query);
                         if (count($param) == count($match) && $var = array_combine($param, $match)) {
@@ -57,6 +59,7 @@ class Router
                 }
             }
         }
+        return $superVar;
     }
     
 }

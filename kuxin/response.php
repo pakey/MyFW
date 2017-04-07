@@ -2,9 +2,6 @@
 
 namespace Kuxin;
 
-//兼容行定义
-defined('JSON_PRETTY_PRINT') || define('JSON_PRETTY_PRINT', 128);
-defined('JSON_UNESCAPED_UNICODE') || define('JSON_UNESCAPED_UNICODE', 256);
 
 class Response
 {
@@ -15,17 +12,21 @@ class Response
     
     protected static $autoRender = true;
     
-    public static function type($type = null)
+    
+    public static function getType()
     {
-        if ($type === null) {
-            if (self::$type) {
-                return self::$type;
-            } else if (Request::isAjax()) {
-                return 'json';
-            } else {
-                return 'html';
-            }
-        } elseif (in_array($type, self::$types)) {
+        if (self::$type) {
+            return self::$type;
+        } else if (Request::isAjax()) {
+            return 'json';
+        } else {
+            return 'html';
+        }
+    }
+    
+    public static function setType($type)
+    {
+        if (in_array($type, self::$types)) {
             return self::$type = $type;
         } else {
             return false;
@@ -86,30 +87,10 @@ class Response
         return self::$autoRender;
     }
     
-    public static function error($msg = '找不到指定的页面', $level = 'error')
-    {
-        header('HTTP/1.1 404 Not Found');
-        header("status: 404 Not Found");
-        if (Config::get('app.debug')) {
-            exit($msg);
-        } else {
-            $file = PTCMS_ROOT . '/' . Config::get('404file', '404.html');
-            Log::record($msg);
-            if (is_file($file)) {
-                $content = F($file);
-                $content = str_replace(['{$sitename}', '{$siteurl}', '{$msg}'], [Config::get('sitename', 'PTCMS FrameWork'), Config::get('siteurl', PT_URL), $msg], $content);
-                exit($content);
-            } else {
-                exit($msg . ' 页面出现错误，如需自定义此错误，请创建文件：' . $file);
-            }
-        }
-        exit;
-    }
-    
-    public static function redirect($url, $type = 302)
+    public static function redirect($url, $code = 302)
     {
         if (!headers_sent()) {
-            if ($type == 302) {
+            if ($code == 302) {
                 header('HTTP/1.1 302 Moved Temporarily');
                 header('Status:302 Moved Temporarily'); // 确保FastCGI模式下正常
             } else {
