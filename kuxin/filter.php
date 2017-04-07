@@ -3,6 +3,7 @@ namespace Kuxin;
 
 class Filter
 {
+    
     protected static $validate = [
         //必填
         'require'    => '/.+/',
@@ -51,7 +52,10 @@ class Filter
     public static function regex($value, $rule)
     {
         // 检查是否有内置的正则表达式
-        if (isset(self::$validate[strtolower($rule)])) $rule = self::$validate[strtolower($rule)];
+        $rule = strtolower($rule);
+        if (isset(self::$validate[$rule])) {
+            $rule = self::$validate[$rule];
+        }
         return preg_match($rule, strval($value)) === 1;
     }
     

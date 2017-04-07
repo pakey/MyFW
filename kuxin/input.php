@@ -22,8 +22,7 @@ class Input
     
     public static function put($name, $type = 'int', $default = null)
     {
-        static $input = null;
-        if ($input === null) parse_str(file_get_contents('php://input'), $input);
+        parse_str(file_get_contents('php://input'), $input);
         return self::param($name, $type, $default, $input);
     }
     
