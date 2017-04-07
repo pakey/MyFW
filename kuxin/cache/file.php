@@ -1,8 +1,8 @@
 <?php
 
-namespace ptcms\driver\cache;
+namespace Kuxin\Cache;
 
-use ptcms\Storage;
+use Kuxin\Storage;
 
 class File {
     

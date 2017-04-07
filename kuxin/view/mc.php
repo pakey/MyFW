@@ -1,10 +1,8 @@
 <?php
 
-namespace ptcms\driver\view;
+namespace Kuxin\View;
 
-use ptcms\View;
-use ptcms\Config;
-use ptcms\Response;
+use Kuxin\View;
 
 class Mc extends View
 {
@@ -103,8 +101,8 @@ class Mc extends View
                         break;
                     case 'getad':
                         // 当广告js存在时才会解析出来 否则不会解析
-                        if (is_file(PUBLIC_PATH.DIRECTORY_SEPARATOR . Config::get('app.addir') . "/" . $vars[2] . ".js")) {
-                            $var = "'<script type=\"text/javascript\" src=\"'.PT_DIR . '/public/" . Config::get('app.addir') . "/" . $vars[2] . ".js\"></script>'";
+                        if (is_file(PUBLIC_PATH.DIRECTORY_SEPARATOR . Config::get('addir') . "/" . $vars[2] . ".js")) {
+                            $var = "'<script type=\"text/javascript\" src=\"'.PT_DIR . '/public/" . Config::get('addir') . "/" . $vars[2] . ".js\"></script>'";
                         } else {
                             $var = '""';
                         }
