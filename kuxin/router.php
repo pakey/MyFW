@@ -41,7 +41,7 @@ class Router
      */
     public static function rewrite($superVar)
     {
-        if ($router = Config::get('app.router.rewrite')) {
+        if ($router = Config::get('router.rewrite')) {
             foreach ($router as $rule => $url) {
                 if (preg_match('{' . $rule . '}isU', $superVar, $match)) {
                     unset($match['0']);

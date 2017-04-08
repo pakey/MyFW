@@ -158,7 +158,7 @@ class View
             $tmpl    = self::$tplpath . "/{$theme}/public";
         } else {
             if (!$tpl) {
-                $tpl = 'app/view/'.strtolower(str_replace(['\\'],['/'],Router::$controller)) . '/' . Router::$action.'.'.Config::get('app.view.suffix', 'html');
+                $tpl = 'app/view/'.strtolower(str_replace(['\\'],['/'],Router::$controller)) . '/' . Router::$action.'.'.Config::get('view.suffix', 'html');
             }
             $tplfile=PT_ROOT.'/'.$tpl;
         }

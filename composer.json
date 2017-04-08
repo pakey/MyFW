@@ -1,6 +1,7 @@
 {
     "require": {
         "phalcon/zephir" : "0.8.*",
-        "fezfez/php-to-zephir": "^0.2.1"
+        "fezfez/php-to-zephir": "^0.2.1",
+        "illuminate/database": "^5.4"
     }
 }

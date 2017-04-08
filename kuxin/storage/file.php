@@ -10,10 +10,10 @@ class File
     protected static $path = null;
     protected static $url  = null;
     
-    public function __construct($config = [])
+    public function __construct($config)
     {
-        self::$path = isset($config['path']) ? $config['path'] : (PUBLIC_PATH . DIRECTORY_SEPARATOR . Config::get('storage.path'));
-        self::$url  = isset($config['url']) ? $config['url'] : (PUBLIC_URL . '/' . Config::get('storage.url') . '/');
+        self::$path = $config['path'];
+        self::$url  = $config['url']??"";
     }
     
     public function exist($file)

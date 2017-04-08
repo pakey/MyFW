@@ -8,11 +8,13 @@ return [
     ],
     
     'cache' => [
+        'prefix'   => 'kx_',
+        
         'common' => [
             'driver' => 'memcache',
             'option' => [
-                'host'   => '127.0.0.1',
-                'port'   => '11211',
+                'host' => '127.0.0.1',
+                'port' => '11211',
             ],
         ],
         
@@ -35,22 +37,10 @@ return [
     ],
     
     'database' => [
-        'master' => [
-            'host'     => '127.0.0.1',
-            'port'     => '3306',
-            'username' => 'root',
-            'password' => 'root',
-            'database' => 'kuxin',
-        ],
-        'slave'  => [
-            [
-                'host'     => '127.0.0.1',
-                'port'     => '3306',
-                'username' => 'root',
-                'password' => 'root',
-                'database' => 'kuxin',
-            ],
-            [
+        'prefix'   => 'kx_',
+        'common' => [
+            'driver' => 'mysql',
+            'option' => [
                 'host'     => '127.0.0.1',
                 'port'     => '3306',
                 'username' => 'root',

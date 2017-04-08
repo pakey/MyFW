@@ -4,7 +4,7 @@ namespace Kuxin\Db;
 use Kuxin\Config;
 use Kuxin\Registry;
 
-class Pdo{
+class Mysql{
     /**
      * 单例模式实例化对象
      *
@@ -59,7 +59,7 @@ class Pdo{
         if (!$sql) {
             return false;
         }
-        if (Config::get('app.debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
+        if (Config::get('debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
             $t                 = microtime(true);
             $result            = $this->db_link->query($sql);
             Registry::merge('_sql',number_format(microtime(true) - $t, 5) . ' - ' . $sql);
@@ -84,7 +84,7 @@ class Pdo{
         if (!$sql) {
             return false;
         }
-        if (Config::get('app.debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
+        if (Config::get('debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
             $t                 = microtime(true);
             $result            = $this->db_link->exec($sql);
             Registry::merge('_sql',number_format(microtime(true) - $t, 5) . ' - ' . $sql);
