@@ -35,7 +35,7 @@ class Mysql{
     {
         //连接数据库 ,PDO::ATTR_PERSISTENT => true
         $params['charset'] = empty($params['charset']) ? 'utf8' : $params['charset'];
-        $this->db_link     = new PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], []);
+        $this->db_link     = new \PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], []);
         $this->db_link->query("SET NAMES {$params['charset']}");
         $this->db_link->query("SET sql_mode='NO_ENGINE_SUBSTITUTION'");
         if (!$this->db_link) {

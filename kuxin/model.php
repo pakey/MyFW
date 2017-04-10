@@ -53,12 +53,28 @@ class Model
      */
     protected $errorinfo = null;
     
+    /**
+     * @var \Kuxin\Db\Mysql
+     */
+    protected $db=null;
+    
     public function __construct()
     {
         if (!$this->tableName) {
             $this->tableName = static::class;
         }
         $this->setTable($this->tableName);
+    }
+    
+    /**
+     * @return \Kuxin\Db\Mysql
+     */
+    public function db()
+    {
+        if(!$this->db){
+            $this->db=DI::DB();
+        }
+        return $this->db;
     }
     
     public function __call($method, $args)
@@ -189,14 +205,14 @@ class Model
     {
         $tablename = empty($tablename) ? $this->tableName : $tablename;
         if (!$tablename) {
-            halt('您必须设置表名后才可以使用该方法');
+            trigger_error('您必须设置表名后才可以使用该方法');
         }
-        $data = Cache::get('tablefield_' . $tablename);
+        $data = DI::Cache()->get('tablefield_' . $tablename);
         if (isset($data['0']) && isset($data['1'])) {
             list($this->pk, $this->fields) = $data;
         } else {
             $pks = $fields = [];
-            $db  = $this->slave();
+            $db  = DI::DB();
             if ($tableInfo = (array)$db->fetchAll("SHOW FIELDS FROM {$tablename}")) {
                 foreach ($tableInfo as $v) {
                     if ($v['Key'] == 'PRI') $pks[] = strtolower($v['Field']);
@@ -205,9 +221,9 @@ class Model
                 $this->pk     = empty($pks) ? 'id' : $pks['0'];
                 $this->fields = $fields;
                 $cacheData    = [$this->pk, $this->fields];
-                Cache::set('tablefield_' . $tablename, $cacheData, Config::get('cache_time_m'));
+                DI::Cache()->set('tablefield_' . $tablename, $cacheData, Config::get('cache_time_m'));
             } else {
-                halt('获取表' . $tablename . '信息发送错误 ' . $db->error());
+                trigger_error('获取表' . $tablename . '信息发送错误 ' . $db->error());
                 return false;
             }
         }
@@ -216,8 +232,6 @@ class Model
     
     public function getPk()
     {
-        if ($this->pk === null)
-            $this->getTableField();
         return $this->pk;
     }
     
@@ -228,8 +242,7 @@ class Model
      */
     public function insert($data = [], $replace = false)
     {
-        if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
-        if ($this->tableName || $this->parts['table']) {
+        if ($this->tableName || $this->data['table']) {
             foreach ($this->data as $k => $v) { // 过滤参数
                 if (in_array($k, $this->fields))
                     $this->data[$k] = $this->parseValue($v);
