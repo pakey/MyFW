@@ -11,7 +11,7 @@ class Yac
     /**
      * @var \Yac
      */
-    protected $handler ;
+    protected $handler;
     
     /**
      * @var string 缓存前缀
@@ -21,13 +21,16 @@ class Yac
     
     public function __construct($option)
     {
-        $this->prefix = $option['prefix'] ?? Config::get('cache.prefix', '');
+        if (!extension_loaded('yac')) {
+            trigger_error('您尚未安装yac扩展', E_USER_ERROR);
+        }
+        $this->prefix  = $option['prefix'] ?? Config::get('cache.prefix', '');
         $this->handler = new \Yac($this->prefix);
     }
     
     public function set($key, $value, $time = 0)
     {
-        return $this->handler->set($key, Serialize::encode($value),$time);
+        return $this->handler->set($key, Serialize::encode($value), $time);
     }
     
     public function get($key)

@@ -7,6 +7,7 @@ use Kuxin\Helper\Serialize;
 
 class Redis
 {
+    
     /**
      * @var \Redis
      */
@@ -20,7 +21,7 @@ class Redis
     public function __construct($option)
     {
         if (!extension_loaded('redis')) {
-            trigger_error('不支持reids缓存');
+            trigger_error('您尚未安装redis扩展', E_USER_ERROR);
         }
         $this->handler = new \Redis;
         $this->handler->connect($option['host'] ?? '127.0.0.1', $option['port'] ?? '6379');

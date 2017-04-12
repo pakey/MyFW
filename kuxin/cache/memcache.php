@@ -19,6 +19,9 @@ class Memcache
     
     public function __construct(array $option)
     {
+        if (!extension_loaded('memcache')) {
+            trigger_error('您尚未安装memcache扩展', E_USER_ERROR);
+        }
         $this->handler = new \Memcache();
         $this->handler->connect($option['host'] ?? '127.0.0.1', $option['port'] ?? '11211');
         $this->prefix = $option['prefix'] ?? Config::get('cache.prefix', '');

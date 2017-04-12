@@ -10,7 +10,7 @@ return [
     'cache' => [
         'prefix' => 'kx_',
         'common' => [
-            'driver' => 'memcache',
+            'driver' => 'memcached',
             'option' => [
                 'host' => '127.0.0.1',
                 'port' => '11211',
