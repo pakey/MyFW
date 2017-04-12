@@ -16,8 +16,6 @@ class Cache
      */
     protected $handler = null;
     
-    public $debug = false;
-    
     
     /**
      * Cache constructor.
@@ -27,8 +25,7 @@ class Cache
     public function __construct(array $config)
     {
         $class         = '\\Kuxin\\Cache\\' . $config['driver'];
-        $this->handler = Loader::instance($class, $config['option']);
-        $this->debug   = Config::get('debug');
+        $this->handler = Loader::instance($class, [$config['option']]);
     }
     
     public function set($key, $value, $time = 0)
@@ -42,10 +39,27 @@ class Cache
      * @param mixed $default
      * @return mixed
      */
-    public function get($key, $default = null, $debug = true)
+    public function get($key, $default = null)
     {
         Registry::setInc('_cacheRead');
-        $result = ($this->debug && $debug) ? null : $this->handler->get($key);
+        $result = $this->handler->get($key);
+        if ($result === null) {
+            $result = (is_callable($default) ? $default($key) : $default);
+        } else {
+            Registry::setInc('_cacheHit');
+        }
+        return $result;
+    }
+    
+    /**
+     * @param       $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function debugGet($key, $default = null)
+    {
+        Registry::setInc('_cacheRead');
+        $result = Config::get('app.debug') ? null : $this->handler->get($key);
         if ($result === null) {
             $result = (is_callable($default) ? $default($key) : $default);
         } else {

@@ -2,8 +2,11 @@
 
 namespace Kuxin;
 
+use Kuxin\Helper\Json;
+
 class Model
 {
+    
     /**
      * 数据库节点信息
      *
@@ -37,7 +40,7 @@ class Model
      *
      * @var string
      */
-    protected $prefix = 'ptcms_';
+    protected $prefix = '';
     
     /**
      * SQL语句容器，用于存放SQL语句，为SQL语句组装函数提供SQL语句片段的存放空间。
@@ -56,14 +59,11 @@ class Model
     /**
      * @var \Kuxin\Db\Mysql
      */
-    protected $db=null;
+    protected $db = null;
     
     public function __construct()
     {
-        if (!$this->tableName) {
-            $this->tableName = static::class;
-        }
-        $this->setTable($this->tableName);
+        $this->prefix = Config::get('database.prefix');
     }
     
     /**
@@ -71,8 +71,8 @@ class Model
      */
     public function db()
     {
-        if(!$this->db){
-            $this->db=DI::DB();
+        if (!$this->db) {
+            $this->db = DI::DB();
         }
         return $this->db;
     }
@@ -82,37 +82,32 @@ class Model
         trigger_error('不具备的Model操作' . $method);
     }
     
-    public function sum($value = '')
+    public function sum($value = '*')
     {
-        $value               = $value ?: '*';
         $this->data['field'] = "sum({$value}) as kx_num";
         return $this->getField('kx_num');
     }
     
-    public function avg($value = '')
+    public function avg($value = '*')
     {
-        $value               = $value ?: '*';
         $this->data['field'] = "avg({$value}) as kx_num";
         return $this->getField('kx_num');
     }
     
-    public function min($value = '')
+    public function min($value = '*')
     {
-        $value               = $value ?: '*';
         $this->data['field'] = "min({$value}) as kx_num";
         return $this->getField('kx_num');
     }
     
-    public function max($value = '')
+    public function max($value = '*')
     {
-        $value               = $value ?: '*';
         $this->data['field'] = "max({$value}) as kx_num";
         return $this->getField('kx_num');
     }
     
-    public function count($value = '')
+    public function count($value = '*')
     {
-        $value               = $value ?: '*';
         $this->data['field'] = "count({$value}) as kx_num";
         return $this->getField('kx_num');
     }
@@ -124,8 +119,8 @@ class Model
             $this->data['bind']    = array_merge($this->data['bind'], $option);
         } elseif (is_array($data)) {
             foreach ($data as $field => $var) {
-                $this->data['where'][] = [$field => ':'.$field];
-                $this->data['bind'][] = [':'.$field => $var];
+                $this->data['where'][] = [$field => ':' . $field];
+                $this->data['bind'][]  = [':' . $field => $var];
             }
         }
         return $this;
@@ -195,39 +190,40 @@ class Model
         return $this;
     }
     
-    public function setTable($tablename)
+    public function setTableName($tablename)
     {
-        $this->tableName = $this->prefix . strtolower($tablename);
+        $this->tableName = strtolower($tablename);
         $this->getTableField();
+    }
+    
+    public function getTableName()
+    {
+        if (!$this->tableName) {
+            trigger_error('请设置表名', E_USER_ERROR);
+        }
+        return $this->prefix . $this->tableName;
     }
     
     public function getTableField($tablename = '')
     {
-        $tablename = empty($tablename) ? $this->tableName : $tablename;
+        $tablename = empty($tablename) ? $this->getTableName() : $tablename;
         if (!$tablename) {
             trigger_error('您必须设置表名后才可以使用该方法');
         }
-        $data = DI::Cache()->get('tablefield_' . $tablename);
-        if (isset($data['0']) && isset($data['1'])) {
-            list($this->pk, $this->fields) = $data;
-        } else {
-            $pks = $fields = [];
-            $db  = DI::DB();
-            if ($tableInfo = (array)$db->fetchAll("SHOW FIELDS FROM {$tablename}")) {
+        return $this->fields = DI::Cache()->debugGet('tablefield_' . $tablename, function () use ($tablename) {
+            $fields = [];
+            $db     = DI::DB();
+            if ($tableInfo = $db->fetchAll("SHOW FIELDS FROM {$tablename}")) {
                 foreach ($tableInfo as $v) {
                     if ($v['Key'] == 'PRI') $pks[] = strtolower($v['Field']);
-                    $fields[] = strtolower($v['Field']);
+                    $fields[strtolower($v['Field'])] = strpos($v['Type'], 'int') !== false;
                 }
-                $this->pk     = empty($pks) ? 'id' : $pks['0'];
-                $this->fields = $fields;
-                $cacheData    = [$this->pk, $this->fields];
-                DI::Cache()->set('tablefield_' . $tablename, $cacheData, Config::get('cache_time_m'));
+                DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache_time_m'));
+                return $fields;
             } else {
                 trigger_error('获取表' . $tablename . '信息发送错误 ' . $db->error());
-                return false;
             }
-        }
-        return $this->fields;
+        });
     }
     
     public function getPk()
@@ -242,6 +238,24 @@ class Model
      */
     public function insert($data = [], $replace = false)
     {
+        if ($data) {
+            $insertData = [];
+            $bindparam  = [];
+            foreach ($data as $k => $v) { // 过滤参数
+                if (isset($this->fields[$k])) {
+                    var_dump($k);
+                    $insertData[$this->parseKey($k)]      = ':'.$k;
+                    $bindparam[':' . $k] = $this->parseValue($v);
+                }
+            }
+            var_dump($insertData);
+            $sql       = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->_parseTable() . ' (' . implode(',', array_keys($insertData)) . ') VALUES (' . implode(',', $insertData) . ');';
+            $this->db()->execute($sql,$bindparam);
+            var_dump($sql);
+        } else {
+            trigger_error('你的数据呢？',E_USER_WARNING);
+        }
+        exit;
         if ($this->tableName || $this->data['table']) {
             foreach ($this->data as $k => $v) { // 过滤参数
                 if (in_array($k, $this->fields))
@@ -249,9 +263,8 @@ class Model
                 else
                     unset($this->data[$k]);
             }
-            $fields          = array_map([$this, 'parseKey'], array_keys($this->data));
-            $this->sql       = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->parseTable() . '(' . implode(',', $fields) . ') VALUES (' . implode(',', $this->data) . ');';
-            $this->data      = $this->parts = [];
+            
+            $this->data      = $this->data = [];
             $this->errorinfo = ''; //清空存储
             $db              = $this->master();
             if ($db->execute($this->sql)) {
@@ -277,7 +290,7 @@ class Model
     public function insertAll($datas, $replace = false)
     {
         if (!is_array($datas[0])) return false;
-        if ($this->tableName || $this->parts['table']) {
+        if ($this->tableName || $this->data['table']) {
             $values = [];
             foreach ($datas as $data) {
                 $value = [];
@@ -289,8 +302,8 @@ class Model
             }
             $fields = array_map([$this, 'parseKey'], array_keys($datas[0]));
             
-            $this->sql       = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->parseTable() . ' (' . implode(',', $fields) . ') VALUES ' . implode(',', $values);
-            $this->data      = $this->parts = [];
+            $this->sql       = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->_parseTable() . ' (' . implode(',', $fields) . ')  VALUES ' . implode(',', $values);
+            $this->data      = $this->data = [];
             $this->errorinfo = ''; //清空存储
             $db              = $this->master();
             if ($db->execute($this->sql)) {
@@ -312,27 +325,27 @@ class Model
     public function update($data = [])
     {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
-        if ($this->tableName || $this->parts['table']) {
+        if ($this->tableName || $this->data['table']) {
             $sets = [];
             if (!empty($this->data[$this->pk])) { //主键不允许更改 当作where条件
-                $this->parts['where'][] = [$this->pk => $this->data[$this->pk]];
+                $this->data['where'][] = [$this->pk => $this->data[$this->pk]];
                 unset($this->data[$this->pk]);
             }
-            if (empty($this->parts['field'])) { //通过field连贯操作限制更新的字段
+            if (empty($this->data['field'])) { //通过field连贯操作限制更新的字段
                 $fields = $this->fields;
             } else {
-                $fields = is_string($this->parts['field']) ? explode(',', $this->parts['field']) : $this->parts['field'];
+                $fields = is_string($this->data['field']) ? explode(',', $this->data['field']) : $this->data['field'];
             }
             foreach ($this->data as $k => $v) { // 数据解析
                 if (in_array($k, $fields)) {
                     $sets[] = $this->parseKey($k) . '=' . $this->parseValue($v);
                 }
             }
-            $this->sql       = 'UPDATE ' . $this->parseTable() . ' SET ' . implode(',', $sets)
+            $this->sql       = 'UPDATE ' . $this->_parseTable() . ' SET ' . implode(',', $sets)
                 . $this->parseWhere()
                 . $this->parseOrder()
                 . $this->parseLimit();
-            $this->data      = $this->parts = [];
+            $this->data      = $this->data = [];
             $this->errorinfo = ''; //清空存储
             $db              = $this->master();
             $affectRow       = $db->execute($this->sql);
@@ -351,12 +364,12 @@ class Model
     public function delete()
     {
         if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
-        if ($this->tableName || $this->parts['table']) {
-            $this->sql       = 'DELETE FROM' . $this->parseTable()
+        if ($this->tableName || $this->data['table']) {
+            $this->sql       = 'DELETE FROM' . $this->_parseTable()
                 . $this->parseWhere()
                 . $this->parseOrder()
                 . $this->parseLimit();
-            $this->data      = $this->parts = [];
+            $this->data      = $this->data = [];
             $this->errorinfo = ''; //清空存储
             $db              = $this->master();
             $affectRow       = $db->execute($this->sql);
@@ -375,11 +388,11 @@ class Model
     public function find($id = null)
     {
         if (is_scalar($id)) {
-            $this->parts['where'][] = [$this->getPk() => $id];
+            $this->data['where'][] = [$this->getPk() => $id];
         }
-        $this->parts['limit'] = 1;
+        $this->data['limit'] = 1;
         $this->sql            = "SELECT " . $this->parseField() . ' FROM '
-            . $this->parseTable() . ' as a'
+            . $this->_parseTable() . ' as a'
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -388,7 +401,7 @@ class Model
             . $this->parseLimit()
             . $this->parseUnion();
         //清空存储
-        $this->data      = $this->parts = [];
+        $this->data      = $this->data = [];
         $this->errorinfo = '';
         //执行查询
         $db  = $this->slave();
@@ -409,7 +422,7 @@ class Model
     public function select()
     {
         $this->sql       = "SELECT " . $this->parseField() . ' FROM '
-            . $this->parseTable() . 'as a'
+            . $this->_parseTable() . 'as a'
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -417,7 +430,7 @@ class Model
             . $this->parseOrder()
             . $this->parseLimit()
             . $this->parseUnion();
-        $this->data      = $this->parts = [];
+        $this->data      = $this->data = [];
         $this->errorinfo = ''; //清空存储
         $db              = $this->slave();
         $row             = $db->fetchAll($this->sql);
@@ -440,7 +453,7 @@ class Model
      */
     public function getField($field, $isArr = false)
     {
-        if (empty($this->parts['field'])) $this->parts['field'] = $field;
+        if (empty($this->data['field'])) $this->data['field'] = $field;
         if ($isArr) {
             $row = $this->select();
             if ($row === false || $row === null)
@@ -516,7 +529,7 @@ class Model
      * @param string $key
      * @return string
      */
-    protected function parseKey(&$key)
+    protected function parseKey($key)
     {
         $key = trim($key);
         if (!preg_match('/[,\'\"\*\(\)`.\s]/', $key)) {
@@ -534,12 +547,10 @@ class Model
      */
     protected function parseValue($value)
     {
-        if (is_string($value)) {
-            $value = '\'' . $this->master()->escapeString($value) . '\'';
-        } elseif (isset($value[0]) && is_string($value[0]) && strtolower($value[0]) == 'exp') {
-            $value = $this->master()->escapeString($value[1]);
+        if (isset($value[0]) && is_string($value[0]) && strtolower($value[0]) == 'exp') {
+            $value = $value[1];
         } elseif (is_array($value)) {
-            $value = array_map([$this, 'parseValue'], $value);
+            $value = Json::encode($value);
         } elseif (is_bool($value)) {
             $value = $value ? '1' : '0';
         } elseif (is_null($value)) {
@@ -560,8 +571,8 @@ class Model
     
     protected function parseWhere()
     {
-        if (empty($this->parts['where'])) return ' WHERE 1';
-        return ' WHERE ' . $this->parseWhereCondition($this->parts['where']);
+        if (empty($this->data['where'])) return ' WHERE 1';
+        return ' WHERE ' . $this->parseWhereCondition($this->data['where']);
     }
     
     protected function parseWhereCondition($condition)
@@ -572,7 +583,7 @@ class Model
             $k = key($var);
             $v = current($var);
             if (in_array($k, $this->fields, true)) {
-                if (empty($this->parts['join'])) {
+                if (empty($this->data['join'])) {
                     $wheres[] = '(' . $this->parseWhereItem($this->parseKey($k), $v) . ')';
                 } else {
                     $wheres[] = '(' . $this->parseWhereItem('a.' . $this->parseKey($k), $v) . ')';
@@ -633,9 +644,9 @@ class Model
     
     protected function parseOrder()
     {
-        if (!empty($this->parts['order'])) {
-            if (is_string($this->parts['order'])) {
-                return ' ORDER BY ' . $this->parts['order'];
+        if (!empty($this->data['order'])) {
+            if (is_string($this->data['order'])) {
+                return ' ORDER BY ' . $this->data['order'];
             }
         }
         return '';
@@ -643,12 +654,12 @@ class Model
     
     protected function parseGroup()
     {
-        if (!empty($this->parts['group'])) {
-            if (is_string($this->parts['group'])) {
-                return ' GROUP BY ' . $this->parseKey($this->parts['group']);
-            } elseif (is_array($this->parts['group'])) {
-                array_walk($this->parts['group'], [$this, 'parseKey']);
-                return ' GROUP BY ' . implode(',', $this->parts['group']);
+        if (!empty($this->data['group'])) {
+            if (is_string($this->data['group'])) {
+                return ' GROUP BY ' . $this->parseKey($this->data['group']);
+            } elseif (is_array($this->data['group'])) {
+                array_walk($this->data['group'], [$this, 'parseKey']);
+                return ' GROUP BY ' . implode(',', $this->data['group']);
             }
         }
         return '';
@@ -656,25 +667,25 @@ class Model
     
     protected function parseHaving()
     {
-        if (empty($this->parts['having'])) return '';
-        return ' HAVING ' . $this->parseWhereCondition($this->parts['having']);
+        if (empty($this->data['having'])) return '';
+        return ' HAVING ' . $this->parseWhereCondition($this->data['having']);
     }
     
     protected function parseLimit()
     {
-        if (isset($this->parts['page'])) {
+        if (isset($this->data['page'])) {
             // 根据页数计算limit
-            if (strpos($this->parts['page'], ',')) {
-                list($page, $listRows) = explode(',', $this->parts['page']);
+            if (strpos($this->data['page'], ',')) {
+                list($page, $listRows) = explode(',', $this->data['page']);
             } else {
-                $page = $this->parts['page'];
+                $page = $this->data['page'];
             }
             $page     = $page ? $page : 1;
-            $listRows = isset($listRows) ? $listRows : (is_numeric($this->parts['limit']) ? $this->parts['limit'] : 20);
+            $listRows = isset($listRows) ? $listRows : (is_numeric($this->data['limit']) ? $this->data['limit'] : 20);
             $offset   = $listRows * ((int)$page - 1);
             return ' LIMIT ' . $offset . ',' . $listRows;
-        } elseif (!empty($this->parts['limit'])) {
-            return ' LIMIT ' . $this->parts['limit'];
+        } elseif (!empty($this->data['limit'])) {
+            return ' LIMIT ' . $this->data['limit'];
         } else {
             return '';
         }
@@ -687,10 +698,10 @@ class Model
     
     protected function parseJoin()
     {
-        if (empty($this->parts['join'])) return '';
-        $table = $this->parts['join']['table'];
-        $type  = $this->parts['join']['type'];
-        $on    = $this->parts['join']['on'];
+        if (empty($this->data['join'])) return '';
+        $table = $this->data['join']['table'];
+        $type  = $this->data['join']['type'];
+        $on    = $this->data['join']['on'];
         if (empty($table)) {
             return '';
         } elseif (strpos($table, self::$_config['prefix']) === false) {
@@ -704,42 +715,37 @@ class Model
     
     protected function parseField()
     {
-        if (empty($this->parts['field'])) {
+        if (empty($this->data['field'])) {
             return '*';
         } else {
-            if (is_string($this->parts['field'])) {
-                $this->parts['field'] = explode(',', $this->parts['field']);
+            if (is_string($this->data['field'])) {
+                $this->data['field'] = explode(',', $this->data['field']);
             }
-            array_walk($this->parts['field'], [$this, 'parseKey']);
-            return implode(',', $this->parts['field']);
+            array_walk($this->data['field'], [$this, 'parseKey']);
+            return implode(',', $this->data['field']);
         }
     }
     
-    protected function parseTable()
+    protected function _parseTable()
     {
-        if (empty($this->parts['table'])) {
-            if ($this->tableName) {
-                $table = $this->tableName;
-            } else {
-                trigger_error('必须设置表才可以进行此操作', E_USER_ERROR);
-                return false;
-            }
+        if (empty($this->data['table'])) {
+            return $this->getTableName();
         } else {
-            $table = strtolower(strpos($this->parts['table'], self::$_config['prefix']) === false) ? self::$_config['prefix'] . $this->parts['table'] : $this->parts['table'];
+            $table = strtolower(strpos($this->data['table'], $this->prefix) === false) ? $this->prefix . $this->data['table'] : $this->data['table'];
         }
         $table = $this->parseKey($table);
         //判断是否带数据库
-        return ((empty($this->parts['db'])) ? $table : $this->parseKey($this->parts['db']) . '.' . $table);
+        return ((empty($this->data['database'])) ? $table : $this->parseKey($this->data['db']) . '.' . $table);
     }
     
     protected function parseDistinct()
     {
-        return $this->parts['distinct'] ? ' DISTINCT ' : '';
+        return $this->data['distinct'] ? ' DISTINCT ' : '';
     }
     
     public function parseCount($method)
     {
-        $this->parts['field'] = "{$method}({$this->parts['field']}) as kx_num";
+        $this->data['field'] = "{$method}({$this->data['field']}) as kx_num";
         return $this->getField('kx_num');
     }
     

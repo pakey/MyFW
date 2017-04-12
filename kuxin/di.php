@@ -15,7 +15,7 @@ class DI
         if (!$hanlder) {
             $config = Config::get("cache.{$node}");
             if ($config) {
-                $hanlder = Loader::instance('\\Kuxin\\Cache');
+                $hanlder = Loader::instance('\\Kuxin\\Cache', [$config]);
                 if ($hanlder) {
                     Registry::set("cache.{$node}", $hanlder);
                 }
@@ -55,9 +55,9 @@ class DI
     {
         $hanlder = Registry::get("db.{$node}");
         if (!$hanlder) {
-            $config = Config::get("storage.{$node}");
+            $config = Config::get("database.{$node}");
             if ($config) {
-                $hanlder = Loader::instance('\\Kuxin\Db\\' . $config['driver'], $config['option']);
+                $hanlder = Loader::instance('\\Kuxin\Db\\' . $config['driver'], [$config['option']]);
                 if ($hanlder) {
                     Registry::set("storage.{$node}", $hanlder);
                 }

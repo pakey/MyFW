@@ -12,12 +12,15 @@ class Kuxin
     
     public static function init()
     {
+        date_default_timezone_set('PRC');
         // 设定错误和异常处理
         //register_shutdown_function([__CLASS__, 'shutdown']);
         //set_error_handler(array(__CLASS__, 'error'));
         //set_exception_handler([__CLASS__, 'exception']);
         // 注册AUTOLOAD方法
         spl_autoload_register([__CLASS__, 'autoload']);
+        // 注册配置
+        Config::register(Loader::import(PT_ROOT.'/app/config.php'));
     }
     
     public static function start()
@@ -73,9 +76,4 @@ class Kuxin
 
 
 include __DIR__ . '/loader.php';
-
-date_default_timezone_set('PRC');
-//项目根目录
-defined('PT_ROOT') || define('PT_ROOT', str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_FILENAME']))));
-
 Kuxin::start();

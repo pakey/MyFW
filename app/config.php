@@ -8,8 +8,7 @@ return [
     ],
     
     'cache' => [
-        'prefix'   => 'kx_',
-        
+        'prefix' => 'kx_',
         'common' => [
             'driver' => 'memcache',
             'option' => [
@@ -37,15 +36,15 @@ return [
     ],
     
     'database' => [
-        'prefix'   => 'kx_',
+        'prefix' => 'kx_',
         'common' => [
             'driver' => 'mysql',
             'option' => [
-                'host'     => '127.0.0.1',
-                'port'     => '3306',
-                'username' => 'root',
-                'password' => 'root',
-                'database' => 'kuxin',
+                'host' => '127.0.0.1',
+                'port' => '3306',
+                'user' => 'root',
+                'pwd'  => 'root',
+                'name' => 'kuxin',
             ],
         ],
     ],

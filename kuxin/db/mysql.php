@@ -1,10 +1,13 @@
 <?php
 
 namespace Kuxin\Db;
+
 use Kuxin\Config;
 use Kuxin\Registry;
 
-class Mysql{
+class Mysql
+{
+    
     /**
      * 单例模式实例化对象
      *
@@ -31,7 +34,7 @@ class Mysql{
      *
      * @param array $params 数据库连接参数,如主机名,数据库用户名,密码等
      */
-    public function __construct($params = [])
+    public function __construct(array $params)
     {
         //连接数据库 ,PDO::ATTR_PERSISTENT => true
         $params['charset'] = empty($params['charset']) ? 'utf8' : $params['charset'];
@@ -59,10 +62,10 @@ class Mysql{
         if (!$sql) {
             return false;
         }
-        if (Config::get('debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
-            $t                 = microtime(true);
-            $result            = $this->db_link->query($sql);
-            Registry::merge('_sql',number_format(microtime(true) - $t, 5) . ' - ' . $sql);
+        if (Config::get('app.debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
+            $t      = microtime(true);
+            $result = $this->db_link->query($sql);
+            Registry::merge('_sql', number_format(microtime(true) - $t, 5) . ' - ' . $sql);
         } else {
             $result = $this->db_link->query($sql);
         }
@@ -78,16 +81,24 @@ class Mysql{
      * @param string $sql SQL语句内容
      * @return \PDOStatement|bool
      */
-    public function execute($sql)
+    public function execute($sql, $bindparams)
     {
         //参数分析
         if (!$sql) {
             return false;
         }
-        if (Config::get('debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
-            $t                 = microtime(true);
-            $result            = $this->db_link->exec($sql);
-            Registry::merge('_sql',number_format(microtime(true) - $t, 5) . ' - ' . $sql);
+        $stm = $this->db_link->prepare($sql);
+        foreach($bindparams as $k=>$v){
+            $stm->bindValue($k,$bindparams[$k]);
+        }
+        var_dump($stm,$sql,$bindparams);
+        var_dump($stm->execute());
+        var_dump($stm->errorInfo());
+        exit;
+        if (Config::get('app.debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
+            $t      = microtime(true);
+            $result = $this->db_link->exec($sql);
+            Registry::merge('_sql', number_format(microtime(true) - $t, 5) . ' - ' . $sql);
         } else {
             $result = $this->db_link->exec($sql);
         }

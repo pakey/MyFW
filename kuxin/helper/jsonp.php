@@ -2,16 +2,15 @@
 namespace Kuxin\Helper;
 
 
+use Kuxin\Config;
+use Kuxin\Input;
+
 class Jsonp
 {
     
     public static function encode($data, $format = JSON_UNESCAPED_UNICODE)
     {
         $callback = Input::get(Config::get('jsonp_callback'), 'en', 'ptcms_jsonp');
-        if (APP_DEBUG) {
-            $format = JSON_PRETTY_PRINT | $format;
-            return $callback . '(' . json_encode($data, $format) . ');';
-        }
         return $callback . '(' . json_encode($data, $format) . ');';
     }
     
