@@ -13,3 +13,9 @@
 
 ##约定
 - 缓存、cookie等公用方法 get、set、remove,flush
+
+
+开发进度
+log
+view
+collect
