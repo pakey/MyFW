@@ -16,6 +16,7 @@
 
 
 开发进度
+storage
 log
 view
 collect
