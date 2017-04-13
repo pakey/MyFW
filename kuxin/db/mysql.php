@@ -89,7 +89,6 @@ class Mysql
         }
         
         $this->PDOStatement = $this->db_link->prepare($sql);
-        
         foreach ($bindparams as $k => $v) {
             $this->PDOStatement->bindValue($k, $bindparams[$k]);
         }
@@ -99,7 +98,7 @@ class Mysql
             $result  = $this->PDOStatement->execute();
             $t       = number_format(microtime(true) - $t, 5);
             Registry::merge('_sql', $t . ' - ' . $realSql);
-            $this->logs[] = ['time' => $t, 'sql' => $realSql];
+            $this->logs[] = $realSql;
         } else {
             $result = $this->PDOStatement->execute();
         }
@@ -113,10 +112,9 @@ class Mysql
      * @access public
      * @return string
      */
-    public function error()
+    public function errorInfo()
     {
-        $info = $this->db_link->errorInfo();
-        return isset($info[2]) ? $info['2'] : '';
+        return $this->db_link->errorInfo();
     }
     
     /**
@@ -125,7 +123,7 @@ class Mysql
      * @access public
      * @return int
      */
-    public function errno()
+    public function errorCode()
     {
         return $this->db_link->errorCode();
     }
@@ -301,6 +299,16 @@ class Mysql
             return $this->PDOStatement->rowCount();
         } else {
             return false;
+        }
+    }
+    
+    public function lastSql()
+    {
+        $sql = end($this->logs);
+        if ($sql) {
+            return $sql;
+        } else {
+            return '没有语句,请执行sql或者开启debug';
         }
     }
 }

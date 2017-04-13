@@ -43,6 +43,13 @@ class Model
     protected $data = [];
     
     /**
+     * SQL语句容器，用于存放SQL语句，为SQL语句组装函数提供SQL语句片段的存放空间。
+     *
+     * @var array
+     */
+    protected $bindParams = [];
+    
+    /**
      * 错误信息
      *
      * @var string
@@ -109,11 +116,11 @@ class Model
     {
         if (is_string($data)) {
             $this->data['where'][] = ['_string' => $data];
-            $this->data['bind']    = array_merge($this->data['bind'], $option);
+            $this->bindParams      = array_merge($this->bindParams, $option);
         } elseif (is_array($data)) {
             foreach ($data as $field => $var) {
-                $this->data['where'][] = [$field => ':' . $field];
-                $this->data['bind'][]  = [':' . $field => $var];
+                //where条件
+                $this->data['where'][] = [$field => $var];
             }
         }
         return $this;
@@ -212,7 +219,8 @@ class Model
                 DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache_time_m'));
                 return $fields;
             } else {
-                trigger_error('获取表' . $tablename . '信息发送错误 ');
+                trigger_error('获取表' . $tablename . '信息发送错误 ', E_USER_ERROR);
+                return false;
             }
         });
     }
@@ -227,29 +235,34 @@ class Model
      * @param bool  $replace
      * @return mixed
      */
-    public function insert($data = [], $replace = false)
+    public function insert(array $data, $replace = false)
     {
         if ($data) {
             $insertData = [];
-            $bindparam  = [];
-            $tablename  = $this->_parseTable();
+            $tablename  = $this->parseTable();
             $fields     = $this->getTableField($tablename);
             foreach ($data as $k => $v) { // 过滤参数
                 if (isset($fields[$k])) {
                     //写入数据
                     $insertData[$this->parseKey($k)] = ':' . $k;
                     //参数绑定
-                    $bindparam[':' . $k] = $this->parseValue($v);
+                    $this->bindParams[':' . $k] = $this->parseBindValue($v);
                 }
             }
             $sql = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $tablename . ' (' . implode(',', array_keys($insertData)) . ') VALUES (' . implode(',', $insertData) . ');';
-            if (true === $this->db()->execute($sql, $bindparam)) {
+            
+            $result = $this->db()->execute($sql, $this->bindParams);
+            
+            $this->free();
+            
+            if (true === $result) {
                 return $this->db()->lastInsertId();
             } else {
                 return false;
             }
         } else {
             trigger_error('你的数据呢？', E_USER_WARNING);
+            return false;
         }
     }
     
@@ -261,11 +274,11 @@ class Model
      * @param boolean $replace 是否replace
      * @return false | integer
      */
-    public function insertAll($datas, $replace = false)
+    public function insertAll(array $datas, $replace = false)
     {
         if ($datas) {
             $values    = [];
-            $tablename = $this->_parseTable();
+            $tablename = $this->parseTable();
             $fields    = $this->getTableField($tablename);
             foreach ($datas as $data) {
                 $value = [];
@@ -277,82 +290,89 @@ class Model
                 $values[] = '(' . implode(',', $value) . ')';
             }
             $fields = array_map([$this, 'parseKey'], array_keys($datas[0]));
-            $sql    = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->_parseTable() . ' (' . implode(',', $fields) . ')  VALUES ' . implode(',', $values);
-            if (true === $this->db()->execute($sql)) {
+            $sql    = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->parseTable() . ' (' . implode(',', $fields) . ')  VALUES ' . implode(',', $values);
+            $result = $this->db()->execute($sql);
+            $this->free();
+            if (true === $result) {
                 return $this->db()->lastInsertId();
             } else {
                 return false;
             }
         } else {
             trigger_error('你的数据呢？', E_USER_WARNING);
+            return false;
         }
     }
     
+    
     /**
      * @param array $data
-     * @return mixed
+     * @return bool|int
      */
-    public function update($data = [], $where = [])
+    public function update(array $data)
     {
         if ($data) {
-            $bindparam = $sets = [];
-            $tablename = $this->_parseTable();
+            $sets      = [];
+            $tablename = $this->parseTable();
             $fields    = $this->getTableField($tablename);
-            if ($data[$this->pk]) {
-                $where[$this->pk] = $data[$this->pk];
+            if (isset($data[$this->pk])) {
+                $this->where([$this->pk => $data[$this->pk]]);
                 unset($data[$this->pk]);
             }
             foreach ($data as $k => $v) { // 数据解析
                 if (in_array($k, $fields)) {
                     $sets[] = $this->parseKey($k) . '= :' . $k;
                     //参数绑定
-                    $bindparam[':' . $k] = $this->parseValue($v);
+                    $this->bindParams[':' . $k] = $this->parseBindValue($v);
                 }
             }
-            $sql = 'UPDATE ' . $this->_parseTable() . ' SET ' . implode(',', $sets)
+            $sql = 'UPDATE ' . $this->parseTable() . ' SET ' . implode(',', $sets)
                 . $this->parseWhere()
                 . $this->parseOrder()
                 . $this->parseLimit();
-            if (true === $this->db()->execute($sql, $bindparam)) {
+            
+            $result = $this->db()->execute($sql, $this->bindParams);
+            
+            $this->free();
+            
+            if (true === $result) {
                 return $this->db()->rowCount();
             } else {
                 return false;
             }
+        } else {
+            trigger_error('你的数据呢？', E_USER_WARNING);
+            return false;
         }
     }
     
     public function delete()
     {
-        if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
-        if ($this->tableName || $this->data['table']) {
-            $this->sql       = 'DELETE FROM' . $this->_parseTable()
-                . $this->parseWhere()
-                . $this->parseOrder()
-                . $this->parseLimit();
-            $this->data      = $this->data = [];
-            $this->errorinfo = ''; //清空存储
-            $db              = $this->master();
-            $affectRow       = $db->execute($this->sql);
-            if ($affectRow === false) {
-                $this->errorinfo = $db->errno() . ':' . $db->error();
-                return false;
-            } else {
-                return $affectRow;
-            }
+        $sql = 'DELETE' . ' FROM ' . $this->parseTable()
+            . $this->parseWhere()
+            . $this->parseOrder()
+            . $this->parseLimit();
+        var_dump($sql, $this->bindParams);
+        $this->data = [];
+        $result     = $this->db()->execute($sql, $this->bindParams);
+        
+        $this->free();
+        
+        if (true === $result) {
+            return $this->db()->rowCount();
         } else {
-            halt('update操作必须设置要操作的表');
             return false;
         }
     }
     
     public function find($id = null)
     {
-        if (is_scalar($id)) {
-            $this->data['where'][] = [$this->getPk() => $id];
+        if ($id) {
+            $this->data['where'][] = [$this->pk => $id];
         }
         $this->data['limit'] = 1;
-        $this->sql           = "SELECT " . $this->parseField() . ' FROM '
-            . $this->_parseTable() . ' as a'
+        $sql                 = "SELECT " . $this->parseField() . ' FROM '
+            . $this->parseTable()
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -361,19 +381,8 @@ class Model
             . $this->parseLimit()
             . $this->parseUnion();
         //清空存储
-        $this->data      = $this->data = [];
-        $this->errorinfo = '';
-        //执行查询
-        $db  = $this->slave();
-        $row = $db->fetch($this->sql);
-        if ($row === false) {
-            $this->errorinfo = $db->errno() . ':' . $db->error();
-        } else {
-            if (!$row) {
-                $row = null;
-            }
-        }
-        return $row;
+        $this->data = [];
+        return $this->fetch($sql, $this->bindParams);
     }
     
     /**
@@ -381,8 +390,8 @@ class Model
      */
     public function select()
     {
-        $this->sql       = "SELECT " . $this->parseField() . ' FROM '
-            . $this->_parseTable() . 'as a'
+        $sql             = "SELECT " . $this->parseField() . ' FROM '
+            . $this->parseTable()
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -390,57 +399,47 @@ class Model
             . $this->parseOrder()
             . $this->parseLimit()
             . $this->parseUnion();
-        $this->data      = $this->data = [];
+        $this->data      = [];
         $this->errorinfo = ''; //清空存储
-        $db              = $this->slave();
-        $row             = $db->fetchAll($this->sql);
-        if ($row === false) {
-            $this->errorinfo = $db->errno() . ':' . $db->error();
-        } else {
-            if (!$row) {
-                $row = [];
-            }
-        }
-        return $row;
+        return $this->fetchAll($sql, $this->bindParams);
     }
     
     /**
      * 获取具体字段的值
      *
      * @param      $field
-     * @param bool $isArr 是否返回数组
+     * @param bool $multi 是否返回数组
      * @return mixed|null|string
      */
-    public function getField($field, $isArr = false)
+    public function getField($field, $multi = false)
     {
-        if (empty($this->data['field'])) $this->data['field'] = $field;
-        if ($isArr) {
-            $row = $this->select();
-            if ($row === false || $row === null)
-                return $row;
-            else {
-                $res = [];
-                if ($field !== true && strpos($field, ',') === false) {
-                    foreach ($row as $v) {
-                        $res[] = $v[$field];
-                    }
+        if (empty($this->data['field'])) {
+            $this->data['field'] = $field;
+        }
+        if ($multi) {
+            $result = $this->select();
+            if ($result === false) {
+                return false;
+            } elseif ($result) {
+                if (strpos($field, ',')) {
+                    $field = explode(',', $field, 2)[0];
+                    return array_column($result, null, $field);
                 } else {
-                    foreach ($row as $v) {
-                        $res[current($v)] = (count($v) == 1) ? current($v) : $v;
-                    }
+                    return array_column($result, $field);
                 }
-                return $res;
+            } else {
+                return null;
             }
         } else {
-            $row = $this->find();
-            if ($row === false || $row === null)
-                return $row;
-            elseif ($field === true)
-                return current($row);
-            elseif (isset($row[$field]))
-                return $row[$field];
-            else
-                return '';
+            $result = $this->find();
+            var_dump($result, $this->getLastSql());
+            if ($result === false) {
+                return false;
+            } elseif (isset($result[$field])) {
+                return $result[$field];
+            } else {
+                return null;
+            }
         }
     }
     
@@ -449,15 +448,11 @@ class Model
      *
      * @param $field
      * @param $data
+     * @return bool|int
      */
     public function setField($field, $data)
     {
-        if (is_array($field)) {
-            $this->data = $field;
-        } elseif (is_string($field)) {
-            $this->data[$field] = $data;
-        }
-        $this->update();
+        return $this->update([$field => $data]);
     }
     
     /**
@@ -468,7 +463,7 @@ class Model
      */
     public function setInc($field, $step = 1)
     {
-        $this->setField($field, ['exp', "{$field}+{$step}"]);
+        $this->setField($field, ['exp', "{$field} + {$step}"]);
     }
     
     /**
@@ -479,7 +474,7 @@ class Model
      */
     public function setDec($field, $step = 1)
     {
-        $this->setField($field, ['exp', "{$field}-{$step}"]);
+        $this->setField($field, ['exp', "{$field} - {$step}"]);
     }
     
     /**
@@ -505,12 +500,36 @@ class Model
      * @param mixed $value
      * @return string
      */
-    protected function parseValue($value)
+    protected function parseBindValue($value)
     {
         if (isset($value[0]) && is_string($value[0]) && strtolower($value[0]) == 'exp') {
             $value = $value[1];
         } elseif (is_array($value)) {
             $value = Json::encode($value);
+        } elseif (is_bool($value)) {
+            $value = $value ? 1 : 0;
+        } elseif (is_null($value)) {
+            $value = null;
+        }
+        return $value;
+    }
+    
+    /**
+     * value分析
+     *
+     * @access protected
+     * @param mixed $value
+     * @return string
+     */
+    protected function parseValue($value)
+    {
+        if (is_string($value)) {
+            $value = $this->db()->quote($value);
+        }
+        if (isset($value[0]) && is_string($value[0]) && strtolower($value[0]) == 'exp') {
+            $value = $value[1];
+        } elseif (is_array($value)) {
+            $value = $this->db()->quote(Json::encode($value));
         } elseif (is_bool($value)) {
             $value = $value ? '1' : '0';
         } elseif (is_null($value)) {
@@ -521,35 +540,39 @@ class Model
     
     public function getLastSql()
     {
-        return $this->db();
+        return $this->db()->lastSql();
     }
     
     public function getError()
     {
-        return $this->errorinfo;
+        return $this->db()->errorInfo();
     }
     
     protected function parseWhere()
     {
-        if (empty($this->data['where'])) return ' WHERE 1';
-        return ' WHERE ' . $this->parseWhereCondition($this->data['where']);
+        if (empty($this->data['where'])) {
+            return ' WHERE 1';
+        } else {
+            return ' WHERE ' . $this->parseWhereCondition($this->data['where']);
+        }
     }
     
-    protected function parseWhereCondition($condition)
+    protected function parseWhereCondition($condition, $logic = 'AND')
     {
-        $logic     = ' AND ';
         $wheres    = [];
-        $tablename = $this->_parseTable();
+        $tablename = $this->parseTable();
         $fields    = $this->getTableField($tablename);
         foreach ($condition as $var) {
             $k = key($var);
             $v = current($var);
-            if (in_array($k, $fields, true)) {
+            if (isset($fields[$k])) {
                 if (empty($this->data['join'])) {
-                    $wheres[] = '(' . $this->parseWhereItem($this->parseKey($k), $v) . ')';
+                    $wheres[] = '(' . $this->parseWhereItem($k, $v) . ')';
                 } else {
-                    $wheres[] = '(' . $this->parseWhereItem('a.' . $this->parseKey($k), $v) . ')';
+                    $wheres[] = '(' . $this->parseWhereItem($this->parseKey($tablename) . '.' . $k, $v) . ')';
                 }
+            } elseif (is_array($v) && in_array(strtolower($k), ['or', 'and', 'xor'])) {
+                $where[] = $this->parseWhereCondition($v, $k);
             } elseif ($k == '_logic' && in_array(strtolower($v), ['or', 'and', 'xor'])) {
                 $logic = ' ' . strtoupper($v) . ' ';
             } elseif ($k == '_string') {
@@ -557,7 +580,7 @@ class Model
             } else {
             }
         }
-        return ($wheres === []) ? 1 : implode($logic, $wheres);
+        return ($wheres === []) ? 1 : implode(" {$logic} ", $wheres);
     }
     
     /**
@@ -567,10 +590,10 @@ class Model
      */
     protected function parseWhereItem($field, $var)
     {
+        //参数绑定key
+        $bindkey = ':' . $field . '_' . count($this->bindParams);
+        $field   = $this->parseKey($field);
         if (is_array($var)) {
-            if (isset($_REQUEST[$field]) && is_array($_REQUEST[$field])) {
-                return $field . ' = ' . $this->parseValue(strval($var));
-            }
             switch (strtolower($var['0'])) {
                 case '>':
                 case '<':
@@ -580,27 +603,40 @@ class Model
                 case '<>':
                 case 'like':
                 case 'not like':
-                    return $field . ' ' . $var['0'] . ' ' . $this->parseValue($var['1']);
+                    //参数绑定存储
+                    $this->bindParams[$bindkey] = $this->parseBindValue($var['1']);
+                    return $field . ' ' . $var['0'] . ' ' . $bindkey;
                 case 'in':
                 case 'not in':
                     if (empty($var['1'])) return '1';
                     if (is_array($var['1'])) {
-                        $var['1'] = implode(',', $this->parseValue($var['1']));
+                        $inBindVar = [];
+                        foreach ($var['1'] as $num => $inval) {
+                            $inBindKey   = $bindkey . '_' . $num;
+                            $inBindVar[] = $inBindKey;
+                            //
+                            $this->bindParams[$inBindKey] = $this->parseBindValue($inval);
+                        }
+                        $var['1'] = implode(',', $inBindVar);
                     }
                     return "{$field} {$var['0']} ( {$var['1']} )";
                 case 'between':
                 case 'not between':
-                    if (is_string($var['1']))
+                    if (is_string($var['1'])) {
                         $var['1'] = explode(',', $var['1']);
-                    $var['1'] = $this->parseValue($var['1']);
-                    return "{$field} {$var['0']} {$var['1']['0']} and {$var['1']['1']}";
+                    }
+                    $this->bindParams[$bindkey . '_0'] = $this->parseBindValue($var['1']['0']);
+                    $this->bindParams[$bindkey . '_1'] = $this->parseBindValue($var['1']['1']);
+                    return "{$field} {$var['0']} {$bindkey}_0 and {$bindkey}_1";
                 case 'exp':
-                    return "{$field} {$var['1']}";
+                    return "{$var['1']}";
                 default:
                     return '1';
             }
         } else {
-            return $field . ' = ' . $this->parseValue($var);
+            //参数绑定存储
+            $this->bindParams[$bindkey] = $this->parseBindValue($var);
+            return $field . ' = ' . $bindkey;
         }
     }
     
@@ -655,7 +691,7 @@ class Model
     
     protected function parseUnion()
     {
-    
+        
     }
     
     protected function parseJoin()
@@ -666,8 +702,8 @@ class Model
         $on    = $this->data['join']['on'];
         if (empty($table)) {
             return '';
-        } elseif (strpos($table, self::$_config['prefix']) === false) {
-            $table = self::$_config['prefix'] . $table;
+        } elseif (strpos($table, $this->prefix) === false) {
+            $table = $this->prefix . $table;
         }
         if (empty($on)) {
             $on = 'a.' . $this->pk . ' = b.id';
@@ -688,7 +724,7 @@ class Model
         }
     }
     
-    protected function _parseTable()
+    protected function parseTable()
     {
         if (empty($this->data['table'])) {
             return $this->getTableName();
@@ -713,90 +749,43 @@ class Model
     
     public function start()
     {
-        $this->master()->startTrans();
+        $this->db()->startTrans();
     }
     
     public function commit()
     {
-        $this->master()->commit();
+        $this->db()->commit();
     }
     
     public function rollback()
     {
-        $this->master()->rollback();
+        $this->db()->rollback();
     }
     
-    public function fetch($sql)
+    public function fetch($sql, $bindParams = [])
     {
-        $this->errorinfo = ''; //清空存储
-        $db              = $this->slave();
-        $row             = $db->fetch($sql);;
-        if ($row !== false) {
-            if ($row) {
-                return $row;
-            } else {
-                return null;
-            }
-        } else {
-            $this->errorinfo = $db->errno() . ':' . $db->error();
-            return false;
-        }
+        $result = $this->db()->fetch($sql, $bindParams);
+        $this->free();
+        return $result;
     }
     
-    public function fetchall($sql)
+    public function fetchAll($sql, $bindParams = [])
     {
-        $this->errorinfo = ''; //清空存储
-        $db              = $this->slave();
-        $row             = $db->fetchAll($sql);;
-        if ($row !== false) {
-            if ($row) {
-                return $row;
-            } else {
-                return null;
-            }
-        } else {
-            $this->errorinfo = $db->errno() . ':' . $db->error();
-            return false;
-        }
+        $result = $this->db()->fetchAll($sql, $bindParams);
+        $this->free();
+        return $result;
     }
     
-    public function query($sql)
+    public function execute($sql, $bindParams = [])
     {
-        $this->errorinfo = ''; //清空存储
-        if (self::$_config['prefix'] != 'ptcms_' && strpos($sql, 'ptcms_')) {
-            $sql = str_replace('ptcms_', self::$_config['prefix'], $sql);
-        }
-        $db  = $this->slave();
-        $row = $db->query($sql);;
-        if (!$db->error()) {
-            if ($row || $row === 0) {
-                return $row;
-            } else {
-                return null;
-            }
-        } else {
-            $this->errorinfo = $db->errno() . ':' . $db->error();
-            return false;
-        }
+        $result = $this->db()->execute($sql, $bindParams);
+        $this->free();
+        return $result;
     }
     
-    public function execute($sql)
+    protected function free()
     {
-        $this->errorinfo = ''; //清空存储
-        if (self::$_config['prefix'] != 'ptcms_' && strpos($sql, 'ptcms_')) {
-            $sql = str_replace('ptcms_', self::$_config['prefix'], $sql);
-        }
-        $db  = $this->master();
-        $row = $db->execute($sql);;
-        if (!$db->error()) {
-            if ($row || $row === 0) {
-                return $row;
-            } else {
-                return null;
-            }
-        } else {
-            $this->errorinfo = $db->errno() . ':' . $db->error();
-            return false;
-        }
+        $this->data       = [];
+        $this->bindParams = [];
     }
 }
