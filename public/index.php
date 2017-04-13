@@ -3,14 +3,11 @@
 ini_set('display_errors', 'on');
 error_reporting(E_ALL);
 
-//yaconf
-//yac
-//swoole
-$m=memory_get_usage();
-$t=microtime(true);
+$m = memory_get_usage();
+$t = microtime(true);
 define('PT_ROOT', dirname(__DIR__));
 
-include PT_ROOT.'/kuxin/kuxin.php';
+include PT_ROOT . '/kuxin/kuxin.php';
 
 echo '<pre>';
 var_dump(get_included_files());

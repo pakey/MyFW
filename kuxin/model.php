@@ -22,13 +22,6 @@ class Model
     protected $tableName = null;
     
     /**
-     * 数据表字段信息
-     *
-     * @var array
-     */
-    protected $fields = [];
-    
-    /**
      * 数据表的主键信息
      *
      * @var string
@@ -128,7 +121,13 @@ class Model
     
     public function database($value)
     {
-        $this->data['node'] = $value;
+        $this->data['database'] = $value;
+        return $this;
+    }
+    
+    public function config($value)
+    {
+        $this->data['config'] = $value;
         return $this;
     }
     
@@ -190,12 +189,6 @@ class Model
         return $this;
     }
     
-    public function setTableName($tablename)
-    {
-        $this->tableName = strtolower($tablename);
-        $this->getTableField();
-    }
-    
     public function getTableName()
     {
         if (!$this->tableName) {
@@ -204,16 +197,14 @@ class Model
         return $this->prefix . $this->tableName;
     }
     
-    public function getTableField($tablename = '')
+    public function getTableField($tablename)
     {
-        $tablename = empty($tablename) ? $this->getTableName() : $tablename;
         if (!$tablename) {
             trigger_error('您必须设置表名后才可以使用该方法');
         }
-        return $this->fields = DI::Cache()->debugGet('tablefield_' . $tablename, function () use ($tablename) {
+        return DI::Cache()->debugGet('tablefield_' . $tablename, function () use ($tablename) {
             $fields = [];
-            $db     = DI::DB();
-            if ($tableInfo = $db->fetchAll("SHOW FIELDS FROM {$tablename}")) {
+            if ($tableInfo = $this->db()->fetchAll("SHOW FIELDS FROM {$tablename}")) {
                 foreach ($tableInfo as $v) {
                     if ($v['Key'] == 'PRI') $pks[] = strtolower($v['Field']);
                     $fields[strtolower($v['Field'])] = strpos($v['Type'], 'int') !== false;
@@ -221,7 +212,7 @@ class Model
                 DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache_time_m'));
                 return $fields;
             } else {
-                trigger_error('获取表' . $tablename . '信息发送错误 ' . $db->error());
+                trigger_error('获取表' . $tablename . '信息发送错误 ');
             }
         });
     }
@@ -241,41 +232,24 @@ class Model
         if ($data) {
             $insertData = [];
             $bindparam  = [];
+            $tablename  = $this->_parseTable();
+            $fields     = $this->getTableField($tablename);
             foreach ($data as $k => $v) { // 过滤参数
-                if (isset($this->fields[$k])) {
-                    var_dump($k);
-                    $insertData[$this->parseKey($k)]      = ':'.$k;
+                if (isset($fields[$k])) {
+                    //写入数据
+                    $insertData[$this->parseKey($k)] = ':' . $k;
+                    //参数绑定
                     $bindparam[':' . $k] = $this->parseValue($v);
                 }
             }
-            var_dump($insertData);
-            $sql       = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->_parseTable() . ' (' . implode(',', array_keys($insertData)) . ') VALUES (' . implode(',', $insertData) . ');';
-            $this->db()->execute($sql,$bindparam);
-            var_dump($sql);
-        } else {
-            trigger_error('你的数据呢？',E_USER_WARNING);
-        }
-        exit;
-        if ($this->tableName || $this->data['table']) {
-            foreach ($this->data as $k => $v) { // 过滤参数
-                if (in_array($k, $this->fields))
-                    $this->data[$k] = $this->parseValue($v);
-                else
-                    unset($this->data[$k]);
-            }
-            
-            $this->data      = $this->data = [];
-            $this->errorinfo = ''; //清空存储
-            $db              = $this->master();
-            if ($db->execute($this->sql)) {
-                return $db->insertId();
+            $sql = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $tablename . ' (' . implode(',', array_keys($insertData)) . ') VALUES (' . implode(',', $insertData) . ');';
+            if (true === $this->db()->execute($sql, $bindparam)) {
+                return $this->db()->lastInsertId();
             } else {
-                $this->errorinfo = $db->errno() . ':' . $db->error();
                 return false;
             }
         } else {
-            halt('insert操作必须设置要操作的表');
-            return false;
+            trigger_error('你的数据呢？', E_USER_WARNING);
         }
     }
     
@@ -289,32 +263,28 @@ class Model
      */
     public function insertAll($datas, $replace = false)
     {
-        if (!is_array($datas[0])) return false;
-        if ($this->tableName || $this->data['table']) {
-            $values = [];
+        if ($datas) {
+            $values    = [];
+            $tablename = $this->_parseTable();
+            $fields    = $this->getTableField($tablename);
             foreach ($datas as $data) {
                 $value = [];
                 foreach ($data as $key => $val) {
-                    if (in_array($key, $this->fields))
+                    if (in_array($key, $fields)) {
                         $value[$key] = $this->parseValue($val);
+                    }
                 }
                 $values[] = '(' . implode(',', $value) . ')';
             }
             $fields = array_map([$this, 'parseKey'], array_keys($datas[0]));
-            
-            $this->sql       = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->_parseTable() . ' (' . implode(',', $fields) . ')  VALUES ' . implode(',', $values);
-            $this->data      = $this->data = [];
-            $this->errorinfo = ''; //清空存储
-            $db              = $this->master();
-            if ($db->execute($this->sql)) {
-                return $db->insertId();
+            $sql    = ($replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->_parseTable() . ' (' . implode(',', $fields) . ')  VALUES ' . implode(',', $values);
+            if (true === $this->db()->execute($sql)) {
+                return $this->db()->lastInsertId();
             } else {
-                $this->errorinfo = $db->errno() . ':' . $db->error();
                 return false;
             }
         } else {
-            halt('insert操作必须设置要操作的表');
-            return false;
+            trigger_error('你的数据呢？', E_USER_WARNING);
         }
     }
     
@@ -322,42 +292,32 @@ class Model
      * @param array $data
      * @return mixed
      */
-    public function update($data = [])
+    public function update($data = [], $where = [])
     {
-        if (!empty($data)) $this->data = array_merge($this->data, array_change_key_case($data));
-        if ($this->tableName || $this->data['table']) {
-            $sets = [];
-            if (!empty($this->data[$this->pk])) { //主键不允许更改 当作where条件
-                $this->data['where'][] = [$this->pk => $this->data[$this->pk]];
-                unset($this->data[$this->pk]);
+        if ($data) {
+            $bindparam = $sets = [];
+            $tablename = $this->_parseTable();
+            $fields    = $this->getTableField($tablename);
+            if ($data[$this->pk]) {
+                $where[$this->pk] = $data[$this->pk];
+                unset($data[$this->pk]);
             }
-            if (empty($this->data['field'])) { //通过field连贯操作限制更新的字段
-                $fields = $this->fields;
-            } else {
-                $fields = is_string($this->data['field']) ? explode(',', $this->data['field']) : $this->data['field'];
-            }
-            foreach ($this->data as $k => $v) { // 数据解析
+            foreach ($data as $k => $v) { // 数据解析
                 if (in_array($k, $fields)) {
-                    $sets[] = $this->parseKey($k) . '=' . $this->parseValue($v);
+                    $sets[] = $this->parseKey($k) . '= :' . $k;
+                    //参数绑定
+                    $bindparam[':' . $k] = $this->parseValue($v);
                 }
             }
-            $this->sql       = 'UPDATE ' . $this->_parseTable() . ' SET ' . implode(',', $sets)
+            $sql = 'UPDATE ' . $this->_parseTable() . ' SET ' . implode(',', $sets)
                 . $this->parseWhere()
                 . $this->parseOrder()
                 . $this->parseLimit();
-            $this->data      = $this->data = [];
-            $this->errorinfo = ''; //清空存储
-            $db              = $this->master();
-            $affectRow       = $db->execute($this->sql);
-            if ($affectRow === false) {
-                $this->errorinfo = $db->errno() . ':' . $db->error();
-                return false;
+            if (true === $this->db()->execute($sql, $bindparam)) {
+                return $this->db()->rowCount();
             } else {
-                return $affectRow;
+                return false;
             }
-        } else {
-            halt('update操作必须设置要操作的表');
-            return false;
         }
     }
     
@@ -391,7 +351,7 @@ class Model
             $this->data['where'][] = [$this->getPk() => $id];
         }
         $this->data['limit'] = 1;
-        $this->sql            = "SELECT " . $this->parseField() . ' FROM '
+        $this->sql           = "SELECT " . $this->parseField() . ' FROM '
             . $this->_parseTable() . ' as a'
             . $this->parseJoin()
             . $this->parseWhere()
@@ -561,7 +521,7 @@ class Model
     
     public function getLastSql()
     {
-        return $this->sql;
+        return $this->db();
     }
     
     public function getError()
@@ -577,12 +537,14 @@ class Model
     
     protected function parseWhereCondition($condition)
     {
-        $logic  = ' AND ';
-        $wheres = [];
+        $logic     = ' AND ';
+        $wheres    = [];
+        $tablename = $this->_parseTable();
+        $fields    = $this->getTableField($tablename);
         foreach ($condition as $var) {
             $k = key($var);
             $v = current($var);
-            if (in_array($k, $this->fields, true)) {
+            if (in_array($k, $fields, true)) {
                 if (empty($this->data['join'])) {
                     $wheres[] = '(' . $this->parseWhereItem($this->parseKey($k), $v) . ')';
                 } else {

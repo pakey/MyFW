@@ -29,6 +29,27 @@ class Mysql
     protected $Transactions;
     
     /**
+     * 数据库日志
+     *
+     * @var array
+     */
+    public $logs = [];
+    
+    /**
+     * debug开关
+     *
+     * @var bool
+     */
+    protected $debug;
+    
+    /**
+     * PDO操作实例
+     *
+     * @var \PDOStatement
+     */
+    protected $PDOStatement;
+    
+    /**
      * 构造函数
      * 用于初始化运行环境,或对基本变量进行赋值
      *
@@ -36,7 +57,7 @@ class Mysql
      */
     public function __construct(array $params)
     {
-        //连接数据库 ,PDO::ATTR_PERSISTENT => true
+        //连接数据库
         $params['charset'] = empty($params['charset']) ? 'utf8' : $params['charset'];
         $this->db_link     = new \PDO("mysql:host={$params['host']};port={$params['port']};dbname={$params['name']}", $params['user'], $params['pwd'], []);
         $this->db_link->query("SET NAMES {$params['charset']}");
@@ -44,7 +65,7 @@ class Mysql
         if (!$this->db_link) {
             trigger_error($params['driver'] . ' Server connect fail! <br/>Error Message:' . $this->error() . '<br/>Error Code:' . $this->errno(), E_USER_ERROR);
         }
-        return true;
+        $this->debug = Config::get('app.debug');
     }
     
     /**
@@ -53,54 +74,34 @@ class Mysql
      *
      * @access public
      * @param string $sql SQL语句内容
-     * @return \PDOStatement|bool
+     * @return bool
      */
-    public function query($sql)
+    public function execute($sql, $bindparams = [])
     {
+        //参数分析
+        if (!$sql) {
+            return false;
+        }
         
-        //参数分析
-        if (!$sql) {
-            return false;
+        //释放前次的查询结果
+        if (!empty($this->PDOStatement) && $this->PDOStatement->queryString != $sql) {
+            $this->free();
         }
-        if (Config::get('app.debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
-            $t      = microtime(true);
-            $result = $this->db_link->query($sql);
-            Registry::merge('_sql', number_format(microtime(true) - $t, 5) . ' - ' . $sql);
+        
+        $this->PDOStatement = $this->db_link->prepare($sql);
+        
+        foreach ($bindparams as $k => $v) {
+            $this->PDOStatement->bindValue($k, $bindparams[$k]);
+        }
+        if ($this->debug) {
+            $realSql = $this->getRealSql($sql, $bindparams);
+            $t       = microtime(true);
+            $result  = $this->PDOStatement->execute();
+            $t       = number_format(microtime(true) - $t, 5);
+            Registry::merge('_sql', $t . ' - ' . $realSql);
+            $this->logs[] = ['time' => $t, 'sql' => $realSql];
         } else {
-            $result = $this->db_link->query($sql);
-        }
-        Registry::setInc('_sqlnum');
-        return $result;
-    }
-    
-    /**
-     * 执行SQL语句
-     * SQL语句执行函数
-     *
-     * @access public
-     * @param string $sql SQL语句内容
-     * @return \PDOStatement|bool
-     */
-    public function execute($sql, $bindparams)
-    {
-        //参数分析
-        if (!$sql) {
-            return false;
-        }
-        $stm = $this->db_link->prepare($sql);
-        foreach($bindparams as $k=>$v){
-            $stm->bindValue($k,$bindparams[$k]);
-        }
-        var_dump($stm,$sql,$bindparams);
-        var_dump($stm->execute());
-        var_dump($stm->errorInfo());
-        exit;
-        if (Config::get('app.debug') || isset($_GET['debug']) || isset($_GET['showtime'])) {
-            $t      = microtime(true);
-            $result = $this->db_link->exec($sql);
-            Registry::merge('_sql', number_format(microtime(true) - $t, 5) . ' - ' . $sql);
-        } else {
-            $result = $this->db_link->exec($sql);
+            $result = $this->PDOStatement->execute();
         }
         Registry::setInc('_sqlnum');
         return $result;
@@ -126,7 +127,6 @@ class Mysql
      */
     public function errno()
     {
-        
         return $this->db_link->errorCode();
     }
     
@@ -137,24 +137,16 @@ class Mysql
      * @param string $sql SQL语句内容
      * @return mixed
      */
-    public function fetch($sql)
+    public function fetch($sql, $bindParams = [])
     {
-        
-        //参数分析
-        if (!$sql) {
-            return false;
-        }
-        
-        $result = $this->query($sql);
+        $result = $this->execute($sql, $bindParams);
         if (!$result) {
             return false;
         }
         
-        $myrow = $result->fetch(\PDO::FETCH_ASSOC);
+        $myrow = $this->PDOStatement->fetch(\PDO::FETCH_ASSOC);
         if (!$myrow) return null;
         
-        $result->closeCursor();
-        unset($result);
         return $myrow;
     }
     
@@ -165,26 +157,19 @@ class Mysql
      * @param string $sql SQL语句
      * @return array|mixed
      */
-    public function fetchAll($sql)
+    public function fetchAll($sql, $bindParams = [])
     {
-        
-        //参数分析
-        if (!$sql) {
-            return false;
-        }
-        
-        $result = $this->query($sql);
+        $result = $this->execute($sql, $bindParams);
         
         if (!$result) {
             return false;
         }
         
-        $myrow = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $myrow = $this->PDOStatement->fetchAll(\PDO::FETCH_ASSOC);
         if (!$myrow) {
             return [];
         }
-        $result->closeCursor();
-        unset($result);
+        
         return $myrow;
     }
     
@@ -197,19 +182,6 @@ class Mysql
     public function insertId()
     {
         return $this->db_link->lastInsertId();
-    }
-    
-    /**
-     * 转义字符
-     *
-     * @access public
-     * @param string $string 待转义的字符串
-     * @return string
-     */
-    public function escapeString($string)
-    {
-        //参数分析
-        return addslashes($string);
     }
     
     /**
@@ -262,25 +234,73 @@ class Mysql
      */
     public function __destruct()
     {
-        
+        $this->free();
         if ($this->db_link == true) {
             $this->db_link = null;
         }
     }
     
     /**
-     * 单例模式
+     * SQL指令安全过滤
      *
      * @access public
-     * @param array $params 数据库连接参数,如数据库服务器名,用户名,密码等
-     * @return object
+     * @param string $str SQL字符串
+     * @return string
      */
-    public static function getInstance($params)
+    public function quote($str)
     {
-        if (!self::$instance) {
-            self::$instance = new self($params);
+        return $this->db_link->quote($str);
+    }
+    
+    /**
+     * 根据参数绑定组装最终的SQL语句 便于调试
+     *
+     * @access public
+     * @param string $sql  带参数绑定的sql语句
+     * @param array  $bind 参数绑定列表
+     * @return string
+     */
+    public function getRealSql($sql, array $bind = [])
+    {
+        foreach ($bind as $key => $val) {
+            $val = $this->quote($val);
+            // 判断占位符
+            $sql = str_replace($key, $val, $sql);
         }
-        
-        return self::$instance;
+        return $sql;
+    }
+    
+    /**
+     * 释放查询结果
+     *
+     * @access public
+     */
+    public function free()
+    {
+        $this->PDOStatement = null;
+    }
+    
+    /**
+     * 返回最后插入行的ID或序列值
+     *
+     * @return string
+     */
+    public function lastInsertId()
+    {
+        return $this->db_link->lastInsertId();
+    }
+    
+    /**
+     * 返回受上一个 SQL 语句影响的行数
+     *
+     * @return bool|int
+     */
+    public function rowCount()
+    {
+        if ($this->PDOStatement) {
+            return $this->PDOStatement->rowCount();
+        } else {
+            return false;
+        }
     }
 }
