@@ -1,55 +1,62 @@
 <?php
+
 namespace Kuxin;
 
 
 class Storage
 {
-  
+    
+    /**
+     * @var \Kuxin\Storage\File
+     */
     protected static $handler;
     
-    public static function init($type = 'File',$args=[])
+    public function __construct(array $config)
     {
-        $type  = $type ? $type : Config::get('storage.type', 'File');
-        $class = 'ptcms\driver\storage\\' . $type;
-        return self::$handler=Kuxin::instance($class,$args);
+        $class = 'Kuxin\\storage\\' . $config['driver'];
+        return self::$handler = Loader::instance($class, [$config['option']]);
     }
     
-    public static function exist($file)
+    public function exist($file)
     {
         return self::$handler->exist($file);
     }
+    public function mtime($file)
+    {
+        return self::$handler->mtime($file);
+    }
     
-    public static function write($file, $content)
+    public function write($file, $content)
     {
         return self::$handler->write($file, $content);
     }
     
-    public static function read($file)
+    public function read($file)
     {
         return self::$handler->read($file);
     }
     
-    public static function append($file, $content)
+    public function append($file, $content)
     {
         return self::$handler->append($file, $content);
     }
     
-    public static function remove($file)
+    public function remove($file)
     {
         return self::$handler->remove($file);
     }
     
-    public static function getUrl($file)
+    public function getUrl($file)
     {
         return self::$handler->getUrl($file);
     }
     
-    public static function getPath($file)
+    public function getPath($file)
     {
         return self::$handler->getPath($file);
     }
     
-    public static function error()
+    public function error()
     {
         return self::$handler->error();
     }

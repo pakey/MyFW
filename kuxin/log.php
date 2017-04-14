@@ -2,7 +2,9 @@
 
 namespace Kuxin;
 
-class Log{
+class Log
+{
+    
     // 日志信息
     protected static $log = [];
     
@@ -24,51 +26,9 @@ class Log{
      * @param string $type 信息类型
      * @return void
      */
-    public static function record($msg, $type = 'pt')
+    public static function record($msg, $type = 'kx')
     {
-        self::$log[$type][] = "[" . date('Y-m-d H:i:s') . "] " . $msg . PHP_EOL;;
-    }
-    
-    /**
-     * 记录debug日志
-     *
-     * @param $msg
-     */
-    public static function debug($msg)
-    {
-        self::$log['debug'][] = "[" . date('Y-m-d H:i:s') . "] " . $msg . PHP_EOL;;
-    }
-    
-    /**
-     * 记录采集日志
-     *
-     * @param $msg
-     * @param $rulename
-     */
-    public static function collect($msg, $rulename)
-    {
-        self::$log['collect'][] = "[" . date('Y-m-d H:i:s') . "] <{$rulename}> " . $msg . PHP_EOL;;
-    }
-    
-    /**
-     * 记录采集错误日志
-     *
-     * @param $msg
-     * @param $rulename
-     */
-    public static function collecterror($msg, $rulename)
-    {
-        self::$log['collecterror'][] = "[" . date('Y-m-d H:i:s') . "] <{$rulename}> " . $msg . PHP_EOL;;
-    }
-    
-    /**
-     * 计划任务日志
-     *
-     * @param $msg
-     */
-    public static function cron($msg)
-    {
-        self::$log['cron'][] = "[" . date('Y-m-d H:i:s') . "] " . $msg . PHP_EOL;;
+        self::$log[$type][] = "[" . date('Y-m-d H:i:s') . "] " . $msg;;
     }
     
     /**
@@ -84,15 +44,12 @@ class Log{
     /**
      * 手动写入指定日志到文件
      *
+     * @param string $content
      * @param string $type
      */
-    public static function write($type = 'pt')
+    public static function write($content, $type = 'kx', $withTime = true)
     {
-        $file = CACHE_PATH . '/log/' . $type . '_' . date('Ymd') . '.txt';
-        if (isset(self::$log[$type])) {
-            $log = self::$log[$type];
-            F($file, implode('', $log), FILE_APPEND);
-        }
+        DI::Storage('log')->append($type . '_' . date('Ymd') . '.txt', ($withTime ? ("[" . date('Y-m-d H:i:s') . "] ") : "") . $content . PHP_EOL);
     }
     
     /**
@@ -100,9 +57,12 @@ class Log{
      */
     public static function build()
     {
-        $logBuild = Config::get('logbuild', ['pt', 'collect', 'collecterror', 'cron']);
+        $logBuild = Config::get('log.buildtype', ['pt', 'debug', 'collect', 'collecterror', 'cron']);
+        var_dump(self::$log);
         foreach ($logBuild as $type) {
-            self::write($type);
+            if (isset(self::$log[$type])) {
+                self::write(implode(PHP_EOL, self::$log[$type]), $type, false);
+            }
         }
     }
 }

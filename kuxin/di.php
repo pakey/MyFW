@@ -36,7 +36,7 @@ class DI
         if (!$hanlder) {
             $config = Config::get("storage.{$node}");
             if ($config) {
-                $hanlder = Loader::instance('\\Kuxin\\Storage', $config);
+                $hanlder = Loader::instance('\\Kuxin\\Storage', [$config]);
                 if ($hanlder) {
                     Registry::set("storage.{$node}", $hanlder);
                 }

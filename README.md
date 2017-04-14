@@ -20,3 +20,4 @@ storage
 log
 view
 collect
+widget

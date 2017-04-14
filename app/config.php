@@ -7,6 +7,15 @@ return [
         ],
     ],
     
+    'log' => [
+        'power'     => true,
+        'buildtype' => ['kx', 'debug', 'console'],
+    ],
+    
+    'view' => [
+        'driver' => 'mc',
+    ],
+    
     'cache' => [
         'prefix' => 'kx_',
         'common' => [
@@ -40,23 +49,49 @@ return [
         'common' => [
             'driver' => 'mysql',
             'option' => [
-                'host'  => '127.0.0.1',
-                'port'  => '3306',
-                'user'  => 'root',
-                'pwd'   => 'root',
-                'name'  => 'kuxin',
+                'host' => '127.0.0.1',
+                'port' => '3306',
+                'user' => 'root',
+                'pwd'  => 'root',
+                'name' => 'kuxin',
             ],
         ],
     ],
     
     'storage' => [
-        'runtime' => [
+        'runtime'  => [
             'driver' => 'file',
             'option' => [
-                'path' => PT_ROOT . '/runtime',
+                'path' => PT_ROOT . '/storage/runtime',
             ],
         ],
-        'ftp'     => [
+        'log'      => [
+            'driver' => 'file',
+            'option' => [
+                'path' => PT_ROOT . '/storage/log',
+            ],
+        ],
+        'template' => [
+            'driver' => 'file',
+            'option' => [
+                'path' => PT_ROOT . '/storage/template',
+            ],
+        ],
+        'upload'   => [
+            'driver' => 'file',
+            'option' => [
+                'path' => PT_ROOT . '/public/upload',
+                'url'  => '/public/upload',
+            ],
+        ],
+        'cover'    => [
+            'driver' => 'file',
+            'option' => [
+                'path' => PT_ROOT . '/public/cover',
+                'url'  => '/public/cover',
+            ],
+        ],
+        'ftp'      => [
             'driver' => 'ftp',
             'option' => [
                 'host'     => '',
@@ -66,7 +101,7 @@ return [
                 'path'     => '',
             ],
         ],
-        'mongodb' => [
+        'mongodb'  => [
             'driver' => 'mongodb',
             'option' => [
                 'host'     => '',

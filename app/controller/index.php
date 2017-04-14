@@ -5,12 +5,16 @@ namespace app\controller;
 use app\controller\common\common;
 use app\model\User;
 use Kuxin\Controller;
+use Kuxin\Log;
 
 class Index extends Controller
 {
     
     public function index()
     {
+        Log::write('test');
+        Log::record('debug','debug');
+        Log::build();
         //ini_set('yaconf.check_delay',100);
         $usermodel = new User();
         //$usermodel->insert([

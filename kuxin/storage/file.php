@@ -13,19 +13,22 @@ class File
     public function __construct($config)
     {
         self::$path = $config['path'];
-        self::$url  = $config['url']??"";
+        self::$url  = $config['url'] ?? "";
     }
     
     public function exist($file)
     {
-        $fullfile = strpos($file, PT_ROOT) === 0 ? $file : self::$path . $file;
-        return is_file($fullfile);
+        return is_file($this->getPath($file));
+    }
+    public function mtime($file)
+    {
+        return filemtime($this->getPath($file));
     }
     
     public function write($file, $content)
     {
-        $fullfile = strpos($file, PT_ROOT) === 0 ? $file : self::$path . $file;
-        if (!strpos($file, '://') && !is_dir(dirname($fullfile))) {
+        $fullfile = $this->getPath($file);
+        if (!is_dir(dirname($fullfile))) {
             mkdir(dirname($fullfile), 0755, true);
         }
         return file_put_contents($fullfile, (string)$content);
@@ -33,14 +36,18 @@ class File
     
     public function read($file)
     {
-        $fullfile = strpos($file, PT_ROOT) === 0 ? $file : self::$path . $file;
-        return file_get_contents($fullfile);
+        $fullfile = $this->getPath($file);
+        if (is_file($fullfile)) {
+            return file_get_contents($fullfile);
+        } else {
+            return false;
+        }
     }
     
     public function append($file, $content)
     {
-        $fullfile = strpos($file, PT_ROOT) === 0 ? $file : self::$path . $file;
-        if (!strpos($file, '://') && !is_dir(dirname($fullfile))) {
+        $fullfile = $this->getPath($file);
+        if (!is_dir(dirname($fullfile))) {
             mkdir(dirname($fullfile), 0755, true);
         }
         return file_put_contents($fullfile, (string)$content, FILE_APPEND);
@@ -48,7 +55,7 @@ class File
     
     public function remove($file)
     {
-        $file = strpos($file, PT_ROOT) === 0 ? $file : self::$path . $file;
+        $file = $this->getPath($file);
         if (is_file($file)) {
             //删除文件
             return unlink($file);
@@ -56,7 +63,9 @@ class File
             //删除目录
             $handle = opendir($file);
             while (($filename = readdir($handle)) !== false) {
-                if ($filename !== '.' && $filename !== '..') $this->remove($file . '/' . $filename);
+                if ($filename !== '.' && $filename !== '..') {
+                    $this->remove($file . '/' . $filename);
+                }
             }
             closedir($handle);
             return rmdir($file);
@@ -71,8 +80,7 @@ class File
     
     public function getPath($file)
     {
-        $fullfile = strpos($file, PT_ROOT) === 0 ? $file : self::$path . $file;
-        return $fullfile;
+        return strpos($file, PT_ROOT) === 0 ? $file : self::$path . '/' . ltrim($file, '/');
     }
     
     public function error()
