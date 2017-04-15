@@ -60,7 +60,7 @@ class Filter
     }
     
     //安全的剔除字符 单行等 用于搜索 链接等地方
-    public static function safeStrip($kw)
+    public static function safeWord($kw)
     {
         if (strlen($kw) == 0) return '';
         $kw        = strip_tags($kw);

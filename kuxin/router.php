@@ -18,7 +18,7 @@ class Router
         if (isset($_GET['s'])) {
             $superVar = $_GET['s'];
             //判断是否需要进行rewrite转换
-            if (Config::get('power.rewrite')) {
+            if (Config::get('rewrite.power')) {
                 $superVar = self::rewrite($superVar);
             }
             if (strpos($superVar, '/')) {
@@ -41,7 +41,7 @@ class Router
      */
     public static function rewrite($superVar)
     {
-        if ($router = Config::get('router.rewrite')) {
+        if ($router = Config::get('rewrite.router')) {
             foreach ($router as $rule => $url) {
                 if (preg_match('{' . $rule . '}isU', $superVar, $match)) {
                     unset($match['0']);

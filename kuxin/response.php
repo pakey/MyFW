@@ -158,4 +158,76 @@ class Response
             echo $con;
         }
     }
+    
+    /**
+     * 屏幕输出
+     *
+     * @param $text
+     * @param $type
+     * @param $line
+     * @return mixed
+     */
+    public static function screen($text, $type, $line = true)
+    {
+        switch ($type) {
+            case 'success':
+                $color = 'green';
+                break;
+            case 'error':
+                $color = 'red';
+                break;
+            case 'warning':
+                $color = "orangered";
+                break;
+            case 'info':
+                $color = 'darkblue';
+                break;
+            default:
+                $color = $type;
+        }
+        $line = $line ? '<br/>' . PHP_EOL : '';
+        if ($color) {
+            echo "<span style='color:{$color}'>{$text}</span>{$line}";
+        } else {
+            echo "<span>{$text}</span>{$line}";
+        }
+    }
+    
+    
+    /**
+     * 终端输出
+     *
+     * @param $text
+     * @param $type
+     * @param $line
+     * @return mixed
+     */
+    public static function terminal($text, $type, $line = true)
+    {
+        $end = chr(27) . "[0m";
+        switch (strtolower($type)) {
+            case "success":
+                $pre = chr(27) . "[32m"; //Green
+                break;
+            case "error":
+                $pre = chr(27) . "[31m"; //Red
+                break;
+            case "warning":
+                $pre = chr(27) . "[33m"; //Yellow
+                break;
+            case 'info':
+                $pre = chr(27) . '[36m'; //蓝色
+                break;
+            default:
+                $pre = "";
+                $end = '';
+        }
+        $line = $line ? PHP_EOL : '';
+        usleep(5000);
+        if (stripos($text, '<br')) {
+            $text = str_ireplace(['<br /><br />', '<br/><br/>', '<br/>', '<br />'], PHP_EOL, $text);
+        }
+        $text = strip_tags($text);
+        return $pre . $text . $end . $line;
+    }
 }

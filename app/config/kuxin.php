@@ -2,9 +2,11 @@
 return [
     'app' => [
         'debug' => true,
-        'power' => [
-            'rewrite' => 0,//伪静态开关
-        ],
+        'mode'   => PHP_SAPI == 'cli' ? 'cli' : 'web',
+    ],
+    
+    'rewrite'=>[
+        'power'=>0,
     ],
     
     'log' => [

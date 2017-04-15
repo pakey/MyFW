@@ -14,28 +14,7 @@ class Console extends Controller {
     public function out($msg, $type = '', $line = true, $rulename = "")
     {
         if (RUN_ENV == 'web') {
-            switch ($type) {
-                case 'success':
-                    $color = 'green';
-                    break;
-                case 'error':
-                    $color = 'red';
-                    break;
-                case 'warning':
-                    $color = "orangered";
-                    break;
-                case 'info':
-                    $color = 'darkblue';
-                    break;
-                default:
-                    $color = $type;
-            }
-            $line = $line ? '<br/>' . PHP_EOL : '';
-            if ($color) {
-                echo "<span style='color:{$color}'>{$msg}</span>{$line}";
-            } else {
-                echo "<span>{$msg}</span>{$line}";
-            }
+            
             ob_flush();
             flush();
         } elseif (RUN_ENV == 'cli') {
@@ -47,5 +26,18 @@ class Console extends Controller {
         if ($type == 'error') {
             Log::collecterror(date('Y-m-d H:i:s').' '.$msg,$rulename);
         }
+    }
+    
+    /**
+     * 终端输出
+     *
+     * @param $text
+     * @param $status
+     * @param $line
+     * @return mixed
+     */
+    public function info($text, $status, $line = true)
+    {
+       return Response::terminal($text,$status,$line);
     }
 }

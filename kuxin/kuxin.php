@@ -12,16 +12,33 @@ class Kuxin
     
     public static function init()
     {
-        date_default_timezone_set('PRC');
+        // 注册AUTOLOAD方法
+        spl_autoload_register([__CLASS__, 'autoload']);
         //程序关闭
         register_shutdown_function([__CLASS__, 'shutdown']);
         // 设定错误和异常处理
         //set_error_handler(array(__CLASS__, 'error'));
         //set_exception_handler([__CLASS__, 'exception']);
-        // 注册AUTOLOAD方法
-        spl_autoload_register([__CLASS__, 'autoload']);
         // 注册配置
-        Config::register(Loader::import(PT_ROOT.'/app/config.php'));
+        Config::register(Loader::import(PT_ROOT.'/app/config/kuxin.php'));
+        var_dump(Config::get());
+        date_default_timezone_set('PRC');
+        // 记录开始运行时间
+        Registry::set('_startTime', microtime(true));
+        // 记录sql执行次数
+        Registry::set('_sql', []);
+        Registry::set('_sqlnum', 0);
+        // 缓存读取次数
+        Registry::set('_cacheRead', 0);
+        Registry::set('_cacheHit', 0);
+        // 缓存写入次数
+        Registry::set('_cacheWrite', 0);
+        // 记录内存初始使用
+        Registry::set('_startUseMems', memory_get_usage());
+        // 记录网络请求
+        Registry::set('_http', []);
+        Registry::set('_httpnum', 0);
+        
     }
     
     public static function start()
@@ -79,8 +96,6 @@ class Kuxin
             Log::build();
         }
     }
-    
-    
 }
 function dump($arr)
 {
@@ -89,37 +104,7 @@ function dump($arr)
     echo '</pre>', PHP_EOL;
 }
 
-/**
- * 默认值函数
- *
- * @return string
- */
-function defaultvar()
-{
-    $args  = func_get_args();
-    $value = array_shift($args);
-    if (!is_numeric($value)) {
-        return $value;
-    } elseif (isset($args[$value])) {
-        return $args[$value];
-    } else {
-        return '';
-    }
-}
-
-
-/**
- * 时间函数优化
- *
- * @param $time
- * @param $format
- * @return mixed
- */
-function datevar($time, $format)
-{
-    if ($time == '0') return '';
-    return date($format, $time);
-}
 
 include __DIR__ . '/loader.php';
+
 Kuxin::start();
