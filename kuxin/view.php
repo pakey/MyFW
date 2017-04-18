@@ -22,6 +22,14 @@ class View
         self::$_path = $path;
     }
     
+    public static function getPath($path)
+    {
+        if (empty(self::$_path)) {
+            self::$_path = KX_ROOT . '/app/view';
+        }
+        return self::$_path;
+    }
+    
     /**
      * 模板变量赋值,支持连贯操作
      *
@@ -93,16 +101,17 @@ class View
      * @param string $tpl 视图模板
      * @return string
      */
-    protected static function getTplFilePath($tpl)
+    protected static function getTplFilePath($tpl = null, $path = null)
     {
+        $tpl = $tpl === null ? self::$_file : $tpl;
         if ($tpl === null) {
-            $filepath = self::$_path . '/' . str_replace('\\', '/', Router::$controller) . '/' . Router::$action . '.html';
+            $filepath = self::getPath($path) . '/' . str_replace('\\', '/', Router::$controller) . '/' . Router::$action . '.html';
         } elseif (substr($tpl, 0, 1) === '/') {
-            $filepath = PT_ROOT . $tpl;
+            $filepath = KX_ROOT . $tpl;
         } elseif (substr($tpl, 0, 1) === '@') {
-            $filepath = self::$_path . $tpl . '.html';
+            $filepath = self::getPath($path) . '/' . substr($tpl, 1) . '.html';
         } else {
-            $filepath = dirname(self::$_path . '/' . str_replace('\\', '/', Router::$controller)) . $tpl . '.html';
+            $filepath = dirname(self::getPath($path) . '/' . str_replace('\\', '/', Router::$controller)).'/' . $tpl . '.html';
         }
         if (is_file($filepath)) {
             return realpath($filepath);
@@ -117,7 +126,7 @@ class View
      */
     protected static function checkCompile($tplfile)
     {
-        $compiledName = ltrim(str_replace([PT_ROOT, '/app/views', '/template/'], '/', $tplfile), '/');
+        $compiledName = ltrim(str_replace([KX_ROOT, '/app/views', '/template/'], '/', $tplfile), '/');
         $compiledFile = substr(str_replace('/', ',', $compiledName), 0, -5) . '.php';
         $storage      = DI::Storage('template');
         if (Config::get('app.debug') || !$storage->exist($compiledFile) || $storage->mtime($compiledFile) < filemtime($tplfile)) {
@@ -131,10 +140,10 @@ class View
                 $layout      = self::compile(file_get_contents($includeFile));
                 $content     = str_replace('__CONTENT__', $content, $layout);
             }
-            $content = '<?php defined(\'PT_ROOT\') || exit(\'Permission denied\');?>' . self::replace($content);
+            $content = '<?php defined(\'KX_ROOT\') || exit(\'Permission denied\');?>' . self::replace($content);
             $storage->write($compiledFile, $content);
         }
-        return $compiledFile;
+        return $storage->getPath($compiledFile);
     }
     
     // 模版输出替换
@@ -149,7 +158,7 @@ class View
     }
     
     // 编译解析
-    public function compile($content)
+    public static function compile($content)
     {
         $left  = preg_quote('{', '/');
         $right = preg_quote('}', '/');
@@ -199,22 +208,22 @@ class View
     }
     
     // css压缩
-    public function parseCss($match)
+    public static function parseCss($match)
     {
         return '<style type = "text/css">' . self::compressCss($match['1']) . '</style>';
     }
     
     // js压缩
-    public function parseJs($march)
+    public static function parseJs($march)
     {
         return str_replace($march['1'], self::compressJS($march['1']), $march['0']);
     }
     
     
     // 解析变量名
-    private function parseVar($var)
+    private static function parseVar($var)
     {
-        $var = strtolower(is_array($var) ? reset($var) : trim($var));
+        $var = is_array($var) ? reset($var) : trim($var);
         if (substr($var, 0, 1) !== '$') $var = '$' . $var;
         if (preg_match('/^\$\w+(\.[\w\-]+)+$/', $var)) {
             if (substr($var, 0, 4) === '$pt.') {
@@ -258,7 +267,7 @@ class View
      * @return array
      * $format中值true则按照变量解析 其他为默认值
      */
-    private function parseAttribute($string, $format)
+    private static function parseAttribute($string, $format)
     {
         $attribute = ['_etc' => []];
         preg_match_all('/(?:^|\s+)(\w+)\s*\=\s*(?|(")([^"]*)"|(\')([^\']*)\'|(#)(\w+)|(\$)(\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*))|()([^"\'\s]+?))(?=\s+\w+\s*\=|$)/', $string, $match);
@@ -293,7 +302,7 @@ class View
     }
     
     // 解析变量
-    private function parseVariable($matches)
+    private static function parseVariable($matches)
     {
         $variable = self::parseVar($matches[1]);
         if ($matches[2]) {
@@ -335,7 +344,7 @@ class View
     
     
     // 解析载入
-    private function parseInlcude($matches)
+    private static function parseInlcude($matches)
     {
         //20141215 防止写空导致调用死循环
         if ($matches['2']) {
@@ -343,7 +352,7 @@ class View
             $truereturn  = realpath($includeFile);
             if ($truereturn) {
                 $content = file_get_contents($truereturn);
-                return $this->compile($content);
+                return self::compile($content);
             }
             trigger_error("include参数有误，得不到设置的模版，参数[{$matches['2']}]，解析模版路径[{$includeFile}]", E_USER_ERROR);
         }
@@ -351,7 +360,7 @@ class View
     }
     
     // 解析函数
-    private function parseFunction($matches)
+    private static function parseFunction($matches)
     {
         $operate    = $matches[1] === '=' ? 'echo' : '';
         $expression = preg_replace_callback('/\$\w+(?:\.\w+)+/', ['self', 'parseVar'], $matches[2]);
@@ -359,7 +368,7 @@ class View
     }
     
     // 解析判断
-    private function parseJudgment($matches)
+    private static function parseJudgment($matches)
     {
         $judge     = strtolower($matches[1]) === 'if' ? 'if' : 'elseif';
         $condition = preg_replace_callback('/\$\w+(?:\.\w+)+/', ['self', 'parseVar'], $matches[2]);
@@ -367,7 +376,7 @@ class View
     }
     
     // 解析链接
-    private function parseLink($matches)
+    private static function parseLink($matches)
     {
         $attribute = self::parseAttribute('_type_=' . $matches[1], ['_type_' => false]);
         if (!is_string($attribute['_type_'])) return $matches[0];
@@ -375,11 +384,11 @@ class View
         foreach ($attribute['_etc'] as $key => $value) {
             $var[] = "'$key'=>$value";
         }
-        return "<?php echo U(\"{$attribute['_type_']}\",array(" . implode(',', $var) . "));?>";
+        return "<?php echo \\Kuxin\\Helper\\Url::build(\"{$attribute['_type_']}\",array(" . implode(',', $var) . "));?>";
     }
     
     // 解析微件
-    private function parseBlock($matches)
+    private static function parseBlock($matches)
     {
         $attribute = self::parseAttribute($matches[1], ['method' => false, 'name' => false]);
         $var       = [];
@@ -387,21 +396,21 @@ class View
             $var[] = "'$key'=>$value";
         }
         if (empty($attribute['name']) || $attribute['name'] === false) {
-            return "<?php echo \\Kuxin\\Block\\".$attribute['method']."::run([" . implode(',', $var) . "]);?>";
+            return "<?php echo \\Kuxin\\Block\\" . $attribute['method'] . "::run([" . implode(',', $var) . "]);?>";
         } else {
             $name = '$' . $attribute['name'];
-            return "<?php $name=\\Kuxin\\Block\\".$attribute['method']."::run([" . implode(',', $var) . "]);?>";
+            return "<?php $name=\\Kuxin\\Block\\" . $attribute['method'] . "::run([" . implode(',', $var) . "]);?>";
         }
     }
     
     // 解析循环
-    private function parseLoop($matches)
+    private static function parseLoop($matches)
     {
         $loop = empty($matches[2]) ? '$list' : (self::parseVar($matches[2]));
         return "<?php if(is_array($loop)): foreach($loop as \$key =>\$loop):?>";
     }
     
-    private function parseSection($matches)
+    private static function parseSection($matches)
     {
         $attribute = self::parseAttribute($matches[1], ['loop' => true, 'name' => true, 'item' => true, 'cols' => '1', 'skip' => '0', 'limit' => 'null']);
         if (!is_string($attribute['loop'])) return $matches[0];
@@ -411,13 +420,13 @@ class View
     }
     
     // 解析代码
-    private function parseEncode($matches)
+    private static function parseEncode($matches)
     {
         return chr(2) . base64_encode(strtolower($matches[1]) === 'php' ? "<?php {$matches[2]};?>" : trim($matches[2])) . chr(3);
     }
     
     // 还原代码
-    private function parseDecode($matches)
+    private static function parseDecode($matches)
     {
         return base64_decode($matches[1]);
     }
@@ -479,7 +488,7 @@ class View
     public static function parseTpl($content)
     {
         if ($content == '') return '';
-        $storage=DI::Storage('template');
+        $storage   = DI::Storage('template');
         $cachefile = 'parsetpl/' . md5($content) . '.php';
         if ($storage->exist($cachefile)) {
             $content = self::compile($content);

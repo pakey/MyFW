@@ -19,7 +19,7 @@ class Model
      *
      * @var string
      */
-    protected $tableName = null;
+    protected $table = null;
     
     /**
      * 数据表的主键信息
@@ -75,6 +75,17 @@ class Model
             $this->db = DI::DB();
         }
         return $this->db;
+    }
+    
+    /**
+     * 实例化 单例
+     *
+     * @return static
+     */
+    public static function I()
+    {
+        $class = static::class;
+        return Loader::instance($class);
     }
     
     public function __call($method, $args)
@@ -198,10 +209,10 @@ class Model
     
     public function getTableName()
     {
-        if (!$this->tableName) {
+        if (!$this->table) {
             trigger_error('请设置表名', E_USER_ERROR);
         }
-        return $this->prefix . $this->tableName;
+        return $this->prefix . $this->table;
     }
     
     public function getTableField($tablename)
@@ -432,7 +443,6 @@ class Model
             }
         } else {
             $result = $this->find();
-            var_dump($result, $this->getLastSql());
             if ($result === false) {
                 return false;
             } elseif (isset($result[$field])) {
@@ -747,7 +757,7 @@ class Model
         return $this->getField('kx_num');
     }
     
-    public function start()
+    public function startTrans()
     {
         $this->db()->startTrans();
     }

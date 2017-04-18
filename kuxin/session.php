@@ -2,29 +2,26 @@
 namespace Kuxin;
 
 
-use Kuxin\Config;
 class Session
 {
     
-    public function init($name = [])
+    public static function start($config=array())
     {
-        $name = array_merge(Config::get('session', []), $name);
-        //ini_set("session.save_handler", "memcache");
-        //ini_set("session.save_path", "tcp://127.0.0.1:11211");
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return;
+        }
+        if(!$config){
+            $config=Config::get('session', []);
+        }
+        if(isset($config['hanlder'])){
+            ini_set("session.save_handler", $config['hanlder']);
+            ini_set("session.save_path", $config['path']);
+            //ini_set("session.save_path", "tcp://127.0.0.1:11211");
+        }
         session_start();
     }
     
-    public function __set($name, $value)
-    {
-        return $this->set($name, $value);
-    }
-    
-    public function __get($name)
-    {
-        return $this->get($name);
-    }
-    
-    public function get($name = '', $default = null)
+    public static function get($name = '', $default = null)
     {
         if ($name == '') return $_SESSION;
         //数组模式 找到返回
@@ -44,13 +41,13 @@ class Session
         }
     }
     
-    public function set($key, $value = '')
+    public static function set($key, $value = '')
     {
         $_SESSION[$key] = $value;
         return true;
     }
     
-    public function rm($key)
+    public static function remove($key)
     {
         if (!isset($_SESSION[$key])) {
             return false;
@@ -96,8 +93,7 @@ class Session
      */
     public static function close()
     {
-        
-        if (session_id()) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
     }

@@ -20,4 +20,9 @@ class Controller
         Response::setType($type);
         return $data;
     }
+    
+    public function redirect($url, $code = 302)
+    {
+        Response::redirect($url, $code);
+    }
 }

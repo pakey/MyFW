@@ -12,7 +12,7 @@ class Xml
      * @param string $encoding
      * @return mixed
      */
-    public static function encode($data, $root = 'ptcms', $attr = '', $encoding = 'utf-8')
+    public static function encode($data, $root = 'xml', $attr = '', $encoding = 'utf-8')
     {
         if (is_array($attr)) {
             $_attr = [];
@@ -68,6 +68,9 @@ class Xml
     
     public static function decode($con)
     {
+        if(!$con){
+            return [];
+        }
         if ($con{0} == '<') {
             $con = simplexml_load_string($con, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NOBLANKS);
         } else {

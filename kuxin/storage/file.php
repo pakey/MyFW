@@ -74,13 +74,13 @@ class File
     
     public function getUrl($file)
     {
-        $file = strpos($file, PT_ROOT) === 0 ? $file : substr($file, strlen(self::$path));
+        $file = strpos($file, KX_ROOT) === 0 ? $file : substr($file, strlen(self::$path));
         return self::$url . $file;
     }
     
     public function getPath($file)
     {
-        return strpos($file, PT_ROOT) === 0 ? $file : self::$path . '/' . ltrim($file, '/');
+        return strpos($file, KX_ROOT) === 0 ? $file : self::$path . '/' . ltrim($file, '/');
     }
     
     public function error()
