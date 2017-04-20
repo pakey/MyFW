@@ -77,6 +77,17 @@ class Model
         return $this->db;
     }
     
+    /**
+     * 实例化 单例
+     *
+     * @return static
+     */
+    public static function I()
+    {
+        $class = static::class;
+        return Loader::instance($class);
+    }
+    
     public function __call($method, $args)
     {
         trigger_error('不具备的Model操作' . $method);
@@ -432,7 +443,6 @@ class Model
             }
         } else {
             $result = $this->find();
-            var_dump($result, $this->getLastSql());
             if ($result === false) {
                 return false;
             } elseif (isset($result[$field])) {
@@ -747,7 +757,7 @@ class Model
         return $this->getField('kx_num');
     }
     
-    public function start()
+    public function startTrans()
     {
         $this->db()->startTrans();
     }

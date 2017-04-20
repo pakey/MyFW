@@ -191,7 +191,7 @@ class Mysql
     public function startTrans()
     {
         if ($this->Transactions == false) {
-            $this->db_link->beginTransaction();
+            $this->db_link->beginTrans();
             $this->Transactions = true;
         }
         return true;

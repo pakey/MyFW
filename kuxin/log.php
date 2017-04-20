@@ -58,7 +58,6 @@ class Log
     public static function build()
     {
         $logBuild = Config::get('log.buildtype', ['pt', 'debug', 'collect', 'collecterror', 'cron']);
-        var_dump(self::$log);
         foreach ($logBuild as $type) {
             if (isset(self::$log[$type])) {
                 self::write(implode(PHP_EOL, self::$log[$type]), $type, false);

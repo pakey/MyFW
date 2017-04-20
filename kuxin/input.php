@@ -70,11 +70,15 @@ class Input
             case 'int':
                 $value = (int)$value;
                 break;
+            case 'float':
+                $value = (float)$value;
+                break;
             case 'str':
             case 'string':
                 $value = (string)$value;
                 break;
             case 'arr':
+            case 'array':
                 $value = (array)$value;
                 break;
             case 'time':

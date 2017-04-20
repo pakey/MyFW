@@ -20,8 +20,8 @@ class Kuxin
         //set_error_handler(array(__CLASS__, 'error'));
         //set_exception_handler([__CLASS__, 'exception']);
         // 注册配置
-        Config::register(Loader::import(PT_ROOT.'/app/config/kuxin.php'));
-        var_dump(Config::get());
+        Config::register(Loader::import(KX_ROOT.'/app/config/kuxin.php'));
+        // 时区
         date_default_timezone_set('PRC');
         // 记录开始运行时间
         Registry::set('_startTime', microtime(true));
@@ -85,7 +85,7 @@ class Kuxin
     
     protected static function autoload($classname)
     {
-        $file = PT_ROOT . '/' . strtr(strtolower($classname), '\\', '/') . '.php';
+        $file = KX_ROOT . '/' . strtr(strtolower($classname), '\\', '/') . '.php';
         Loader::import($file);
     }
     

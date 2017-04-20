@@ -1,5 +1,8 @@
 <?php
-namespace Kuxin;
+namespace Kuxin\Helper;
+
+use Kuxin\Config;
+use Kuxin\Log;
 
 class Http
 {
@@ -11,7 +14,7 @@ class Http
             CURLOPT_CONNECTTIMEOUT => Config::get('http.timeout', 10),
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_FOLLOWLOCATION => 1,
-            CURLOPT_HEADER         => false,
+            CURLOPT_HEADER         => 0,
             CURLOPT_USERAGENT      => Config::get('http.user_agent', 'PTCMS Framework Http Client'),
             CURLOPT_REFERER        => isset($header['referer']) ? $header['referer'] : $url,
             CURLOPT_NOSIGNAL       => 1,

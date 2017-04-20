@@ -230,4 +230,11 @@ class Response
         $text = strip_tags($text);
         return $pre . $text . $end . $line;
     }
+    
+    public static function debug($arr)
+    {
+        echo '<pre>';
+        print_r($arr);
+        echo '</pre>', PHP_EOL;
+    }
 }

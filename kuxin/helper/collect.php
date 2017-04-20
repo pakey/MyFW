@@ -1,5 +1,6 @@
 <?php
-namespace Kuxin;
+namespace Kuxin\Helper;
+
 class Collect
 {
     
