@@ -378,13 +378,13 @@ class View
     // 解析链接
     private static function parseLink($matches)
     {
-        $attribute = self::parseAttribute('_type_=' . $matches[1], ['_type_' => false]);
+        $attribute = self::parseAttribute('_type_=' . $matches[1], ['_type_' => false, 'responsetype'=>'""']);
         if (!is_string($attribute['_type_'])) return $matches[0];
         $var = [];
         foreach ($attribute['_etc'] as $key => $value) {
             $var[] = "'$key'=>$value";
         }
-        return "<?php echo \\Kuxin\\Helper\\Url::build(\"{$attribute['_type_']}\",array(" . implode(',', $var) . "));?>";
+        return "<?php echo \\Kuxin\\Helper\\Url::build(\"{$attribute['_type_']}\",[" . implode(',', $var) . "],{$attribute['responsetype']});?>";
     }
     
     // 解析微件
