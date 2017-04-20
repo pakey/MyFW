@@ -82,7 +82,7 @@ class Upload
     /**
      *检测文件大小
      */
-    private function check_size()
+    private function checkSize()
     {
         return $this->fileinfo['size'] > 0 && ($this->fileinfo['size'] <= $this->allowMaxSize * 1024);
     }
@@ -90,15 +90,15 @@ class Upload
     /**
      *检测文件后缀
      */
-    private function check_type()
+    private function checkType()
     {
-        return in_array($this->get_type(), explode("|", strtolower($this->allowType)));
+        return in_array($this->getType(), explode("|", strtolower($this->allowType)));
     }
     
     /**
      *获取文件后缀
      */
-    private function get_type()
+    private function getType()
     {
         return strtolower(pathinfo($this->fileinfo['name'], PATHINFO_EXTENSION));
     }
@@ -107,11 +107,11 @@ class Upload
     /**
      *获取文件完整路径
      */
-    private function getpath()
+    private function getPath()
     {
         if (empty($this->fileDir)) $this->fileDir = date('Ym') . '/' . date('d');
         if (!$this->fileName) $this->fileName = md5($this->fileinfo['name'] . $this->fileinfo['size']);
-        $this->filePath = $this->fileDir . '/' . $this->fileName . "." . $this->get_type();
+        $this->filePath = $this->fileDir . '/' . $this->fileName . "." . $this->getType();
     }
     
     /**
@@ -119,7 +119,7 @@ class Upload
      *
      * @return bool
      */
-    protected function check_mime()
+    protected function checkMime()
     {
         return !(!empty($this->allowMime) && !in_array($this->fileinfo['type'], $this->allowMime));
     }
@@ -138,21 +138,21 @@ class Upload
     /**
      *上传文件
      */
-    public function uploadone()
+    public function uploadOne()
     {
         if ($this->fileinfo['error'] !== 0) {
             $this->error($this->geterrorinfo($this->fileinfo['error']));
         }
         //检测文件大小
-        if (!$this->check_size()) {
+        if (!$this->checkSize()) {
             return $this->error("上传附件不得超过" . $this->allowMaxSize . "KB");
         }
         //校验mime信息
-        if (!$this->check_mime()) {
+        if (!$this->checkMime()) {
             return $this->error("上传文件MIME类型不允许！");
         }
         //不符则警告
-        if (!$this->check_type()) {
+        if (!$this->checkType()) {
             return $this->error("正确的扩展名必须为" . $this->allowType . "其中的一种！");
         }
         //检查是否合法上传
@@ -163,7 +163,7 @@ class Upload
         $this->getpath();
         // 上传操作
         if ($this->save(file_get_contents($this->fileinfo['tmp_name']))) {
-            $info['ext']      = $this->get_type();
+            $info['ext']      = $this->getType();
             $info['fileurl']  = $this->storage->getUrl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];
@@ -177,7 +177,7 @@ class Upload
     
     protected function save($content)
     {
-        if (in_array($this->get_type(), ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
+        if (in_array($this->getType(), ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
             //$imginfo = getimagesize($this->fileinfo['tmp_name']);
             $img     = new image($this->fileinfo['tmp_name']);
             $content = $img->save();
@@ -185,7 +185,7 @@ class Upload
         return $this->storage->write($this->filePath, $content);
     }
     
-    protected function geterrorinfo($num)
+    protected function getErrorInfo($num)
     {
         switch ($num) {
             case 1:
@@ -205,7 +205,7 @@ class Upload
         }
     }
     
-    public function uploadurl($url, $content = '')
+    public function uploadUrl($url, $content = '')
     {
         $this->fileName = $this->filePath = '';
         if ($content == '') $content = http::get($url);
@@ -216,7 +216,7 @@ class Upload
         ];
         $this->getpath();
         if ($this->save($content)) {
-            $info['ext']      = $this->get_type();
+            $info['ext']      = $this->getType();
             $info['fileurl']  = $this->storage->getUrl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];

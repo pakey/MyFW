@@ -6,11 +6,18 @@ use Kuxin\Config;
 use Kuxin\Response;
 use Kuxin\Router;
 
+/**
+ * Class Url
+ * url辅助函数
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
 class Url
 {
     
     /**
-     * 获取当前URL
+     * 获取微信用的当前URL 去掉#后面的内容
      *
      * @return string
      */
@@ -23,6 +30,11 @@ class Url
         return $url;
     }
     
+    /**
+     * 获取当前地址
+     *
+     * @return string
+     */
     public static function current()
     {
         if (PHP_SAPI == 'cli') {
@@ -40,7 +52,16 @@ class Url
         return $protocol . $host . $uri;
     }
     
-    public static function build($method = '', $args = [], $ignores = [], $type = 'html')
+    /**
+     * 生成url
+     *
+     * @param string $method
+     * @param array  $args
+     * @param string $type
+     * @param array  $ignores
+     * @return mixed|string
+     */
+    public static function build($method = '', $args = [], $type = 'html', $ignores = [])
     {
         static $rules = null, $_method = [], $power = false;
         if ($rules === null) {
@@ -95,7 +116,7 @@ class Url
      * @param $url
      * @return mixed
      */
-    protected static function clearUrl($url)
+    private static function clearUrl($url)
     {
         while (preg_match('#\[[^\[\]]*?\{\w+\}[^\[\]]*?\]#', $url, $match)) {
             $url = str_replace($match['0'], '', $url);
