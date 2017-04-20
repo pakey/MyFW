@@ -7,5 +7,5 @@ use Kuxin\Model;
 class User extends Model
 {
     
-    protected $tableName = 'users';
+    protected $table = 'users';
 }

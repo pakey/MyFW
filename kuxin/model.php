@@ -19,7 +19,7 @@ class Model
      *
      * @var string
      */
-    protected $tableName = null;
+    protected $table = null;
     
     /**
      * 数据表的主键信息
@@ -198,10 +198,10 @@ class Model
     
     public function getTableName()
     {
-        if (!$this->tableName) {
+        if (!$this->table) {
             trigger_error('请设置表名', E_USER_ERROR);
         }
-        return $this->prefix . $this->tableName;
+        return $this->prefix . $this->table;
     }
     
     public function getTableField($tablename)
