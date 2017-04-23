@@ -66,7 +66,7 @@ class Collect
     /**
      * 根据正则批量获取
      *
-     * @param array  $pregArr      正则
+     * @param mixed  $pregArr      正则
      * @param string $code         源内容
      * @param int    $needposition 确定是否需要间距数字
      * @return array|bool
