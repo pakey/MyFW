@@ -332,9 +332,13 @@ class Model
             }
             foreach ($data as $k => $v) { // 数据解析
                 if (in_array($k, $fields)) {
-                    $sets[] = $this->parseKey($k) . '= :' . $k;
-                    //参数绑定
-                    $this->bindParams[':' . $k] = $this->parseBindValue($v);
+                    if (is_array($v) && isset($v[0]) && is_string($v[0]) && strtolower($v[0]) == 'exp') {
+                        $sets[] = $this->parseKey($k) . '= ' . $v['1'];
+                    }else{
+                        $sets[] = $this->parseKey($k) . '= :' . $k;
+                        //参数绑定
+                        $this->bindParams[':' . $k] = $this->parseBindValue($v);
+                    }
                 }
             }
             $sql = 'UPDATE ' . $this->parseTable() . ' SET ' . implode(',', $sets)
@@ -512,9 +516,7 @@ class Model
      */
     protected function parseBindValue($value)
     {
-        if (isset($value[0]) && is_string($value[0]) && strtolower($value[0]) == 'exp') {
-            $value = $value[1];
-        } elseif (is_array($value)) {
+        if (is_array($value)) {
             $value = Json::encode($value);
         } elseif (is_bool($value)) {
             $value = $value ? 1 : 0;
