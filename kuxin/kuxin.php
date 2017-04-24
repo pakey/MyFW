@@ -39,6 +39,13 @@ class Kuxin
         Registry::set('_http', []);
         Registry::set('_httpnum', 0);
         
+        if(Config::get('app.debug')){
+            ini_set('display_errors', 'on');
+            error_reporting(E_ALL);
+        }else{
+            ini_set('display_errors', 'off');
+            error_reporting(0);
+        }
     }
     
     public static function start()

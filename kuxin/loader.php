@@ -3,7 +3,8 @@
 namespace Kuxin;
 
 
-class Loader{
+class Loader
+{
     
     
     static $_importFiles = [];
@@ -11,17 +12,17 @@ class Loader{
     
     /**
      * 加载文件
+     *
      * @param $filename
      * @return mixed
      */
     public static function import($filename)
     {
         if (!isset(self::$_importFiles[$filename])) {
-            if(is_file($filename)){
+            if (is_file($filename)) {
                 self::$_importFiles[$filename] = require $filename;
-            }else{
-                debug_print_backtrace(2);
-                trigger_error('文件不存在[ '.$filename.' ]',E_USER_ERROR);
+            } else {
+                trigger_error('文件不存在[ ' . $filename . ' ]', E_USER_ERROR);
                 return false;
             }
         }
@@ -30,6 +31,7 @@ class Loader{
     
     /**
      * 初始化类
+     *
      * @param       $class
      * @param array $args
      * @return mixed
