@@ -2,6 +2,8 @@
 
 namespace Kuxin;
 
+use Kuxin\Helper\Arr;
+
 class View
 {
     
@@ -40,7 +42,7 @@ class View
     public static function set($var, $value = null)
     {
         if (is_array($var)) {
-            self::$_vars = array_merge(self::$_vars, $var);
+            self::$_vars = Arr::merge_recursive(self::$_vars, $var);
         } else {
             self::$_vars[$var] = $value;
         }

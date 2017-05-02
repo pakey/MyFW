@@ -8,7 +8,7 @@ use Kuxin\Config;
  * @Email : admin@ptcms.com
  * @File  : pinyin.php
  */
-class pinyin
+class Pinyin
 {
     
     protected static $data = null;
@@ -16,7 +16,7 @@ class pinyin
     protected static function getdata()
     {
         if (self::$data === null) {
-            $fp = fopen(dirname(__FILE__) . '/data/pinyin.dat', 'r') or exit('读取字典失败');
+            $fp = fopen(__DIR__. '/data/pinyin.dat', 'r') or exit('读取字典失败');
             while (!feof($fp)) {
                 $line                            = trim(fgets($fp));
                 self::$data[$line[0] . $line[1]] = substr($line, 3, strlen($line) - 3);
@@ -44,7 +44,7 @@ class pinyin
                 $c = $str[$i] . $str[$i + 1];
                 ++$i;
                 if (isset($data[$c])) {
-                    $restr .= $isfirst ? $data[$c]{0} : (Config::get('pinyin.uc_first', 1) ? ucfirst($data[$c]) : $data[$c]);
+                    $restr .= $isfirst ? $data[$c]{0} : (Config::get('pinyin.ucfirst', 1) ? ucfirst($data[$c]) : $data[$c]);
                 } else {
                     $restr .= $default;
                 }

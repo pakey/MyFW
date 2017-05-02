@@ -2,6 +2,8 @@
 
 namespace Kuxin;
 
+use Kuxin\Helper\Arr;
+
 class Config
 {
     
@@ -54,7 +56,7 @@ class Config
     public static function register($config)
     {
         if (is_array($config)) {
-            self::$_config = array_merge(self::$_config, $config);
+            self::$_config = Arr::merge_recursive(self::$_config, $config);
         }
     }
 }

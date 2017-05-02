@@ -5,7 +5,6 @@ namespace Kuxin;
 use Kuxin\Helper\Json;
 use Kuxin\Helper\Jsonp;
 use Kuxin\Helper\Xml;
-use ReflectionClass;
 
 class Kuxin
 {
@@ -51,14 +50,30 @@ class Kuxin
     public static function start()
     {
         self::init();
-        Router::dispatcher();
-        $controllerName = 'app\\controller\\' . Router::$controller;
-        /** @var \Kuxin\Controller $controller */
-        $controller = Loader::instance($controllerName);
-        $actionName = Router::$action;
-        $controller->init();
-        if (method_exists($controller, $actionName)) {
-            $return = $controller->$actionName();
+        Plugin::call('app_start');
+        if (PHP_SAPI == 'cli'){
+            Router::cli();
+            global $argv;
+            $className = 'App\\Console\\' . Router::$controller;
+            unset($argv[0],$argv[1]);
+            $controller = Loader::instance($className,$argv);
+            $actionName = Router::$action;
+            $controller->init();
+            if (method_exists($controller, $actionName)) {
+                $controller->$actionName();
+            }
+        }else{
+            Router::dispatcher();
+            $controllerName = 'App\\Controller\\' . Router::$controller;
+            /** @var \Kuxin\Controller $controller */
+            $controller = Loader::instance($controllerName);
+            $actionName = Router::$action;
+            $return = $controller->init();
+            if ($return===null && method_exists($controller, $actionName)) {
+                $return = $controller->$actionName();
+            } else {
+                trigger_error('控制器[' . $controllerName . ']对应的方法[' . $actionName . ']不存在', E_USER_ERROR);
+            }
             if (Response::isAutoRender()) {
                 switch (Response::getType()) {
                     case 'json':
@@ -85,9 +100,8 @@ class Kuxin
             }
             //设置输出内容
             Response::setBody($body);
-        } else {
-            trigger_error('控制器[' . $controllerName . ']对应的方法[' . $actionName . ']不存在', E_USER_ERROR);
         }
+            
     }
     
     protected static function autoload($classname)
@@ -104,12 +118,7 @@ class Kuxin
         }
     }
 }
-function dump($arr)
-{
-    echo '<pre>';
-    print_r($arr);
-    echo '</pre>', PHP_EOL;
-}
+
 
 
 include __DIR__ . '/loader.php';

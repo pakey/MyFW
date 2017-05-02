@@ -10,6 +10,9 @@ namespace Kuxin;
 class Controller
 {
     
+    /**
+     * return mixed|null
+     */
     public function init()
     {
         //do somethings

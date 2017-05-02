@@ -223,7 +223,6 @@ class Response
                 $end = '';
         }
         $line = $line ? PHP_EOL : '';
-        usleep(5000);
         if (stripos($text, '<br')) {
             $text = str_ireplace(['<br /><br />', '<br/><br/>', '<br/>', '<br />'], PHP_EOL, $text);
         }

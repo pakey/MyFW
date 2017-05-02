@@ -80,12 +80,13 @@ class Model
     /**
      * 实例化 单例
      *
+     * @param ...
      * @return static
      */
     public static function I()
     {
         $class = static::class;
-        return Loader::instance($class);
+        return Loader::instance($class,func_get_args());
     }
     
     public function __call($method, $args)
@@ -294,7 +295,7 @@ class Model
             foreach ($datas as $data) {
                 $value = [];
                 foreach ($data as $key => $val) {
-                    if (in_array($key, $fields)) {
+                    if (isset($fields[$key])) {
                         $value[$key] = $this->parseValue($val);
                     }
                 }
@@ -331,10 +332,10 @@ class Model
                 unset($data[$this->pk]);
             }
             foreach ($data as $k => $v) { // 数据解析
-                if (in_array($k, $fields)) {
+                if (isset($fields[$k])) {
                     if (is_array($v) && isset($v[0]) && is_string($v[0]) && strtolower($v[0]) == 'exp') {
                         $sets[] = $this->parseKey($k) . '= ' . $v['1'];
-                    }else{
+                    } else {
                         $sets[] = $this->parseKey($k) . '= :' . $k;
                         //参数绑定
                         $this->bindParams[':' . $k] = $this->parseBindValue($v);
@@ -443,7 +444,7 @@ class Model
                     return array_column($result, $field);
                 }
             } else {
-                return null;
+                return [];
             }
         } else {
             $result = $this->find();
@@ -668,7 +669,7 @@ class Model
             if (is_string($this->data['group'])) {
                 return ' GROUP BY ' . $this->parseKey($this->data['group']);
             } elseif (is_array($this->data['group'])) {
-                array_walk($this->data['group'], [$this, 'parseKey']);
+                $this->data['group'] = array_map($this->data['group'], [$this, 'parseKey']);
                 return ' GROUP BY ' . implode(',', $this->data['group']);
             }
         }
@@ -731,7 +732,7 @@ class Model
             if (is_string($this->data['field'])) {
                 $this->data['field'] = explode(',', $this->data['field']);
             }
-            array_walk($this->data['field'], [$this, 'parseKey']);
+            $this->data['field'] = array_map([self::class, 'parseKey'], $this->data['field']);
             return implode(',', $this->data['field']);
         }
     }

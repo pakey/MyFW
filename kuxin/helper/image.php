@@ -1,6 +1,7 @@
 <?php
 
 namespace Kuxin\Helper;
+
 class Image
 {
     
@@ -29,7 +30,7 @@ class Image
     public function __construct($var)
     {
         if (stripos($var, 'http') === 0) {
-            $content = http::get($var);
+            $content = Http::get($var);
         } elseif (is_file($var)) {
             $content = file_get_contents($var);
         } else {
@@ -183,7 +184,7 @@ class Image
         return $this->img;
     }
     
-    public function water($source, $posotion = image::IMAGE_WATER_SOUTHEAST, $alpha = 60)
+    public function water($source, $posotion = Image::IMAGE_WATER_SOUTHEAST, $alpha = 60)
     {
         //资源检测
         if (!is_file($source)) return false;
@@ -635,9 +636,9 @@ Class GIFEncoder
             ($GIF_red | ($GIF_grn << 8) | ($GIF_blu << 16)) : -1;
         
         for ($i = 0; $i < count($GIF_src); $i++) {
-            if (strToLower($GIF_mod) == "url") {
+            if (strtolower($GIF_mod) == "url") {
                 $this->BUF [] = fread(fopen($GIF_src [$i], "rb"), filesize($GIF_src [$i]));
-            } else if (strToLower($GIF_mod) == "bin") {
+            } else if (strtolower($GIF_mod) == "bin") {
                 $this->BUF [] = $GIF_src [$i];
             } else {
                 printf("%s: %s ( %s )!", $this->VER, $this->ERR ['ERR02'], $GIF_mod);

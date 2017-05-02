@@ -7,6 +7,8 @@
 
 namespace Kuxin;
 
+use Kuxin\Helper\Arr;
+
 class Registry
 {
     
@@ -33,7 +35,7 @@ class Registry
     public static function set($key, $value)
     {
         if (is_array($key)) {
-            self::$_data = array_merge(self::$_data, $key);
+            self::$_data = Arr::merge_recursive(self::$_data, $key);
         } else {
             self::$_data[$key] = $value;
         }

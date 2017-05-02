@@ -114,7 +114,12 @@ class Mysql
      */
     public function errorInfo()
     {
-        return $this->db_link->errorInfo();
+        $error=$this->PDOStatement->errorInfo();
+        if($error['0']=='0000'){
+            return '';
+        }else{
+            return $error['2'];
+        }
     }
     
     /**
