@@ -1,13 +1,23 @@
 <?php
 
-
 namespace Kuxin;
 
+/**
+ * Class Cookie
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Cookie
 {
     
+    /**
+     * 默认配置
+     *
+     * @var array
+     */
     protected static $option = [
-        'prefix'   => 'PTCMS_',
+        'prefix'   => 'kuxin_',
         // cookie 保存时间
         'expire'   => 2592000,
         // cookie 保存路径
@@ -25,6 +35,11 @@ class Cookie
         $this->init($config);
     }
     
+    /**
+     * 初始化
+     *
+     * @param array $config
+     */
     public static function init($config = [])
     {
         $config = [
@@ -43,6 +58,13 @@ class Cookie
         if (!$config) self::$option = array_merge(self::$option, $config);
     }
     
+    /**
+     * 获取
+     *
+     * @param      $name
+     * @param null $default
+     * @return null
+     */
     public static function get($name, $default = null)
     {
         $fullname = self::$option['prefix'] . $name;
@@ -53,6 +75,13 @@ class Cookie
         }
     }
     
+    /**
+     * 设置
+     *
+     * @param        $name
+     * @param string $value
+     * @param null   $option
+     */
     public static function set($name, $value = '', $option = null)
     {
         if (!is_null($option)) {
@@ -70,6 +99,11 @@ class Cookie
         $_COOKIE[$name] = $value;
     }
     
+    /**
+     * 删除单个
+     *
+     * @param $name
+     */
     public static function remove($name)
     {
         $name = self::$option['prefix'] . $name;
@@ -78,11 +112,16 @@ class Cookie
         unset($_COOKIE[$name]);
     }
     
+    /**
+     * 清空
+     *
+     * @return bool
+     */
     public static function clear()
     {
         foreach ($_COOKIE as $key => $val) {
             if (0 === stripos($key, self::$option['prefix'])) {
-                setcookie($key, '', time() - 3600, self::$option['prefix']['path'], self::$option['prefix']['domain']);
+                setcookie($key, '', time() - 3600, self::$option['path'], self::$option['domain']);
                 unset($_COOKIE[$key]);
             }
         }

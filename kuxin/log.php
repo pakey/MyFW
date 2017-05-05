@@ -2,10 +2,20 @@
 
 namespace Kuxin;
 
+/**
+ * Class Log
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Log
 {
     
-    // 日志信息
+    /**
+     * 日志内容
+     *
+     * @var array
+     */
     protected static $log = [];
     
     /**

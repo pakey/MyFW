@@ -2,25 +2,43 @@
 
 namespace Kuxin;
 
+/**
+ * Class Request
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Request
 {
     
+    /**
+     * @return bool
+     */
     public static function isGet()
     {
         return $_SERVER['REQUEST_METHOD'] === 'GET' ? true : false;
         
     }
     
+    /**
+     * @return bool
+     */
     public static function isPost()
     {
         return $_SERVER['REQUEST_METHOD'] === 'POST' ? true : false;
     }
     
+    /**
+     * @return bool
+     */
     public static function isAjax()
     {
         return ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || isset($_POST['isajax']) || isset($_GET['isajax'])) ? true : false;
     }
     
+    /**
+     * @return bool
+     */
     public static function isMobile()
     {
         // 如果有HTTP_X_WAP_PROFILE则一定是移动设备
@@ -56,6 +74,10 @@ class Request
         return false;
     }
     
+    /**
+     * @param string $ua
+     * @return bool
+     */
     public static function isSpider($ua = '')
     {
         empty($ua) && $ua = $_SERVER['HTTP_USER_AGENT'];
@@ -67,6 +89,10 @@ class Request
         return false;
     }
     
+    /**
+     * @param string $defaultIp
+     * @return string
+     */
     public static function getIp($defaultIp = '0.0.0.0')
     {
         $ip = $_SERVER['REMOTE_ADDR'];

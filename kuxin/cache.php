@@ -7,7 +7,13 @@
 
 namespace Kuxin;
 
-
+/**
+ * 缓存
+ * Class Cache
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Cache
 {
     
@@ -28,6 +34,13 @@ class Cache
         $this->handler = Loader::instance($class, [$config['option']]);
     }
     
+    /**
+     * 设置缓存
+     *
+     * @param     $key
+     * @param     $value
+     * @param int $time
+     */
     public function set($key, $value, $time = 0)
     {
         Registry::setInc('_cacheWrite');
@@ -35,6 +48,8 @@ class Cache
     }
     
     /**
+     * 获取缓存
+     *
      * @param       $key
      * @param mixed $default
      * @return mixed
@@ -52,6 +67,8 @@ class Cache
     }
     
     /**
+     * debug模式来获取缓存，debug模式不取缓存
+     *
      * @param       $key
      * @param mixed $default
      * @return mixed
@@ -68,24 +85,60 @@ class Cache
         return $result;
     }
     
+    /**
+     * 删除缓存
+     *
+     * @param $key
+     * @return bool
+     */
     public function remove($key)
     {
         return $this->handler->remove($key);
     }
     
+    /**
+     * 缓存计数 增加
+     *
+     * @param     $key
+     * @param int $len
+     * @return bool|int
+     */
     public function inc($key, $len = 1)
     {
         return $this->handler->inc($key, $len);
     }
     
+    /**
+     * 缓存计数 减少
+     *
+     * @param     $key
+     * @param int $len
+     * @return bool|int
+     */
     public function dec($key, $len = 1)
     {
         return $this->handler->dec($key, $len);
     }
     
+    /**
+     * 清空缓存
+     */
     public function clear()
     {
         $this->handler->clear();
+    }
+    
+    /**
+     * @param $method
+     * @param $args
+     */
+    public function __call($method, $args)
+    {
+        if (method_exists($this->handler, $method)) {
+            call_user_func_array([$this->handler, $method], $args);
+        } else {
+            trigger_error('Cache中不存在的方法');
+        }
     }
     
 }

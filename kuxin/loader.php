@@ -2,13 +2,24 @@
 
 namespace Kuxin;
 
-
+/**
+ * Class Loader
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Loader
 {
     
-    
+    /**
+     * @var array
+     */
     static $_importFiles = [];
-    static $_class       = [];
+    
+    /**
+     * @var array
+     */
+    static $_class = [];
     
     /**
      * 加载文件

@@ -2,6 +2,12 @@
 
 namespace Kuxin;
 
+/**
+ * Class Router
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Router
 {
     
@@ -62,25 +68,28 @@ class Router
         return $superVar;
     }
     
+    /**
+     * 命令行解析
+     */
     public static function cli()
     {
         global $argv;
-        if(strpos($argv['1'],':')){
-            $param = explode(':', $argv['1']);
+        if (strpos($argv['1'], ':')) {
+            $param            = explode(':', $argv['1']);
             self::$action     = array_pop($param);
             self::$controller = implode('\\', $param);
-        }else{
+        } else {
             self::$action     = 'run';
             self::$controller = $argv['1'];
         }
-        $data=[];
-        if(!empty($argv['2'])){
-            $param=explode('/',$argv['2']);
+        $data = [];
+        if (!empty($argv['2'])) {
+            $param = explode('/', $argv['2']);
             while ($k = each($param)) {
                 $data[$k['value']] = current($param);
                 next($param);
             };
         }
-        Registry::set('cli_params',$data);
+        Registry::set('cli_params', $data);
     }
 }

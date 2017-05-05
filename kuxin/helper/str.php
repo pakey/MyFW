@@ -2,6 +2,12 @@
 
 namespace Kuxin\Helper;
 
+/**
+ * Class Str
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
 class Str
 {
     

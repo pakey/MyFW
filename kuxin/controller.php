@@ -7,6 +7,13 @@
 
 namespace Kuxin;
 
+/**
+ * 控制器
+ * Class Controller
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Controller
 {
     
@@ -18,12 +25,25 @@ class Controller
         //do somethings
     }
     
+    /**
+     * ajax返回
+     *
+     * @param        $data
+     * @param string $type
+     * @return mixed
+     */
     public function ajax($data, $type = 'json')
     {
         Response::setType($type);
         return $data;
     }
     
+    /**
+     * 跳转
+     *
+     * @param     $url
+     * @param int $code
+     */
     public function redirect($url, $code = 302)
     {
         Response::redirect($url, $code);

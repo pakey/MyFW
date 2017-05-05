@@ -2,17 +2,33 @@
 
 namespace Kuxin;
 
-
+/**
+ * Class Response
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Response
 {
     
+    /**
+     * @var
+     */
     protected static $type;
     
+    /**
+     * @var array
+     */
     protected static $types = ['html', 'json', 'xml', 'jsonp'];
     
+    /**
+     * @var bool
+     */
     protected static $autoRender = true;
     
-    
+    /**
+     * @return string
+     */
     public static function getType()
     {
         if (self::$type) {
@@ -24,6 +40,10 @@ class Response
         }
     }
     
+    /**
+     * @param $type
+     * @return bool
+     */
     public static function setType($type)
     {
         if (in_array($type, self::$types)) {
@@ -33,6 +53,9 @@ class Response
         }
     }
     
+    /**
+     * @return string
+     */
     protected static function getMime()
     {
         switch (self::$type) {
@@ -47,6 +70,9 @@ class Response
         }
     }
     
+    /**
+     *
+     */
     public static function setHeader()
     {
         if (!headers_sent()) {
@@ -64,6 +90,9 @@ class Response
         }
     }
     
+    /**
+     * @param string $content
+     */
     public static function setBody($content = '')
     {
         if (!headers_sent()) {
@@ -72,21 +101,34 @@ class Response
         echo $content;
     }
     
+    /**
+     *
+     */
     public static function disableRender()
     {
         self::$autoRender = false;
     }
     
+    /**
+     *
+     */
     public static function enableRender()
     {
         self::$autoRender = true;
     }
     
+    /**
+     * @return bool
+     */
     public static function isAutoRender()
     {
         return self::$autoRender;
     }
     
+    /**
+     * @param     $url
+     * @param int $code
+     */
     public static function redirect($url, $code = 302)
     {
         if (!headers_sent()) {
@@ -102,6 +144,9 @@ class Response
         exit;
     }
     
+    /**
+     * @return mixed|string
+     */
     public function runinfo()
     {
         if (Config::get('is_gen_html')) return '';
@@ -230,6 +275,9 @@ class Response
         return $pre . $text . $end . $line;
     }
     
+    /**
+     * @param $arr
+     */
     public static function debug($arr)
     {
         echo '<pre>';

@@ -4,9 +4,23 @@ namespace Kuxin\Helper;
 use Kuxin\Config;
 use Kuxin\Log;
 
+/**
+ * Class Http
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
 class Http
 {
     
+    /**
+     * @param        $url
+     * @param array  $params
+     * @param string $method
+     * @param array  $header
+     * @param array  $option
+     * @return bool|mixed
+     */
     public static function curl($url, $params = [], $method = 'GET', $header = [], $option = [])
     {
         $opts = [

@@ -2,9 +2,23 @@
 
 namespace Kuxin\Helper;
 
+/**
+ * Class Arr
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
 class Arr
 {
     
+    /**
+     * 二维数组排序
+     *
+     * @param        $list
+     * @param        $key
+     * @param string $order
+     * @return array
+     */
     public static function msort($list, $key, $order = 'desc')
     {
         $arr = $new = [];

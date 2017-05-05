@@ -4,15 +4,19 @@ namespace Kuxin\Helper;
 use Kuxin\Config;
 
 /**
- * @Author: 杰少Pakey
- * @Email : admin@ptcms.com
- * @File  : pinyin.php
+ * Class Pinyin
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
  */
 class Pinyin
 {
     
     protected static $data = null;
     
+    /**
+     * @return mixed
+     */
     protected static function getdata()
     {
         if (self::$data === null) {
@@ -34,7 +38,7 @@ class Pinyin
      * @param string $default 匹配不到默认显示字符
      * @return string
      */
-    public static function change($str, $isfirst = false, $default = '0')
+    public static function change(string $str, $isfirst = false, $default = '0')
     {
         $str   = iconv('UTF-8', 'GBK//ignore', $str);
         $data  = self::getdata();

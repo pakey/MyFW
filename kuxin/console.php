@@ -2,6 +2,13 @@
 
 namespace Kuxin;
 
+/**
+ * 命令行
+ * Class Console
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Console
 {
     

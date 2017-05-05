@@ -1,9 +1,21 @@
 <?php
+
 namespace Kuxin;
 
+/**
+ * Class Filter
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Filter
 {
     
+    /**
+     * 默认验证规则
+     *
+     * @var array
+     */
     protected static $validate = [
         //必填
         'require'    => '/.+/',
@@ -39,16 +51,36 @@ class Filter
         'safestring' => '/^[^\$\?]+$/',
     ];
     
+    /**
+     * 校验变量
+     *
+     * @param $value
+     * @param $rule
+     * @return bool
+     */
     public static function check($value, $rule)
     {
         //指定值
-        if (is_array($rule)) return in_array($value, $rule) ? true : false;
-        //判断filter的合法性
-        if (!is_string($rule)) return false;
-        return self::regex($value, $rule);
+        if (is_array($rule)) {
+            foreach ($rule as $r) {
+                if (self::regex($value, $r) === false) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return self::regex($value, $rule);
+        }
     }
     
     
+    /**
+     * 判断是否符合正则
+     *
+     * @param $value
+     * @param $rule
+     * @return bool
+     */
     public static function regex($value, $rule)
     {
         // 检查是否有内置的正则表达式
@@ -59,19 +91,24 @@ class Filter
         return preg_match($rule, strval($value)) === 1;
     }
     
-    //安全的剔除字符 单行等 用于搜索 链接等地方
-    public static function safeWord($kw)
+    /**
+     * 安全的剔除字符 单行等 用于搜索 链接等地方
+     *
+     * @param $str
+     * @return mixed|string
+     */
+    public static function safeWord($str)
     {
-        if (strlen($kw) == 0) return '';
-        $kw        = strip_tags($kw);
+        if (strlen($str) == 0) return '';
+        $str       = strip_tags($str);
         $badString = '~!@#$%^&*()+|=\\{}[];\'"/<>?';
         $length    = strlen($badString);
         $pos       = 0;
         while ($pos < $length) {
-            $kw = str_replace($badString{$pos}, '', $kw);
+            $str = str_replace($badString{$pos}, '', $str);
             $pos++;
         }
-        return preg_replace('/([\:\r\n\t]+)/', '', $kw);
+        return preg_replace('/([\:\r\n\t]+)/', '', $str);
     }
     
     /**

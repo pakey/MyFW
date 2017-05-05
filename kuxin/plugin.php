@@ -2,6 +2,12 @@
 
 namespace Kuxin;
 
+/**
+ * Class Plugin
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Plugin
 {
     

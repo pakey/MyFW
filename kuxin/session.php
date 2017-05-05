@@ -1,19 +1,30 @@
 <?php
+
 namespace Kuxin;
 
-
+/**
+ * Class Session
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Session
 {
     
-    public static function start($config=array())
+    /**
+     * 启动session
+     *
+     * @param array $config
+     */
+    public static function start($config = [])
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
-        if(!$config){
-            $config=Config::get('session', []);
+        if (!$config) {
+            $config = Config::get('session', []);
         }
-        if(isset($config['hanlder'])){
+        if (isset($config['hanlder'])) {
             ini_set("session.save_handler", $config['hanlder']);
             ini_set("session.save_path", $config['path']);
             //ini_set("session.save_path", "tcp://127.0.0.1:11211");
@@ -21,6 +32,11 @@ class Session
         session_start();
     }
     
+    /**
+     * @param string $name
+     * @param null   $default
+     * @return null
+     */
     public static function get($name = '', $default = null)
     {
         if ($name == '') return $_SESSION;
@@ -41,12 +57,21 @@ class Session
         }
     }
     
+    /**
+     * @param        $key
+     * @param string $value
+     * @return bool
+     */
     public static function set($key, $value = '')
     {
         $_SESSION[$key] = $value;
         return true;
     }
     
+    /**
+     * @param $key
+     * @return bool
+     */
     public static function remove($key)
     {
         if (!isset($_SESSION[$key])) {

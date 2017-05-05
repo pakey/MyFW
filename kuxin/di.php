@@ -2,6 +2,12 @@
 
 namespace Kuxin;
 
+/**
+ * Class DI
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class DI
 {
     

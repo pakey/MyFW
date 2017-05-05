@@ -1,6 +1,12 @@
 <?php
 namespace Kuxin\Helper;
 
+/**
+ * Class Collect
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
 class Collect
 {
     

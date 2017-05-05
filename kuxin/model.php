@@ -4,6 +4,12 @@ namespace Kuxin;
 
 use Kuxin\Helper\Json;
 
+/**
+ * Class Model
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Model
 {
     
@@ -86,7 +92,7 @@ class Model
     public static function I()
     {
         $class = static::class;
-        return Loader::instance($class,func_get_args());
+        return Loader::instance($class, func_get_args());
     }
     
     public function __call($method, $args)

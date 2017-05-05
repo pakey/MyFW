@@ -2,6 +2,13 @@
 
 namespace Kuxin;
 
-class Block{
+/**
+ * Class Block
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
+class Block
+{
     
 }

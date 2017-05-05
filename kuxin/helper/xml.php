@@ -1,7 +1,13 @@
 <?php
+
 namespace Kuxin\Helper;
 
-
+/**
+ * Class Xml
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
 class Xml
 {
     
@@ -24,9 +30,9 @@ class Xml
         $attr = trim($attr);
         $attr = empty($attr) ? '' : " {$attr}";
         $xml  = "<?xml version=\"1.0\" encoding=\"{$encoding}\"?>";
-        $xml .= "<{$root}{$attr}>";
-        $xml .= self::dataToXml($data);
-        $xml .= "</{$root}>";
+        $xml  .= "<{$root}{$attr}>";
+        $xml  .= self::dataToXml($data);
+        $xml  .= "</{$root}>";
         return preg_replace('/[\x00-\x1f]/', '', $xml);
     }
     
@@ -43,8 +49,8 @@ class Xml
         foreach ($data as $key => $val) {
             if (is_numeric($key)) {
                 $key = $parentkey;
-            }elseif(substr($key,0,10)=='__string__'){
-                $xml.=$val;
+            } elseif (substr($key, 0, 10) == '__string__') {
+                $xml .= $val;
                 continue;
             }
             $key = $key ? $key : 'xmldata';
@@ -68,7 +74,7 @@ class Xml
     
     public static function decode($con)
     {
-        if(!$con){
+        if (!$con) {
             return [];
         }
         if ($con{0} == '<') {

@@ -9,6 +9,12 @@ namespace Kuxin;
 
 use Kuxin\Helper\Arr;
 
+/**
+ * Class Registry
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Registry
 {
     

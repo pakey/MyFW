@@ -4,9 +4,21 @@ namespace Kuxin;
 
 use Kuxin\Helper\Arr;
 
+/**
+ * 配置
+ * Class Config
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Config
 {
     
+    /**
+     * 缓存存储变量
+     *
+     * @var array
+     */
     protected static $_config = [];
     
     /**
@@ -23,9 +35,9 @@ class Config
         if (strpos($name, '.')) {
             //数组模式 找到返回
             list($group, $name) = explode('.', $name, 2);
-            return isset(self::$_config[$group][$name])?self::$_config[$group][$name]:$defaultVar;
+            return isset(self::$_config[$group][$name]) ? self::$_config[$group][$name] : $defaultVar;
         } else {
-            return isset(self::$_config[$name])?self::$_config[$name]:$defaultVar;
+            return isset(self::$_config[$name]) ? self::$_config[$name] : $defaultVar;
         }
     }
     

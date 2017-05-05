@@ -4,19 +4,27 @@ namespace Kuxin\Helper;
 
 use Kuxin\Session;
 
-class Verify {
+/**
+ * Class Verify
+ *
+ * @package Kuxin\Helper
+ * @author  Pakey <pakey@qq.com>
+ */
+class Verify
+{
     
     /**
      * 产生随机字串，可用来自动生成密码
      * 默认长度6位 字母和数字混合 支持中文
      *
-     * @param int $len         长度
+     * @param int    $len      长度
      * @param string $type     字串类型
      *                         0 字母 1 数字 其它 混合
      * @param string $addChars 额外字符
      * @return string
      */
-    static public function randString($len = 6, $type = '', $addChars = '') {
+    static public function randString($len = 6, $type = '', $addChars = '')
+    {
         $str = '';
         switch ($type) {
             case 0:
@@ -44,7 +52,7 @@ class Verify {
         }
         if ($type != 4) {
             $chars = str_shuffle($chars);
-            $str = substr($chars, 0, $len);
+            $str   = substr($chars, 0, $len);
         } else {
             // 中文随机字
             for ($i = 0; $i < $len; $i++) {
@@ -59,15 +67,16 @@ class Verify {
      *
      * @static
      * @access public
-     * @param int $length        位数
-     * @param int $mode          类型
+     * @param int    $length     位数
+     * @param int    $mode       类型
      * @param string $type       图像格式
-     * @param int $width         宽度
-     * @param int $height        高度
+     * @param int    $width      宽度
+     * @param int    $height     高度
      * @param string $verifyName session名字
      * @return string
      */
-    static function buildImageVerify($length = 4, $mode = 1, $type = 'png', $width = 48, $height = 22, $verifyName = 'verify') {
+    static function buildImageVerify($length = 4, $mode = 1, $type = 'png', $width = 48, $height = 22, $verifyName = 'verify')
+    {
         $randval = self::randString($length, $mode);
         Session::start();
         Session::set($verifyName, strtolower($randval));
@@ -77,12 +86,12 @@ class Verify {
         } else {
             $im = imagecreate($width, $height);
         }
-        $r = Array(225, 255, 255, 223);
-        $g = Array(225, 236, 237, 255);
-        $b = Array(225, 236, 166, 125);
+        $r   = [225, 255, 255, 223];
+        $g   = [225, 236, 237, 255];
+        $b   = [225, 236, 166, 125];
         $key = mt_rand(0, 3);
         
-        $backColor = imagecolorallocate($im, $r[$key], $g[$key], $b[$key]); //背景色（随机）
+        $backColor   = imagecolorallocate($im, $r[$key], $g[$key], $b[$key]); //背景色（随机）
         $borderColor = imagecolorallocate($im, 100, 100, 100); //边框色
         imagefilledrectangle($im, 0, 0, $width - 1, $height - 1, $backColor);
         imagerectangle($im, 0, 0, $width - 1, $height - 1, $borderColor);
@@ -104,11 +113,12 @@ class Verify {
     /**
      * 输出图像
      *
-     * @param resource $im     图像资源
-     * @param string $type     图像类型
-     * @param string $filename 保存为文件
+     * @param resource $im       图像资源
+     * @param string   $type     图像类型
+     * @param string   $filename 保存为文件
      */
-    static function output($im, $type = 'png', $filename = '') {
+    static function output($im, $type = 'png', $filename = '')
+    {
         error_reporting(0);
         ob_end_clean();
         header("Content-type: image/" . $type);

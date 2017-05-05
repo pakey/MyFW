@@ -4,6 +4,12 @@ namespace Kuxin;
 
 use Kuxin\Helper\Arr;
 
+/**
+ * Class View
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class View
 {
     
@@ -14,17 +20,26 @@ class View
     // 模版文件名
     protected static $_file = null;
     
+    /**
+     * @param $file
+     */
     public static function setFile($file)
     {
         self::$_file = $file;
     }
     
+    /**
+     * @param $path
+     */
     public static function setPath($path)
     {
         self::$_path = $path;
     }
     
-    public static function getPath($path)
+    /**
+     * @return string
+     */
+    public static function getPath()
     {
         if (empty(self::$_path)) {
             self::$_path = KX_ROOT . '/app/view';
@@ -33,7 +48,7 @@ class View
     }
     
     /**
-     * 模板变量赋值,支持连贯操作
+     * 模板变量赋值
      *
      * @access public
      * @param mixed $var
@@ -103,17 +118,17 @@ class View
      * @param string $tpl 视图模板
      * @return string
      */
-    protected static function getTplFilePath($tpl = null, $path = null)
+    protected static function getTplFilePath($tpl = null)
     {
         $tpl = $tpl === null ? self::$_file : $tpl;
         if ($tpl === null) {
-            $filepath = self::getPath($path) . '/' . str_replace('\\', '/', Router::$controller) . '/' . Router::$action . '.html';
+            $filepath = self::getPath() . '/' . str_replace('\\', '/', Router::$controller) . '/' . Router::$action . '.html';
         } elseif (substr($tpl, 0, 1) === '/') {
             $filepath = KX_ROOT . $tpl;
         } elseif (substr($tpl, 0, 1) === '@') {
-            $filepath = self::getPath($path) . '/' . substr($tpl, 1) . '.html';
+            $filepath = self::getPath() . '/' . substr($tpl, 1) . '.html';
         } else {
-            $filepath = dirname(self::getPath($path) . '/' . str_replace('\\', '/', Router::$controller)).'/' . $tpl . '.html';
+            $filepath = dirname(self::getPath() . '/' . str_replace('\\', '/', Router::$controller)) . '/' . $tpl . '.html';
         }
         if (is_file($filepath)) {
             return realpath($filepath);
@@ -124,6 +139,7 @@ class View
     }
     
     /**
+     * @param $tplfile
      * @return string
      */
     protected static function checkCompile($tplfile)
@@ -148,7 +164,12 @@ class View
         return $storage->getPath($compiledFile);
     }
     
-    // 模版输出替换
+    /**
+     * 模版输出替换
+     *
+     * @param $content
+     * @return string
+     */
     protected static function replace($content)
     {
         $replace = [
@@ -159,7 +180,12 @@ class View
         return $content;
     }
     
-    // 编译解析
+    /**
+     * 编译解析
+     *
+     * @param $content
+     * @return mixed
+     */
     public static function compile($content)
     {
         $left  = preg_quote('{', '/');
@@ -209,20 +235,35 @@ class View
         return $content;
     }
     
-    // css压缩
+    /**
+     * css压缩
+     *
+     * @param $match
+     * @return string
+     */
     public static function parseCss($match)
     {
         return '<style type = "text/css">' . self::compressCss($match['1']) . '</style>';
     }
     
-    // js压缩
+    /**
+     * js压缩
+     *
+     * @param $march
+     * @return mixed
+     */
     public static function parseJs($march)
     {
         return str_replace($march['1'], self::compressJS($march['1']), $march['0']);
     }
     
     
-    // 解析变量名
+    /**
+     * 解析变量名
+     *
+     * @param $var
+     * @return array|mixed|string
+     */
     private static function parseVar($var)
     {
         $var = is_array($var) ? reset($var) : trim($var);
@@ -303,7 +344,12 @@ class View
         return array_merge($format, $attribute);
     }
     
-    // 解析变量
+    /**
+     * 解析变量
+     *
+     * @param $matches
+     * @return string
+     */
     private static function parseVariable($matches)
     {
         $variable = self::parseVar($matches[1]);
@@ -345,7 +391,12 @@ class View
     }
     
     
-    // 解析载入
+    /**
+     *  解析载入
+     *
+     * @param $matches
+     * @return mixed|string
+     */
     private static function parseInlcude($matches)
     {
         //20141215 防止写空导致调用死循环
@@ -361,7 +412,12 @@ class View
         return '';
     }
     
-    // 解析函数
+    /**
+     * 解析函数
+     *
+     * @param $matches
+     * @return string
+     */
     private static function parseFunction($matches)
     {
         $operate    = $matches[1] === '=' ? 'echo' : '';
@@ -369,7 +425,12 @@ class View
         return "<?php $operate $expression;?>";
     }
     
-    // 解析判断
+    /**
+     * 解析判断
+     *
+     * @param $matches
+     * @return string
+     */
     private static function parseJudgment($matches)
     {
         $judge     = strtolower($matches[1]) === 'if' ? 'if' : 'elseif';
@@ -377,10 +438,13 @@ class View
         return "<?php $judge($condition):?>";
     }
     
-    // 解析链接
+    /**
+     * @param $matches
+     * @return string
+     */
     private static function parseLink($matches)
     {
-        $attribute = self::parseAttribute('_type_=' . $matches[1], ['_type_' => false, 'responsetype'=>'""']);
+        $attribute = self::parseAttribute('_type_=' . $matches[1], ['_type_' => false, 'responsetype' => '""']);
         if (!is_string($attribute['_type_'])) return $matches[0];
         $var = [];
         foreach ($attribute['_etc'] as $key => $value) {
@@ -389,7 +453,10 @@ class View
         return "<?php echo \\Kuxin\\Helper\\Url::build(\"{$attribute['_type_']}\",[" . implode(',', $var) . "],{$attribute['responsetype']});?>";
     }
     
-    // 解析微件
+    /**
+     * @param $matches
+     * @return string
+     */
     private static function parseBlock($matches)
     {
         $attribute = self::parseAttribute($matches[1], ['method' => false, 'name' => false]);
@@ -405,13 +472,22 @@ class View
         }
     }
     
-    // 解析循环
+    /**
+     * 解析循环
+     *
+     * @param $matches
+     * @return string
+     */
     private static function parseLoop($matches)
     {
         $loop = empty($matches[2]) ? '$list' : (self::parseVar($matches[2]));
         return "<?php if(is_array($loop)): foreach($loop as \$key =>\$loop):?>";
     }
     
+    /**
+     * @param $matches
+     * @return string
+     */
     private static function parseSection($matches)
     {
         $attribute = self::parseAttribute($matches[1], ['loop' => true, 'name' => true, 'item' => true, 'cols' => '1', 'skip' => '0', 'limit' => 'null']);
@@ -421,18 +497,32 @@ class View
         return "<?php if(is_array({$attribute['loop']}) && (array()!={$attribute['loop']})): $name=array(); {$name}['loop']=array_slice({$attribute['loop']},{$attribute['skip']},{$attribute['limit']},true); {$name}['total']=count({$attribute['loop']}); {$name}['count']=count({$name}['loop']); {$name}['cols']={$attribute['cols']}; {$name}['add']={$name}['count']%{$attribute['cols']}?{$attribute['cols']}-{$name}['count']%{$attribute['cols']}:0; {$name}['order']=0; {$name}['row']=1;{$name}['col']=0;foreach(array_pad({$name}['loop'],{$name}['add'],array()) as {$name}['index']=>{$name}['list']): $list={$name}['list']; {$name}['order']++; {$name}['col']++; if({$name}['col']=={$attribute['cols']}): {$name}['col']=0; {$name}['row']++; endif; {$name}['first']={$name}['order']==1; {$name}['last']={$name}['order']=={$name}['count']; {$name}['extra']={$name}['order']>{$name}['count'];?>";
     }
     
-    // 解析代码
+    /**
+     *  保护代码
+     *
+     * @param $matches
+     * @return string
+     */
     private static function parseEncode($matches)
     {
         return chr(2) . base64_encode(strtolower($matches[1]) === 'php' ? "<?php {$matches[2]};?>" : trim($matches[2])) . chr(3);
     }
     
-    // 还原代码
+    /**
+     * 还原代码
+     *
+     * @param $matches
+     * @return bool|string
+     */
     private static function parseDecode($matches)
     {
         return base64_decode($matches[1]);
     }
     
+    /**
+     * @param $content
+     * @return string
+     */
     public static function compressJS($content)
     {
         $lines = explode("\n", $content);
@@ -442,6 +532,10 @@ class View
         return implode('', $lines);
     }
     
+    /**
+     * @param $content
+     * @return mixed
+     */
     public static function compressCss($content)
     {
         

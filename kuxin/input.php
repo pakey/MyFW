@@ -2,61 +2,127 @@
 
 namespace Kuxin;
 
+/**
+ * Class Input
+ *
+ * @package Kuxin
+ * @author  Pakey <pakey@qq.com>
+ */
 class Input
 {
     
+    /**
+     * 获取$_GET
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function get($name, $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_GET);
     }
     
+    /**
+     * 获取$_POST
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function post($name, $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_POST);
     }
     
+    /**
+     * 获取$_REQUEST
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function request($name, $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_REQUEST);
     }
     
+    /**
+     * 获取put
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function put($name, $type = 'int', $default = null)
     {
         parse_str(file_get_contents('php://input'), $input);
         return self::param($name, $type, $default, $input);
     }
     
+    /**
+     * 获取$_SERVER
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function server($name, $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_SERVER);
     }
     
+    /**
+     * 获取$GLOBALS
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function globals($name, $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $GLOBALS);
     }
     
-    public static function cookie($name, $type = 'int', $default = null)
-    {
-        return self::param(Config::get('cookie_prefix', '') . $name, $type, $default, $_COOKIE);
-    }
-    
-    public static function session($name, $type = 'int', $default = null)
-    {
-        return self::param($name, $type, $default, $GLOBALS);
-    }
-    
+    /**
+     * 获取$_FILES
+     *
+     * @param        $name
+     * @param string $type
+     * @param null   $default
+     * @return array|float|int|mixed|null|string
+     */
     public static function files($name, $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_FILES);
     }
     
+    /**
+     * 判断$_REQUEST 是否有某个值
+     *
+     * @param        $name
+     * @param string $type
+     * @return bool
+     */
     public static function has($name, $type = null)
     {
         $type = $type ?: $_REQUEST;
         return isset($type[$name]);
     }
     
+    /**
+     * @param        $name
+     * @param string $filter
+     * @param null   $default
+     * @param array  $param
+     * @return array|float|int|mixed|null|string
+     */
     public static function param($name, $filter = 'int', $default = null, $param = [])
     {
         if (!isset($param[$name])) {
