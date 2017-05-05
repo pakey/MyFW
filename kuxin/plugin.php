@@ -21,9 +21,11 @@ class Plugin
     public static function call($tag, $param = null)
     {
         $methods = Config::get('plugin.' . $tag);
-        foreach ($methods as $method) {
-            $class = Loader::instance($method);
-            $param = $class->run($param);
+        if ($methods && is_array($methods)) {
+            foreach ($methods as $method) {
+                $class = Loader::instance($method);
+                $param = $class->run($param);
+            }
         }
         return $param;
     }
