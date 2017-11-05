@@ -27,7 +27,7 @@ class Registry
      * @param $default
      * @return mixed
      */
-    public static function get($key, $default = null)
+    public static function get(string $key, $default = null)
     {
         return isset(self::$_data[$key]) ? self::$_data[$key] : (is_callable($default) ? $default($key) : $default);
     }
@@ -38,7 +38,7 @@ class Registry
      * @param      $key
      * @param mixed $value
      */
-    public static function set(string $key,  $value)
+    public static function set(string $key,  $value): void
     {
         if (is_array($key)) {
             self::$_data = Arr::merge(self::$_data, $key);
@@ -65,7 +65,7 @@ class Registry
      *
      * @param $key
      */
-    public static function remove( $key)
+    public static function remove(string $key): void
     {
         if (isset(self::$_data[$key])) {
             unset(self::$_data[$key]);
@@ -78,7 +78,7 @@ class Registry
      * @param     $key
      * @param int $num
      */
-    public static function setInc( $key,  $num = 1)
+    public static function setInc(string $key, int $num = 1): void
     {
         if (isset(self::$_data[$key])) {
             self::$_data[$key] += $num;
@@ -93,7 +93,7 @@ class Registry
      * @param $key
      * @param $num
      */
-    public static function setDec( $key,  $num = 1)
+    public static function setDec(string $key, int $num = 1): void
     {
         if (isset(self::$_data[$key])) {
             self::$_data[$key] -= $num;

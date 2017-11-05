@@ -19,7 +19,7 @@ class Kuxin
     /**
      *
      */
-    public static function init()
+    public static function init(): void
     {
         // 注册AUTOLOAD方法
         spl_autoload_register([__CLASS__, 'autoload']);
@@ -65,7 +65,7 @@ class Kuxin
     /**
      *
      */
-    public static function start()
+    public static function start(): void
     {
         self::init();
         Plugin::call('app_start');
@@ -128,7 +128,7 @@ class Kuxin
     /**
      *
      */
-    public static function shutdown()
+    public static function shutdown(): void
     {
         //如果开启日志 则记录日志
         if (Config::get('log.power')) {
@@ -139,7 +139,7 @@ class Kuxin
     /**
      * @param $classname
      */
-    protected static function autoload($classname)
+    protected static function autoload($classname): void
     {
         $file = KX_ROOT . '/' . strtr(strtolower($classname), '\\', '/') . '.php';
         Loader::import($file);

@@ -13,7 +13,7 @@ class File
     public function __construct($config)
     {
         self::$path = $config['path'];
-        self::$url  = isset($config['url']) ?$config['url']: "";
+        self::$url  = $config['url'] ?? "";
     }
 
     public function exist($file)

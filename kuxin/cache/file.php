@@ -23,11 +23,11 @@ class File
 
     public function __construct($option)
     {
-        $this->path   = isset($option['path']) ?$option['path']: KX_ROOT . '/storage/cache';
-        $this->prefix = isset($option['prefix']) ?$option['prefix']: Config::get('cache.prefix', '');
+        $this->path   = $option['path'] ?? KX_ROOT . '/storage/cache';
+        $this->prefix = $option['prefix'] ?? Config::get('cache.prefix', '');
     }
 
-    public function set(string $key, $value,  $time = 0)
+    public function set(string $key, $value, int $time = 0)
     {
         $file         = $this->key2file($key);
         $data['data'] = $value;
@@ -58,7 +58,7 @@ class File
         return false;
     }
 
-    public function inc(string $key,  $num = 1)
+    public function inc(string $key, int $num = 1)
     {
         $data = $this->get($key);
         if ($data) {
@@ -69,7 +69,7 @@ class File
         return false;
     }
 
-    public function dec(string $key,  $num = 1)
+    public function dec(string $key, int $num = 1)
     {
         $data = $this->get($key);
         if ($data) {
@@ -85,7 +85,7 @@ class File
 
     }
 
-    protected function key2file( $key)
+    protected function key2file(string $key)
     {
         if (is_array($key)) {
             $key = Serialize::encode($key);

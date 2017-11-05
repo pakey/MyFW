@@ -15,7 +15,7 @@ class DI
      * @param string $node
      * @return \Kuxin\Cache
      */
-    public static function Cache( $node = 'common')
+    public static function Cache(string $node = 'common'): \Kuxin\Cache
     {
         $hanlder = Registry::get("cache.{$node}");
         if (!$hanlder) {
@@ -36,7 +36,7 @@ class DI
      * @param string $node
      * @return \Kuxin\Storage
      */
-    public static function Storage( $node = 'common')
+    public static function Storage(string $node = 'common'): \Kuxin\Storage
     {
         $hanlder = Registry::get("storage.{$node}");
         if (!$hanlder) {
@@ -57,7 +57,7 @@ class DI
      * @param string $node
      * @return \Kuxin\Db\Mysql
      */
-    public static function DB( $node = 'common')
+    public static function DB(string $node = 'common'): \Kuxin\Db\Mysql
     {
         $hanlder = Registry::get("db.{$node}");
         if (!$hanlder) {

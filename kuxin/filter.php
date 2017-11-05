@@ -58,7 +58,7 @@ class Filter
      * @param $rule
      * @return bool
      */
-    public static function check($value, $rule)
+    public static function check($value, $rule): bool
     {
         //指定值
         if (is_array($rule)) {
@@ -76,7 +76,7 @@ class Filter
      * @param $rule
      * @return bool
      */
-    public static function regex($value,  $rule)
+    public static function regex($value, string $rule): bool
     {
         // 检查是否有内置的正则表达式
         $rule = strtolower($rule);
@@ -92,7 +92,7 @@ class Filter
      * @param $str
      * @return mixed|string
      */
-    public static function safeWord( $str)
+    public static function safeWord(string $str): string
     {
         if (strlen($str) == 0)
             return '';
@@ -114,7 +114,7 @@ class Filter
      * @param string $tags 允许的html标签
      * @return mixed|string
      */
-    public static function safetext( $text,  $tags = 'br')
+    public static function safetext(string $text, string $tags = 'br'): string
     {
         $text = trim($text);
         //完全过滤注释

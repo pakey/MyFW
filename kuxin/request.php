@@ -14,7 +14,7 @@ class Request
     /**
      * @return bool
      */
-    public static function isGet()
+    public static function isGet(): bool
     {
         return $_SERVER['REQUEST_METHOD'] === 'GET' ? true : false;
 
@@ -23,7 +23,7 @@ class Request
     /**
      * @return bool
      */
-    public static function isPost()
+    public static function isPost(): bool
     {
         return $_SERVER['REQUEST_METHOD'] === 'POST' ? true : false;
     }
@@ -31,7 +31,7 @@ class Request
     /**
      * @return bool
      */
-    public static function isAjax()
+    public static function isAjax(): bool
     {
         return ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || isset($_POST['isajax']) || isset($_GET['isajax'])) ? true : false;
     }
@@ -39,7 +39,7 @@ class Request
     /**
      * @return bool
      */
-    public static function isMobile()
+    public static function isMobile(): bool
     {
         // 如果有HTTP_X_WAP_PROFILE则一定是移动设备
         if (isset ($_SERVER['HTTP_X_WAP_PROFILE'])) {
@@ -78,7 +78,7 @@ class Request
      * @param string $ua
      * @return bool
      */
-    public static function isSpider($ua = '')
+    public static function isSpider($ua = ''): bool
     {
         empty($ua) && $ua = $_SERVER['HTTP_USER_AGENT'];
         $ua      = strtolower($ua);
@@ -94,7 +94,7 @@ class Request
      * @param string $defaultIp
      * @return string
      */
-    public static function getIp( $defaultIp = '0.0.0.0')
+    public static function getIp(string $defaultIp = '0.0.0.0'): string
     {
         $ip = $_SERVER['REMOTE_ADDR'];
         $i  = explode('.', $ip);

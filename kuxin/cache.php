@@ -41,7 +41,7 @@ class Cache
      * @param     $value
      * @param int $time
      */
-    public function set(string $key, $value,  $time = 0)
+    public function set(string $key, $value, $time = 0): void
     {
         Registry::setInc('_cacheWrite');
         $this->handler->set($key, $value, $time);
@@ -90,7 +90,7 @@ class Cache
      * @param $key
      * @return bool
      */
-    public function remove(string $key)
+    public function remove(string $key): bool
     {
         return $this->handler->remove($key);
     }
@@ -102,7 +102,7 @@ class Cache
      * @param int $len
      * @return mixed|bool|int
      */
-    public function inc(string $key,  $len = 1)
+    public function inc(string $key, int $len = 1)
     {
         return $this->handler->inc($key, $len);
     }
@@ -114,7 +114,7 @@ class Cache
      * @param int $len
      * @return mixed|bool|int
      */
-    public function dec(string $key,  $len = 1)
+    public function dec(string $key, int $len = 1)
     {
         return $this->handler->dec($key, $len);
     }
@@ -122,7 +122,7 @@ class Cache
     /**
      * 清空缓存
      */
-    public function clear()
+    public function clear(): void
     {
         $this->handler->clear();
     }

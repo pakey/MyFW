@@ -80,13 +80,13 @@ class Model
      */
     public static function I()
     {
-        return Loader::instance(get_called_class(), func_get_args());
+        return Loader::instance(static::class, func_get_args());
     }
 
     /**
      * @return \Kuxin\Db\Mysql
      */
-    public function db()
+    public function db(): \Kuxin\Db\Mysql
     {
         if (!$this->db) {
             $this->db = DI::DB($this->dbNode);
@@ -101,10 +101,10 @@ class Model
 
     /**
      * 求和
-     * @param $value
+     * @param string $value
      * @return string
      */
-    public function sum($value)
+    public function sum(string $value): string
     {
         $this->data['field'] = "sum({$value}) as kx_num";
         return $this->getField('kx_num');
@@ -112,40 +112,40 @@ class Model
 
     /**
      * 平均数
-     * @param $value
+     * @param string $value
      * @return string
      */
-    public function avg($value)
+    public function avg(string $value): string
     {
         $this->data['field'] = "avg({$value}) as kx_num";
         return $this->getField('kx_num');
     }
 
     /**
-     * @param $value
+     * @param string $value
      * @return string
      */
-    public function min($value)
+    public function min(string $value): string
     {
         $this->data['field'] = "min({$value}) as kx_num";
         return $this->getField('kx_num');
     }
 
     /**
-     * @param $value
+     * @param string $value
      * @return string
      */
-    public function max($value)
+    public function max(string $value): string
     {
         $this->data['field'] = "max({$value}) as kx_num";
         return $this->getField('kx_num');
     }
 
     /**
-     * @param $value
+     * @param string $value
      * @return string
      */
-    public function count($value = '*')
+    public function count(string $value = '*'): string
     {
         $this->data['field'] = "count({$value}) as kx_num";
         return $this->getField('kx_num');
@@ -156,7 +156,7 @@ class Model
      * @param array $option
      * @return $this
      */
-    public function where($data,  $option = [])
+    public function where($data, array $option = [])
     {
         if (is_string($data)) {
             $this->data['where'][] = ['_string' => $data];
@@ -174,7 +174,7 @@ class Model
      * @param $value
      * @return $this
      */
-    public function database($value)
+    public function database(string $value)
     {
         $this->data['database'] = $value;
         return $this;
@@ -184,25 +184,25 @@ class Model
      * @param $value
      * @return $this
      */
-    public function config($value)
+    public function config(string $value)
     {
         $this->data['config'] = $value;
         return $this;
     }
 
-    public function distinct($value)
+    public function distinct(string $value)
     {
         $this->data['distinct'] = $value;
         return $this;
     }
 
-    public function table($value)
+    public function table(string $value)
     {
         $this->data['table'] = $value;
         return $this;
     }
 
-    public function having($value)
+    public function having(string $value)
     {
         $this->data['having'] = $value;
         return $this;
@@ -214,7 +214,7 @@ class Model
         return $this;
     }
 
-    public function page($value)
+    public function page(string $value)
     {
         $this->data['page'] = $value;
         return $this;
@@ -238,7 +238,7 @@ class Model
         return $this;
     }
 
-    public function join($table, $on = [], $type = 'left')
+    public function join(string $table, $on = [], string $type = 'left')
     {
         if (is_array($table)) {
             $this->data['join'] = $table;
@@ -256,7 +256,7 @@ class Model
         return $this->prefix . $this->table;
     }
 
-    public function getTableField($tablename)
+    public function getTableField(string $tablename)
     {
         if (!$tablename) {
             trigger_error('您必须设置表名后才可以使用该方法');
@@ -270,7 +270,7 @@ class Model
                             $pks[] = strtolower($v['Field']);
                         $fields[strtolower($v['Field'])] = strpos($v['Type'], 'int') !== false;
                     }
-                    DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache_time',600));
+                    DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache.time',600));
                     return $fields;
                 } else {
                     trigger_error('获取表' . $tablename . '信息发生错误 ', E_USER_ERROR);
@@ -282,7 +282,7 @@ class Model
         });
     }
 
-    public function getPk()
+    public function getPk(): string
     {
         return $this->pk;
     }
@@ -292,7 +292,7 @@ class Model
      * @param bool $replace
      * @return mixed
      */
-    public function insert( $data,  $replace = false)
+    public function insert(array $data, bool $replace = false)
     {
         if ($data) {
             $insertData = [];
@@ -331,7 +331,7 @@ class Model
      * @param boolean $replace 是否replace
      * @return false | integer
      */
-    public function insertAll( $datas,  $replace = false)
+    public function insertAll(array $datas, bool $replace = false)
     {
         if ($datas) {
             $values    = [];
@@ -366,7 +366,7 @@ class Model
      * @param array $data
      * @return bool|int
      */
-    public function update( $data)
+    public function update(array $data)
     {
         if ($data) {
             $sets      = [];
@@ -512,7 +512,7 @@ class Model
      * @param $data
      * @return bool|int
      */
-    public function setField($field, $data)
+    public function setField(string $field, $data)
     {
         return $this->update([$field => $data]);
     }
@@ -524,7 +524,7 @@ class Model
      * @param int $step
      * @return bool|int
      */
-    public function setInc($field,  $step = 1)
+    public function setInc(string $field, int $step = 1)
     {
         return $this->setField($field, ['exp', "{$field} + {$step}"]);
     }
@@ -536,12 +536,12 @@ class Model
      * @param int $step
      * @return bool|int
      */
-    public function setDec($field,  $step = 1)
+    public function setDec(string $field, int $step = 1)
     {
         return $this->setField($field, ['exp', "{$field} - {$step}"]);
     }
 
-    public function getLastSql()
+    public function getLastSql(): string
     {
         return $this->db()->lastSql();
     }
@@ -566,28 +566,28 @@ class Model
         $this->db()->rollback();
     }
 
-    public function fetch($sql,  $bindParams = [])
+    public function fetch(string $sql, array $bindParams = [])
     {
         $result = $this->db()->fetch($sql, $bindParams);
         $this->free();
         return $result;
     }
 
-    public function fetchAll($sql,  $bindParams = [])
+    public function fetchAll(string $sql, array $bindParams = [])
     {
         $result = $this->db()->fetchAll($sql, $bindParams);
         $this->free();
         return $result;
     }
 
-    public function execute($sql,  $bindParams = [])
+    public function execute(string $sql, array $bindParams = [])
     {
         $result = $this->db()->execute($sql, $bindParams);
         $this->free();
         return $result;
     }
 
-    public function parseCount($method)
+    public function parseCount(string $method)
     {
         $this->data['field'] = "{$method}({$this->data['field']}) as kx_num";
         return $this->getField('kx_num');
@@ -597,10 +597,10 @@ class Model
      * 字段和表名处理添加`
      *
      * @access protected
-     * @param $key
+     * @param string $key
      * @return string
      */
-    protected function parseKey($key)
+    protected function parseKey(string $key): string
     {
         $key = trim($key);
         if (!preg_match('/[,\'\"\*\(\)`.\s]/', $key)) {
@@ -661,7 +661,7 @@ class Model
         }
     }
 
-    protected function parseWhereCondition( $condition, $logic = 'AND')
+    protected function parseWhereCondition(array $condition, $logic = 'AND')
     {
         $wheres    = [];
         $tablename = $this->parseTable();
@@ -692,7 +692,7 @@ class Model
      * @param $var
      * @return mixed
      */
-    protected function parseWhereItem($field, $var)
+    protected function parseWhereItem(string $field, $var)
     {
         //参数绑定key
         $bindkey = ':' . $field . '_' . count($this->bindParams);
@@ -826,7 +826,7 @@ class Model
             if (is_string($this->data['field'])) {
                 $this->data['field'] = explode(',', $this->data['field']);
             }
-            $this->data['field'] = array_map([$this, 'parseKey'], $this->data['field']);
+            $this->data['field'] = array_map([self::class, 'parseKey'], $this->data['field']);
             return implode(',', $this->data['field']);
         }
     }

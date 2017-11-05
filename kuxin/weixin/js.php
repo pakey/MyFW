@@ -30,7 +30,7 @@ class Js extends Weixin
      *
      * @return string|array
      */
-    public function config( $APIs, $debug = false,  $json = true)
+    public function config(array $APIs, $debug = false,  $json = true)
     {
         $signPackage = $this->getSignaturePackage($debug);
         $base        = array(
@@ -49,7 +49,7 @@ class Js extends Weixin
      *
      * @return array
      */
-    public function getConfigArray( $APIs, $debug = false)
+    public function getConfigArray(array $APIs, $debug = false)
     {
         return $this->config($APIs, $debug, false);
     }

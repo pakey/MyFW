@@ -28,7 +28,7 @@ class Config
      * @param mixed $defaultVar 默认值
      * @return mixed
      */
-    public static function get($name = '', $defaultVar = null)
+    public static function get(string $name = '', $defaultVar = null)
     {
         if ($name == '')
             return self::$_config;
@@ -36,9 +36,9 @@ class Config
         if (strpos($name, '.')) {
             //数组模式 找到返回
             list($group, $name) = explode('.', $name, 2);
-            return isset(self::$_config[$group][$name])? self::$_config[$group][$name]: $defaultVar;
+            return self::$_config[$group][$name] ?? $defaultVar;
         } else {
-            return isset(self::$_config[$name]) ?self::$_config[$name]: $defaultVar;
+            return self::$_config[$name] ?? $defaultVar;
         }
     }
 
@@ -47,7 +47,7 @@ class Config
      * @param        $name
      * @param  $var
      */
-    public static function set(string $name, $var)
+    public static function set(string $name, $var):void
     {
         //数组 调用注册方法
         if (is_array($name)) {

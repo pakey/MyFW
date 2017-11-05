@@ -30,7 +30,7 @@ class Cookie
         'httponly' => '',
     ];
 
-    public function __construct( $config = [])
+    public function __construct(array $config = [])
     {
         $this->init($config);
     }
@@ -40,7 +40,7 @@ class Cookie
      *
      * @param array $config
      */
-    public static function init( $config = [])
+    public static function init(array $config = []): void
     {
         $config       = [
             'prefix'   => Input::param('prefix', 'string', Config::get('cookie_prefix', 'PTCMS_'), $config),
@@ -65,10 +65,10 @@ class Cookie
      * @param mixed $default
      * @return mixed
      */
-    public static function get( $name, $default = null)
+    public static function get(string $name, $default = null)
     {
         $fullname = self::$option['prefix'] . $name;
-        return isset($_COOKIE[$fullname]) ?$_COOKIE[$fullname]: ((is_callable($default) ? $default($name) : $default));
+        return $_COOKIE[$fullname] ?? ((is_callable($default) ? $default($name) : $default));
     }
 
     /**
@@ -77,7 +77,7 @@ class Cookie
      * @param string $value
      * @param array|null $option
      */
-    public static function set( $name,  $value = '',  $option = null)
+    public static function set(string $name, string $value = '',  $option = null): void
     {
         if (!is_null($option)) {
             if (is_numeric($option))
@@ -99,7 +99,7 @@ class Cookie
      *
      * @param $name
      */
-    public static function remove( $name)
+    public static function remove(string $name): void
     {
         $name = self::$option['prefix'] . $name;
         setcookie($name, '', time() - 3600, self::$option['path'], self::$option['domain']);
@@ -110,7 +110,7 @@ class Cookie
     /**
      * 清空
      */
-    public static function clear()
+    public static function clear(): void
     {
         foreach ($_COOKIE as $key => $val) {
             if (0 === stripos($key, self::$option['prefix'])) {

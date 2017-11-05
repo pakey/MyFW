@@ -16,7 +16,7 @@ class Session
      *
      * @param array $config
      */
-    public static function start( $config = [])
+    public static function start(array $config = [])
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
@@ -37,7 +37,7 @@ class Session
      * @param mixed $default
      * @return mixed
      */
-    public static function get( $name = '', $default = null)
+    public static function get(string $name = '', $default = null)
     {
         if ($name == '')
             return $_SESSION;
@@ -64,7 +64,7 @@ class Session
      * @param mixed $value
      * @return bool
      */
-    public static function set( $key, $value)
+    public static function set(string $key, $value)
     {
         $_SESSION[$key] = $value;
         return true;
@@ -74,7 +74,7 @@ class Session
      * @param $key
      * @return bool
      */
-    public static function remove( $key)
+    public static function remove(string $key): bool
     {
         if (!isset($_SESSION[$key])) {
             return false;

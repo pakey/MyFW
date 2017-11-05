@@ -1,120 +1,79 @@
 <?php
+include KX_ROOT . '/env.php';
 return [
     'app' => [
         'debug' => true,
-        'mode'   => PHP_SAPI == 'cli' ? 'cli' : 'web',
+        'mode'  => PHP_SAPI == 'cli' ? 'cli' : 'web',
+        'env'   => '',
     ],
-    
-    'rewrite'=>[
-        'power'=>0,
+
+    'rewrite' => [
+        'power' => 0,
     ],
-    
+
     'log' => [
         'power'     => true,
         'buildtype' => ['kx', 'debug', 'console'],
     ],
-    
+
     'view' => [
         'driver' => 'mc',
     ],
-    
+
     'cache' => [
-        'prefix' => 'kx_',
-        'common' => [
-            'driver' => 'memcached',
+        'prefix'  => 'kx_',
+        'common'  => [
+            'driver' => 'memcache',
             'option' => [
-                'host' => '127.0.0.1',
-                'port' => '11211',
-            ],
-        ],
-        
-        'other' => [
-            'driver' => 'memcached',
-            'option' => [
-                'host' => '127.0.0.1',
-                'port' => '11211',
-            ],
-        ],
-        'redis' => [
-            'driver' => 'redis',
-            'option' => [
-                'host'     => '127.0.0.1',
-                'port'     => '6379',
-                'password' => null,
-                'database' => 0,
+                'host' => KX_CACHE_COMMON_HOST,
+                'port' => KX_CACHE_COMMON_PORT,
             ],
         ],
     ],
-    
+
     'database' => [
-        'prefix' => 'kx_',
+        'prefix' => '',
+        'engine' => 'MyISAM',
         'common' => [
             'driver' => 'mysql',
             'option' => [
-                'host' => '127.0.0.1',
-                'port' => '3306',
-                'user' => 'root',
-                'pwd'  => 'root',
-                'name' => 'kuxin',
+                'host' => KX_DB_HOST,
+                'port' => KX_DB_PORT,
+                'user' => KX_DB_USER,
+                'pwd'  => KX_DB_PWD,
+                'name' => KX_DB_NAME,
             ],
         ],
     ],
-    
+
     'storage' => [
         'runtime'  => [
             'driver' => 'file',
             'option' => [
-                'path' => PT_ROOT . '/storage/runtime',
+                'path' => KX_ROOT . '/storage/runtime',
             ],
         ],
         'log'      => [
             'driver' => 'file',
             'option' => [
-                'path' => PT_ROOT . '/storage/log',
+                'path' => KX_ROOT . '/storage/log',
             ],
         ],
         'template' => [
             'driver' => 'file',
             'option' => [
-                'path' => PT_ROOT . '/storage/template',
+                'path' => KX_ROOT . '/storage/template',
             ],
         ],
         'upload'   => [
             'driver' => 'file',
             'option' => [
-                'path' => PT_ROOT . '/public/upload',
+                'path' => KX_ROOT . '/public/upload',
                 'url'  => '/public/upload',
             ],
         ],
-        'cover'    => [
-            'driver' => 'file',
-            'option' => [
-                'path' => PT_ROOT . '/public/cover',
-                'url'  => '/public/cover',
-            ],
-        ],
-        'ftp'      => [
-            'driver' => 'ftp',
-            'option' => [
-                'host'     => '',
-                'port'     => '',
-                'username' => '',
-                'password' => '',
-                'path'     => '',
-            ],
-        ],
-        'mongodb'  => [
-            'driver' => 'mongodb',
-            'option' => [
-                'host'     => '',
-                'port'     => '',
-                'username' => '',
-                'password' => '',
-                'database' => '',
-            ],
-        ],
     ],
-    
+
     'coookie' => [
         'prefix'   => 'PTCMS_',
         // cookie 保存时间
@@ -128,12 +87,14 @@ return [
         // httponly设置
         'httponly' => '',
     ],
-    
-    'session' => [
-        'handler' => '',
-        'path'    => '',
-        'host'    => '',
-        'port'    => '',
+
+    'plugin'  => [
+        'app_init'         => [],
+        'app_start'        => [],
+        'controller_start' => [],
+        'controller_end'   => [],
+        'view_start'       => [],
+        'view_end'         => [],
     ],
 
 ];

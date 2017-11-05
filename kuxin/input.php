@@ -19,7 +19,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function get( $name,  $type = 'int', $default = null)
+    public static function get(string $name, string $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_GET);
     }
@@ -32,7 +32,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function post( $name,  $type = 'int', $default = null)
+    public static function post(string $name, string $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_POST);
     }
@@ -45,7 +45,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function request( $name,  $type = 'int', $default = null)
+    public static function request(string $name, string $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_REQUEST);
     }
@@ -58,7 +58,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function put( $name,  $type = 'int', $default = null)
+    public static function put(string $name, string $type = 'int', $default = null)
     {
         parse_str(file_get_contents('php://input'), $input);
         return self::param($name, $type, $default, $input);
@@ -72,7 +72,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function server( $name,  $type = 'int', $default = null)
+    public static function server(string $name, string $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_SERVER);
     }
@@ -85,7 +85,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function globals( $name,  $type = 'int', $default = null)
+    public static function globals(string $name, string $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $GLOBALS);
     }
@@ -98,7 +98,7 @@ class Input
      * @param mixed $default
      * @return array|float|int|mixed|null|string
      */
-    public static function files( $name,  $type = 'int', $default = null)
+    public static function files(string $name, string $type = 'int', $default = null)
     {
         return self::param($name, $type, $default, $_FILES);
     }
@@ -110,7 +110,7 @@ class Input
      * @param array $type
      * @return bool
      */
-    public static function has( $name,  $type = null)
+    public static function has(string $name, array $type = null): bool
     {
         $type = $type ?: $_REQUEST;
         return isset($type[$name]);
@@ -123,7 +123,7 @@ class Input
      * @param array $param
      * @return array|float|int|mixed|null|string
      */
-    public static function param( $name, $filter = 'int', $default = null,  $param = [])
+    public static function param(string $name, $filter = 'int', $default = null, array $param = [])
     {
         if (!isset($param[$name])) {
             return is_callable($default) ? $default($name) : $default;

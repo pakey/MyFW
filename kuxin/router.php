@@ -17,7 +17,7 @@ class Router
     /**
      * 解析controller和action
      */
-    public static function dispatcher()
+    public static function dispatcher(): void
     {
 
         //解析s变量

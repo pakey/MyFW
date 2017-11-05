@@ -95,7 +95,7 @@ class View
     /*
      * 获取模板变量值
      */
-    public static function get( $var = '')
+    public static function get(string $var = '')
     {
         if ($var == '') {
             return self::$_vars;
@@ -125,7 +125,7 @@ class View
      * @param array $data 附加数据
      * @return string
      */
-    public static function make($file = null, $data = [])
+    public static function make(?string $file = null, ?array $data = [])
     {
         //复制参数
         if ($data) {
@@ -587,7 +587,7 @@ class View
      *
      * @return string
      */
-    public static function defaultvar()
+    public static function default()
     {
         $args  = func_get_args();
         $value = array_shift($args);

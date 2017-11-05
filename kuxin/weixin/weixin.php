@@ -48,7 +48,7 @@ class Weixin
      */
     public static function I($appId = null, $appSecret = null)
     {
-        $class = get_called_class();
+        $class = static::class;
         return Loader::instance($class, [$appId, $appSecret]);
     }
     

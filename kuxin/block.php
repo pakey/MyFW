@@ -17,9 +17,9 @@ class Block
      * @param array|null $param
      * @return array|mixed|string
      */
-    public static function show( $name, $param = [])
+    public static function show(string $name, ?array $param = [])
     {
-        $cacheKey = md5(self::getUniqId($name, isset($param['id']) ?$param['id']: 0) . '_' . json_encode($param));
+        $cacheKey = md5(self::getUniqId($name, $param['id'] ?? 0) . '_' . json_encode($param));
         $data     = DI::Cache()->debugGet($cacheKey, function ($key) use ($name, $param) {
             if (strpos($name, '.')) {
                 $var = explode('.', $name);
@@ -32,7 +32,7 @@ class Block
             if (!$block || !method_exists($block, $method)) {
                 trigger_error(sprintf('区块 %s 无法加载', $name), E_USER_ERROR);
             }
-            $cacheTime = isset($param['cachetime']) ?$param['cachetime']: Config::get('cache.block_time', 600);
+            $cacheTime = $param['cachetime'] ?? Config::get('cache.block_time', 600);
             $data      = $block->$method($param);
             DI::Cache()->set($key, $data, $cacheTime);
             return $data;
@@ -64,7 +64,7 @@ class Block
      * @param int $id
      * @return string
      */
-    protected static function getUniqId( $name,  $id = 0)
+    protected static function getUniqId(string $name, int $id = 0): string
     {
         return DI::Cache()->get('block_uniq_' . $name . '_' . $id, function ($key) use ($name) {
             $nameUniqId = self::getUniqNameId($name);
@@ -74,7 +74,7 @@ class Block
         });
     }
 
-    protected static function getUniqNameId( $name)
+    protected static function getUniqNameId(string $name)
     {
         return DI::Cache()->get('block_uniq_' . $name, function ($key) {
             $uniqid = uniqid();
@@ -88,7 +88,7 @@ class Block
      * @param string $name
      * @param int $id
      */
-    public static function clearCache( $name,  $id = 0)
+    public static function clearCache(string $name, int $id = 0): void
     {
         $nameUniqId = DI::Cache()->get('block_uniq_' . $name, function ($key) {
             $uniqid = uniqid();

@@ -24,9 +24,9 @@ class Log
      * @param string $type 信息类型
      * @return array
      */
-    public static function getLog($type = '')
+    public static function getLog($type = ''): array
     {
-        return $type ? (isset(self::$log[$type]) ?self::$log[$type]: []) : self::$log;
+        return $type ? (self::$log[$type] ?? []) : self::$log;
     }
 
     /**
@@ -36,7 +36,7 @@ class Log
      * @param string $type 信息类型
      * @return void
      */
-    public static function record($msg, $type = 'kx')
+    public static function record($msg, $type = 'kx'):void
     {
         self::$log[$type][] = "[" . date('Y-m-d H:i:s') . "] " . $msg;;
     }
@@ -46,7 +46,7 @@ class Log
      *
      * @return void
      */
-    public static function clear()
+    public static function clear():void
     {
         self::$log = [];
     }
@@ -57,7 +57,7 @@ class Log
      * @param string $content
      * @param string $type
      */
-    public static function write( $content,  $type = 'kx',  $withTime = true)
+    public static function write(string $content, string $type = 'kx', bool $withTime = true):void
     {
         DI::Storage('log')->append($type . '_' . date('Ymd') . '.txt', ($withTime ? ("[" . date('Y-m-d H:i:s') . "] ") : "") . $content . PHP_EOL);
     }
@@ -65,7 +65,7 @@ class Log
     /**
      * 自动写入指定类型日志
      */
-    public static function build()
+    public static function build():void
     {
         $logBuild = Config::get('log.buildtype', ['pt', 'debug', 'collect', 'collecterror', 'cron']);
         foreach ($logBuild as $type) {

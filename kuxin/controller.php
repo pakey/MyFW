@@ -22,8 +22,8 @@ class Controller
      */
     public function init()
     {
-        return null;
         //do somethings
+        return null;
     }
 
     /**
@@ -33,7 +33,7 @@ class Controller
      * @param string $type
      * @return mixed
      */
-    public function ajax( $data,  $type = 'json')
+    public function ajax(array $data, string $type = 'json'): array
     {
         Response::setType($type);
         return $data;
@@ -45,7 +45,7 @@ class Controller
      * @param     $url
      * @param int $code
      */
-    public function redirect( $url, $code = 302)
+    public function redirect(string $url, $code = 302): void
     {
         Response::redirect($url, $code);
     }
