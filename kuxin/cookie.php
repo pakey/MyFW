@@ -10,7 +10,7 @@ namespace Kuxin;
  */
 class Cookie
 {
-    
+
     /**
      * 默认配置
      *
@@ -29,20 +29,20 @@ class Cookie
         // httponly设置
         'httponly' => '',
     ];
-    
-    public function __construct($config = [])
+
+    public function __construct( $config = [])
     {
         $this->init($config);
     }
-    
+
     /**
      * 初始化
      *
      * @param array $config
      */
-    public static function init($config = [])
+    public static function init( $config = [])
     {
-        $config = [
+        $config       = [
             'prefix'   => Input::param('prefix', 'string', Config::get('cookie_prefix', 'PTCMS_'), $config),
             // cookie 保存时间
             'expire'   => Input::param('expire', 'int', Config::get('cookie_expire', 2592000), $config),
@@ -55,34 +55,29 @@ class Cookie
             // httponly设置
             'httponly' => Input::param('httponly', 'string', Config::get('cookie_httponly', ''), $config),
         ];
-        if (!$config) self::$option = array_merge(self::$option, $config);
+        self::$option = array_merge(self::$option, $config);
     }
-    
+
     /**
      * 获取
      *
      * @param      $name
-     * @param null $default
-     * @return null
+     * @param mixed $default
+     * @return mixed
      */
-    public static function get($name, $default = null)
+    public static function get( $name, $default = null)
     {
         $fullname = self::$option['prefix'] . $name;
-        if (isset($_COOKIE[$fullname])) {
-            return $_COOKIE[$fullname];
-        } else {
-            return (is_callable($default) ? $default($name) : $default);
-        }
+        return isset($_COOKIE[$fullname]) ?$_COOKIE[$fullname]: ((is_callable($default) ? $default($name) : $default));
     }
-    
+
     /**
-     * 设置
-     *
-     * @param        $name
+     * 设置cookie
+     * @param string $name
      * @param string $value
-     * @param null   $option
+     * @param array|null $option
      */
-    public static function set($name, $value = '', $option = null)
+    public static function set( $name,  $value = '',  $option = null)
     {
         if (!is_null($option)) {
             if (is_numeric($option))
@@ -98,24 +93,22 @@ class Cookie
         setcookie($name, $value, $expire, $config['path'], $config['domain']);
         $_COOKIE[$name] = $value;
     }
-    
+
     /**
      * 删除单个
      *
      * @param $name
      */
-    public static function remove($name)
+    public static function remove( $name)
     {
         $name = self::$option['prefix'] . $name;
         setcookie($name, '', time() - 3600, self::$option['path'], self::$option['domain']);
         // 删除指定cookie
         unset($_COOKIE[$name]);
     }
-    
+
     /**
      * 清空
-     *
-     * @return bool
      */
     public static function clear()
     {
@@ -125,6 +118,5 @@ class Cookie
                 unset($_COOKIE[$key]);
             }
         }
-        return true;
     }
 }

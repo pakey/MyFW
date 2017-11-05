@@ -10,16 +10,16 @@ namespace Kuxin;
  */
 class Router
 {
-    
+
     static $controller = 'index';
-    static $action     = 'index';
-    
+    static $action = 'index';
+
     /**
      * 解析controller和action
      */
     public static function dispatcher()
     {
-        
+
         //解析s变量
         if (isset($_GET['s'])) {
             $superVar = $_GET['s'];
@@ -37,11 +37,14 @@ class Router
                 }
                 self::$action     = array_pop($param);
                 self::$controller = implode('\\', $param);
+            }else{
+                self::$controller = $superVar;
+                self::$action     = 'index';
             }
             unset($_GET['s']);
         }
     }
-    
+
     /**
      * 正则模式解析
      */
@@ -67,7 +70,7 @@ class Router
         }
         return $superVar;
     }
-    
+
     /**
      * 命令行解析
      */
@@ -82,7 +85,7 @@ class Router
             self::$action     = 'run';
             self::$controller = $argv['1'];
         }
-        $data = [];
+        $data = ['argv' => $argv];
         if (!empty($argv['2'])) {
             $param = explode('/', $argv['2']);
             while ($k = each($param)) {

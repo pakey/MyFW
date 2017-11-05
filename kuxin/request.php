@@ -10,16 +10,16 @@ namespace Kuxin;
  */
 class Request
 {
-    
+
     /**
      * @return bool
      */
     public static function isGet()
     {
         return $_SERVER['REQUEST_METHOD'] === 'GET' ? true : false;
-        
+
     }
-    
+
     /**
      * @return bool
      */
@@ -27,7 +27,7 @@ class Request
     {
         return $_SERVER['REQUEST_METHOD'] === 'POST' ? true : false;
     }
-    
+
     /**
      * @return bool
      */
@@ -35,7 +35,7 @@ class Request
     {
         return ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || isset($_POST['isajax']) || isset($_GET['isajax'])) ? true : false;
     }
-    
+
     /**
      * @return bool
      */
@@ -73,7 +73,7 @@ class Request
         }
         return false;
     }
-    
+
     /**
      * @param string $ua
      * @return bool
@@ -84,16 +84,17 @@ class Request
         $ua      = strtolower($ua);
         $spiders = ['bot', 'crawl', 'spider', 'slurp', 'sohu-search', 'lycos', 'robozilla'];
         foreach ($spiders as $spider) {
-            if (false !== strpos($ua, $spider)) return true;
+            if (false !== strpos($ua, $spider))
+                return true;
         }
         return false;
     }
-    
+
     /**
      * @param string $defaultIp
      * @return string
      */
-    public static function getIp($defaultIp = '0.0.0.0')
+    public static function getIp( $defaultIp = '0.0.0.0')
     {
         $ip = $_SERVER['REMOTE_ADDR'];
         $i  = explode('.', $ip);
@@ -101,14 +102,17 @@ class Request
             //如果是内网ip重新获取
             $keys = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_REAL_IP'];
             foreach ($keys as $key) {
-                if (empty($_SERVER[$key])) continue;
+                if (empty($_SERVER[$key]))
+                    continue;
                 $ips = explode(',', $_SERVER[$key], 1);
                 $ip  = $ips[0];
                 break;
             }
         }
         $l = ip2long($ip);
-        if ((false !== $l) && ($ip === long2ip($l))) return $ip;
+        if ((false !== $l) && ($ip === long2ip($l))) {
+            return $ip;
+        }
         return $defaultIp;
     }
 }

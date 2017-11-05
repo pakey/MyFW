@@ -76,7 +76,7 @@ class Mysql
      * @param string $sql SQL语句内容
      * @return bool
      */
-    public function execute($sql, $bindparams = [])
+    public function execute(string $sql, array $bindparams = [])
     {
         //参数分析
         if (!$sql) {
@@ -140,7 +140,7 @@ class Mysql
      * @param string $sql SQL语句内容
      * @return mixed
      */
-    public function fetch($sql, $bindParams = [])
+    public function fetch(string $sql, array $bindParams = [])
     {
         $result = $this->execute($sql, $bindParams);
         if (!$result) {
@@ -160,7 +160,7 @@ class Mysql
      * @param string $sql SQL语句
      * @return array|mixed
      */
-    public function fetchAll($sql, $bindParams = [])
+    public function fetchAll(string $sql, array $bindParams = [])
     {
         $result = $this->execute($sql, $bindParams);
         

@@ -4,6 +4,7 @@ namespace Kuxin\Weixin;
 use Kuxin\DI;
 use Kuxin\Helper\Http;
 use Kuxin\Helper\Url;
+use Kuxin\Response;
 
 /**
  * 微信 JSSDK.
@@ -29,7 +30,7 @@ class Js extends Weixin
      *
      * @return string|array
      */
-    public function config(array $APIs, $debug = false,  $json = true)
+    public function config( $APIs, $debug = false,  $json = true)
     {
         $signPackage = $this->getSignaturePackage($debug);
         $base        = array(
@@ -48,7 +49,7 @@ class Js extends Weixin
      *
      * @return array
      */
-    public function getConfigArray(array $APIs, $debug = false)
+    public function getConfigArray( $APIs, $debug = false)
     {
         return $this->config($APIs, $debug, false);
     }

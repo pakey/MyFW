@@ -6,25 +6,26 @@ use Kuxin\Config;
 
 class File
 {
-    
+
     protected static $path = null;
-    protected static $url  = null;
-    
+    protected static $url = null;
+
     public function __construct($config)
     {
         self::$path = $config['path'];
-        self::$url  = $config['url'] ?? "";
+        self::$url  = isset($config['url']) ?$config['url']: "";
     }
-    
+
     public function exist($file)
     {
         return is_file($this->getPath($file));
     }
+
     public function mtime($file)
     {
         return filemtime($this->getPath($file));
     }
-    
+
     public function write($file, $content)
     {
         $fullfile = $this->getPath($file);
@@ -33,7 +34,7 @@ class File
         }
         return file_put_contents($fullfile, (string)$content);
     }
-    
+
     public function read($file)
     {
         $fullfile = $this->getPath($file);
@@ -43,7 +44,7 @@ class File
             return false;
         }
     }
-    
+
     public function append($file, $content)
     {
         $fullfile = $this->getPath($file);
@@ -52,7 +53,7 @@ class File
         }
         return file_put_contents($fullfile, (string)$content, FILE_APPEND);
     }
-    
+
     public function remove($file)
     {
         $file = $this->getPath($file);
@@ -71,18 +72,18 @@ class File
             return rmdir($file);
         }
     }
-    
+
     public function getUrl($file)
     {
-        $file = strpos($file, KX_ROOT) === 0 ? $file : substr($file, strlen(self::$path));
-        return self::$url . $file;
+        $file = ($file{0} === '/' || $file{1} == ':') ? str_replace(self::$path, '', $file) : $file;
+        return rtrim(self::$url, '/') . '/' . $file;
     }
-    
+
     public function getPath($file)
     {
-        return strpos($file, KX_ROOT) === 0 ? $file : self::$path . '/' . ltrim($file, '/');
+        return ($file{0} === '/' || $file{1} == ':') ? $file : self::$path . '/' . ltrim($file, '/');
     }
-    
+
     public function error()
     {
         return '';

@@ -10,14 +10,14 @@ namespace Kuxin;
  */
 class Log
 {
-    
+
     /**
      * 日志内容
      *
      * @var array
      */
     protected static $log = [];
-    
+
     /**
      * 获取日志信息
      *
@@ -26,13 +26,13 @@ class Log
      */
     public static function getLog($type = '')
     {
-        return $type ? self::$log[$type] : self::$log;
+        return $type ? (isset(self::$log[$type]) ?self::$log[$type]: []) : self::$log;
     }
-    
+
     /**
      * 记录日志 默认为pt
      *
-     * @param mixed  $msg  调试信息
+     * @param mixed $msg 调试信息
      * @param string $type 信息类型
      * @return void
      */
@@ -40,7 +40,7 @@ class Log
     {
         self::$log[$type][] = "[" . date('Y-m-d H:i:s') . "] " . $msg;;
     }
-    
+
     /**
      * 清空日志信息
      *
@@ -50,18 +50,18 @@ class Log
     {
         self::$log = [];
     }
-    
+
     /**
      * 手动写入指定日志到文件
      *
      * @param string $content
      * @param string $type
      */
-    public static function write($content, $type = 'kx', $withTime = true)
+    public static function write( $content,  $type = 'kx',  $withTime = true)
     {
         DI::Storage('log')->append($type . '_' . date('Ymd') . '.txt', ($withTime ? ("[" . date('Y-m-d H:i:s') . "] ") : "") . $content . PHP_EOL);
     }
-    
+
     /**
      * 自动写入指定类型日志
      */

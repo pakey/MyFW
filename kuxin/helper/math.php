@@ -8,7 +8,7 @@ namespace Kuxin\Helper;
  * @package Kuxin\Helper
  * @author  Pakey <pakey@qq.com>
  */
-class Num
+class Math
 {
     
     /**
@@ -21,6 +21,16 @@ class Num
     {
         $id = (int)$id;
         return floor($id / 1000);
+    }/**
+     * 取子id
+     *
+     * @param $id
+     * @return float
+     */
+    public static function subIdPlus($id)
+    {
+        $id = (int)$id;
+        return Ceil($id / 1000);
     }
     
     /**

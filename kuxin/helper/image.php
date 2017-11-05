@@ -37,7 +37,7 @@ class Image
     {
         if (stripos($var, 'http') === 0) {
             $content = Http::get($var);
-        } elseif (is_file($var)) {
+        } elseif (strlen($var)<100 && file_exists($var)) {
             $content = file_get_contents($var);
         } else {
             $content = (string)$var;

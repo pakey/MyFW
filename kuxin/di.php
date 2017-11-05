@@ -10,12 +10,12 @@ namespace Kuxin;
  */
 class DI
 {
-    
+
     /**
      * @param string $node
      * @return \Kuxin\Cache
      */
-    public static function Cache($node = 'common')
+    public static function Cache( $node = 'common')
     {
         $hanlder = Registry::get("cache.{$node}");
         if (!$hanlder) {
@@ -31,12 +31,12 @@ class DI
         }
         return $hanlder;
     }
-    
+
     /**
      * @param string $node
      * @return \Kuxin\Storage
      */
-    public static function Storage($node = 'common')
+    public static function Storage( $node = 'common')
     {
         $hanlder = Registry::get("storage.{$node}");
         if (!$hanlder) {
@@ -52,12 +52,12 @@ class DI
         }
         return $hanlder;
     }
-    
+
     /**
      * @param string $node
      * @return \Kuxin\Db\Mysql
      */
-    public static function DB($node = 'common')
+    public static function DB( $node = 'common')
     {
         $hanlder = Registry::get("db.{$node}");
         if (!$hanlder) {

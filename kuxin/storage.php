@@ -26,7 +26,7 @@ class Storage
      * @param $file
      * @return bool
      */
-    public function exist($file)
+    public function exist(string $file)
     {
         return self::$handler->exist($file);
     }
@@ -35,7 +35,7 @@ class Storage
      * @param $file
      * @return bool|int
      */
-    public function mtime($file)
+    public function mtime(string $file)
     {
         return self::$handler->mtime($file);
     }
@@ -45,7 +45,7 @@ class Storage
      * @param $content
      * @return bool|int
      */
-    public function write($file, $content)
+    public function write(string $file, string $content)
     {
         return self::$handler->write($file, $content);
     }
@@ -54,7 +54,7 @@ class Storage
      * @param $file
      * @return bool|string
      */
-    public function read($file)
+    public function read(string $file)
     {
         return self::$handler->read($file);
     }
@@ -64,7 +64,7 @@ class Storage
      * @param $content
      * @return bool|int
      */
-    public function append($file, $content)
+    public function append(string $file, string $content)
     {
         return self::$handler->append($file, $content);
     }
@@ -73,7 +73,7 @@ class Storage
      * @param $file
      * @return bool
      */
-    public function remove($file)
+    public function remove(string $file)
     {
         return self::$handler->remove($file);
     }
@@ -82,7 +82,7 @@ class Storage
      * @param $file
      * @return string
      */
-    public function getUrl($file)
+    public function getUrl(string $file)
     {
         return self::$handler->getUrl($file);
     }
@@ -91,7 +91,7 @@ class Storage
      * @param $file
      * @return string
      */
-    public function getPath($file)
+    public function getPath(string $file)
     {
         return self::$handler->getPath($file);
     }

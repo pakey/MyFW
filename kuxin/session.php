@@ -10,13 +10,13 @@ namespace Kuxin;
  */
 class Session
 {
-    
+
     /**
      * 启动session
      *
      * @param array $config
      */
-    public static function start($config = [])
+    public static function start( $config = [])
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
@@ -31,22 +31,24 @@ class Session
         }
         session_start();
     }
-    
+
     /**
      * @param string $name
-     * @param null   $default
-     * @return null
+     * @param mixed $default
+     * @return mixed
      */
-    public static function get($name = '', $default = null)
+    public static function get( $name = '', $default = null)
     {
-        if ($name == '') return $_SESSION;
+        if ($name == '')
+            return $_SESSION;
         //数组模式 找到返回
         if (strpos($name, '.')) {
             //数组模式 找到返回
             $c      = $_SESSION;
             $fields = explode('.', $name);
             foreach ($fields as $field) {
-                if (!isset($c[$field])) return (is_callable($default) ? $default($name) : $default);
+                if (!isset($c[$field]))
+                    return (is_callable($default) ? $default($name) : $default);
                 $c = $c[$field];
             }
             return $c;
@@ -56,33 +58,33 @@ class Session
             return (is_callable($default) ? $default($name) : $default);
         }
     }
-    
+
     /**
      * @param        $key
-     * @param string $value
+     * @param mixed $value
      * @return bool
      */
-    public static function set($key, $value = '')
+    public static function set( $key, $value)
     {
         $_SESSION[$key] = $value;
         return true;
     }
-    
+
     /**
      * @param $key
      * @return bool
      */
-    public static function remove($key)
+    public static function remove( $key)
     {
         if (!isset($_SESSION[$key])) {
             return false;
         }
-        
+
         unset($_SESSION[$key]);
-        
+
         return true;
     }
-    
+
     /**
      * 清空session值
      *
@@ -91,10 +93,9 @@ class Session
      */
     public static function clear()
     {
-        
         $_SESSION = [];
     }
-    
+
     /**
      * 注销session
      *
@@ -103,13 +104,12 @@ class Session
      */
     public static function destory()
     {
-        
         if (session_id()) {
             unset($_SESSION);
             session_destroy();
         }
     }
-    
+
     /**
      * 当浏览器关闭时,session将停止写入
      *

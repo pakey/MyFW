@@ -12,30 +12,59 @@ use Kuxin\Helper\Arr;
  */
 class View
 {
-    
+
     // 模板存储变量
     protected static $_vars = [];
     // 模版基地址
     protected static $_path = '';
     // 模版文件名
     protected static $_file = null;
-    
+    // layout 开关
+    protected static $_layout = false;
+    // layout 模板
+    protected static $_layoutFile = '';
+
+    /**
+     * 开启layout
+     */
+    public static function enableLayout()
+    {
+        self::$_layout = true;
+    }
+
+    /**
+     * 关闭layout
+     */
+    public static function disableLayout()
+    {
+        self::$_layout = false;
+    }
+
+    /**
+     * 配置layoutFile
+     * @param string $file
+     */
+    public static function setLayoutFile(string $file)
+    {
+        self::$_layoutFile = $file;
+    }
+
     /**
      * @param $file
      */
-    public static function setFile($file)
+    public static function setFile(string $file)
     {
         self::$_file = $file;
     }
-    
+
     /**
      * @param $path
      */
-    public static function setPath($path)
+    public static function setPath(string $path)
     {
         self::$_path = $path;
     }
-    
+
     /**
      * @return string
      */
@@ -46,7 +75,7 @@ class View
         }
         return self::$_path;
     }
-    
+
     /**
      * 模板变量赋值
      *
@@ -57,22 +86,22 @@ class View
     public static function set($var, $value = null)
     {
         if (is_array($var)) {
-            self::$_vars = Arr::merge_recursive(self::$_vars, $var);
+            self::$_vars = Arr::merge(self::$_vars, $var);
         } else {
             self::$_vars[$var] = $value;
         }
     }
-    
+
     /*
      * 获取模板变量值
      */
-    public static function get($var = '')
+    public static function get( $var = '')
     {
         if ($var == '') {
             return self::$_vars;
-        } else if (isset(self::$_vars[$var])) {
+        } elseif (isset(self::$_vars[$var])) {
             return self::$_vars[$var];
-        } else if (strpos($var, '.') !== false) {
+        } elseif (strpos($var, '.') !== false) {
             $arr = explode('.', $var);
             $tmp = self::$_vars;
             foreach ($arr as $v) {
@@ -87,13 +116,13 @@ class View
         }
         return null;
     }
-    
+
     /**
      * 加载并视图片段文件内容
      *
      * @access public
      * @param string $file 视图片段文件名称
-     * @param array  $data 附加数据
+     * @param array $data 附加数据
      * @return string
      */
     public static function make($file = null, $data = [])
@@ -111,14 +140,14 @@ class View
         ob_end_clean();
         return $content;
     }
-    
+
     /**
      * 获得模版位置
      *
      * @param string $tpl 视图模板
      * @return string
      */
-    protected static function getTplFilePath($tpl = null)
+    protected static function getTplFilePath(string $tpl = null)
     {
         $tpl = $tpl === null ? self::$_file : $tpl;
         if ($tpl === null) {
@@ -137,14 +166,17 @@ class View
             return false;
         }
     }
-    
+
     /**
      * @param $tplfile
      * @return string
      */
-    protected static function checkCompile($tplfile)
+    protected static function checkCompile(string $tplfile)
     {
         $compiledName = ltrim(str_replace([KX_ROOT, '/app/views', '/template/'], '/', $tplfile), '/');
+        if (!$compiledName) {
+            trigger_error('生成的模板缓存文件名为空 [' . $tplfile . ']', E_USER_ERROR);
+        }
         $compiledFile = substr(str_replace('/', ',', $compiledName), 0, -5) . '.php';
         $storage      = DI::Storage('template');
         if (Config::get('app.debug') || !$storage->exist($compiledFile) || $storage->mtime($compiledFile) < filemtime($tplfile)) {
@@ -153,8 +185,8 @@ class View
             // 解析模版
             $content = self::compile($content);
             //判断是否开启layout
-            if (Config::get('layout', false)) {
-                $includeFile = self::getTplFilePath(Config::get('layout_name', 'layout'));
+            if (self::$_layout && self::$_layoutFile) {
+                $includeFile = self::getTplFilePath(self::$_layoutFile);
                 $layout      = self::compile(file_get_contents($includeFile));
                 $content     = str_replace('__CONTENT__', $content, $layout);
             }
@@ -163,14 +195,14 @@ class View
         }
         return $storage->getPath($compiledFile);
     }
-    
+
     /**
      * 模版输出替换
      *
      * @param $content
      * @return string
      */
-    protected static function replace($content)
+    protected static function replace(string $content)
     {
         $replace = [
             '__RUNINFO__' => '<?php echo Response::runinfo();?>', // 站点公共目录
@@ -179,21 +211,22 @@ class View
         // 判断是否显示runtime info 信息
         return $content;
     }
-    
+
     /**
      * 编译解析
      *
      * @param $content
      * @return mixed
      */
-    public static function compile($content)
+    public static function compile(string $content)
     {
         $left  = preg_quote('{', '/');
         $right = preg_quote('}', '/');
         if (strpos($content, '<?xml') !== false) {
             $content = str_replace('<?xml', '<?php echo "<?xml";?>', $content);
         }
-        if (!preg_match('/' . $left . '.*?' . $right . '/s', $content)) return $content;
+        if (!preg_match('/' . $left . '.*?' . $right . '/s', $content))
+            return $content;
         // 解析载入
         $content = preg_replace_callback('/' . $left . 'include\s+file\s*\=\s*(\'|\")([^\}]*?)\1\s*' . $right . '/i', ['self', 'parseInlcude'], $content);
         // 解析代码
@@ -222,7 +255,7 @@ class View
         // 还原代码
         $content = preg_replace_callback('/' . chr(2) . '(.*?)' . chr(3) . '/', ['self', 'parseDecode'], $content);
         // 内容后续处理
-        
+
         /*if (!APP_DEBUG) {
             $content = preg_replace_callback('/<style[^>]*>([^<]*)<\/style>/isU', array('self', 'parseCss'), $content);
             $content = preg_replace_callback('/<script[^>]*>([^<]+?)<\/script>/isU', array('self', 'parseJs'), $content);
@@ -234,30 +267,30 @@ class View
         // 返回内容
         return $content;
     }
-    
+
     /**
      * css压缩
      *
      * @param $match
      * @return string
      */
-    public static function parseCss($match)
+    public static function parseCss(string $match)
     {
         return '<style type = "text/css">' . self::compressCss($match['1']) . '</style>';
     }
-    
+
     /**
      * js压缩
      *
      * @param $march
      * @return mixed
      */
-    public static function parseJs($march)
+    public static function parseJs(string $march)
     {
         return str_replace($march['1'], self::compressJS($march['1']), $march['0']);
     }
-    
-    
+
+
     /**
      * 解析变量名
      *
@@ -267,9 +300,10 @@ class View
     private static function parseVar($var)
     {
         $var = is_array($var) ? reset($var) : trim($var);
-        if (substr($var, 0, 1) !== '$') $var = '$' . $var;
+        if (substr($var, 0, 1) !== '$')
+            $var = '$' . $var;
         if (preg_match('/^\$\w+(\.[\w\-]+)+$/', $var)) {
-            if (substr($var, 0, 4) === '$pt.') {
+            if (substr($var, 0, 4) === '$kx.') {
                 $vars = array_pad(explode('.', $var, 3), 3, '');
                 switch ($vars[1]) {
                     case 'server':
@@ -279,7 +313,7 @@ class View
                         $var = strtoupper($vars[2]);
                         break;
                     case 'config':
-                        $var = '\ptcms\Config::get("' . $vars[2] . '")';
+                        $var = '\Kuxin\Config::get("' . $vars[2] . '")';
                         break;
                     case 'get':
                         $var = '$_GET[\'' . $vars[2] . '\']';
@@ -303,14 +337,14 @@ class View
         }
         return $var;
     }
-    
+
     /**
      * @param $string
      * @param $format
      * @return array
      * $format中值true则按照变量解析 其他为默认值
      */
-    private static function parseAttribute($string, $format)
+    private static function parseAttribute(string $string, array $format)
     {
         $attribute = ['_etc' => []];
         preg_match_all('/(?:^|\s+)(\w+)\s*\=\s*(?|(")([^"]*)"|(\')([^\']*)\'|(#)(\w+)|(\$)(\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*))|()([^"\'\s]+?))(?=\s+\w+\s*\=|$)/', $string, $match);
@@ -343,7 +377,7 @@ class View
         }
         return array_merge($format, $attribute);
     }
-    
+
     /**
      * 解析变量
      *
@@ -364,7 +398,8 @@ class View
                 }
                 $param = [$variable];
                 preg_match_all('/(?:=|,)\s*(?|(@)|(")([^"]*)"|(\')([^\']*)\'|(#)(\w+)|(\$)(\w+(?:(?:\[(?:[^\[\]]+|(?R))*\])*|(?:\.\w+)*))|()([^\|\:,"\'\s]*?))(?=,|$)/', $match[2][$key], $mat);
-                if (array_search('@', $mat[1]) !== false) $param = [];
+                if (array_search('@', $mat[1]) !== false)
+                    $param = [];
                 foreach ($mat[0] as $k => $v) {
                     switch ($mat[1][$k]) {
                         case '@':
@@ -389,8 +424,8 @@ class View
         }
         return "<?php echo $variable;?>";
     }
-    
-    
+
+
     /**
      *  解析载入
      *
@@ -411,7 +446,7 @@ class View
         }
         return '';
     }
-    
+
     /**
      * 解析函数
      *
@@ -424,7 +459,7 @@ class View
         $expression = preg_replace_callback('/\$\w+(?:\.\w+)+/', ['self', 'parseVar'], $matches[2]);
         return "<?php $operate $expression;?>";
     }
-    
+
     /**
      * 解析判断
      *
@@ -437,7 +472,7 @@ class View
         $condition = preg_replace_callback('/\$\w+(?:\.\w+)+/', ['self', 'parseVar'], $matches[2]);
         return "<?php $judge($condition):?>";
     }
-    
+
     /**
      * @param $matches
      * @return string
@@ -445,14 +480,15 @@ class View
     private static function parseLink($matches)
     {
         $attribute = self::parseAttribute('_type_=' . $matches[1], ['_type_' => false, 'responsetype' => '""']);
-        if (!is_string($attribute['_type_'])) return $matches[0];
+        if (!is_string($attribute['_type_']))
+            return $matches[0];
         $var = [];
         foreach ($attribute['_etc'] as $key => $value) {
             $var[] = "'$key'=>$value";
         }
         return "<?php echo \\Kuxin\\Helper\\Url::build(\"{$attribute['_type_']}\",[" . implode(',', $var) . "],{$attribute['responsetype']});?>";
     }
-    
+
     /**
      * @param $matches
      * @return string
@@ -465,13 +501,13 @@ class View
             $var[] = "'$key'=>$value";
         }
         if (empty($attribute['name']) || $attribute['name'] === false) {
-            return "<?php echo \\Kuxin\\Block\\" . $attribute['method'] . "::run([" . implode(',', $var) . "]);?>";
+            return "<?php echo \\Kuxin\\Block::show('{$attribute['method']}', [" . implode(',', $var) . "]);?>";
         } else {
             $name = '$' . $attribute['name'];
-            return "<?php $name=\\Kuxin\\Block\\" . $attribute['method'] . "::run([" . implode(',', $var) . "]);?>";
+            return "<?php $name=\\Kuxin\\Block::show('{$attribute['method']}', [" . implode(',', $var) . "]);?>";
         }
     }
-    
+
     /**
      * 解析循环
      *
@@ -483,7 +519,7 @@ class View
         $loop = empty($matches[2]) ? '$list' : (self::parseVar($matches[2]));
         return "<?php if(is_array($loop)): foreach($loop as \$key =>\$loop):?>";
     }
-    
+
     /**
      * @param $matches
      * @return string
@@ -491,12 +527,13 @@ class View
     private static function parseSection($matches)
     {
         $attribute = self::parseAttribute($matches[1], ['loop' => true, 'name' => true, 'item' => true, 'cols' => '1', 'skip' => '0', 'limit' => 'null']);
-        if (!is_string($attribute['loop'])) return $matches[0];
+        if (!is_string($attribute['loop']))
+            return $matches[0];
         $name = is_string($attribute['name']) ? $attribute['name'] : '$i';
         $list = is_string($attribute['item']) ? $attribute['item'] : '$loop';
         return "<?php if(is_array({$attribute['loop']}) && (array()!={$attribute['loop']})): $name=array(); {$name}['loop']=array_slice({$attribute['loop']},{$attribute['skip']},{$attribute['limit']},true); {$name}['total']=count({$attribute['loop']}); {$name}['count']=count({$name}['loop']); {$name}['cols']={$attribute['cols']}; {$name}['add']={$name}['count']%{$attribute['cols']}?{$attribute['cols']}-{$name}['count']%{$attribute['cols']}:0; {$name}['order']=0; {$name}['row']=1;{$name}['col']=0;foreach(array_pad({$name}['loop'],{$name}['add'],array()) as {$name}['index']=>{$name}['list']): $list={$name}['list']; {$name}['order']++; {$name}['col']++; if({$name}['col']=={$attribute['cols']}): {$name}['col']=0; {$name}['row']++; endif; {$name}['first']={$name}['order']==1; {$name}['last']={$name}['order']=={$name}['count']; {$name}['extra']={$name}['order']>{$name}['count'];?>";
     }
-    
+
     /**
      *  保护代码
      *
@@ -507,7 +544,7 @@ class View
     {
         return chr(2) . base64_encode(strtolower($matches[1]) === 'php' ? "<?php {$matches[2]};?>" : trim($matches[2])) . chr(3);
     }
-    
+
     /**
      * 还原代码
      *
@@ -518,7 +555,7 @@ class View
     {
         return base64_decode($matches[1]);
     }
-    
+
     /**
      * @param $content
      * @return string
@@ -531,26 +568,26 @@ class View
         }
         return implode('', $lines);
     }
-    
+
     /**
      * @param $content
      * @return mixed
      */
     public static function compressCss($content)
     {
-        
+
         $content = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $content); //删除注释
         $content = preg_replace('![ ]{2,}!', ' ', $content); //删除注释
         $content = str_replace(["\r\n", "\r", "\n", "\t"], '', $content); //删除空白
         return $content;
     }
-    
+
     /**
      * 默认值函数
      *
      * @return string
      */
-    public static function default()
+    public static function defaultvar()
     {
         $args  = func_get_args();
         $value = array_shift($args);
@@ -562,8 +599,8 @@ class View
             return '';
         }
     }
-    
-    
+
+
     /**
      * 时间函数优化
      *
@@ -573,19 +610,21 @@ class View
      */
     public static function date($time, $format)
     {
-        if ($time == '0') return '';
+        if ($time == '0')
+            return '';
         return date($format, $time);
     }
-    
+
     /**
      * @param string $content
      * @return string
      */
     public static function parseTpl($content)
     {
-        if ($content == '') return '';
+        if ($content == '')
+            return '';
         $storage   = DI::Storage('template');
-        $cachefile = 'parsetpl/' . md5($content) . '.php';
+        $cachefile = 'parsetpl/' . md5($content . '_parseTpl') . '.php';
         if ($storage->exist($cachefile)) {
             $content = self::compile($content);
             $storage->write($cachefile, $content);

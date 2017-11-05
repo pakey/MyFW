@@ -17,9 +17,9 @@ use Kuxin\Helper\Arr;
  */
 class Registry
 {
-    
+
     protected static $_data;
-    
+
     /**
      * 获取
      *
@@ -31,22 +31,22 @@ class Registry
     {
         return isset(self::$_data[$key]) ? self::$_data[$key] : (is_callable($default) ? $default($key) : $default);
     }
-    
+
     /**
      * 设置
      *
      * @param      $key
-     * @param null $value
+     * @param mixed $value
      */
-    public static function set($key, $value)
+    public static function set(string $key,  $value)
     {
         if (is_array($key)) {
-            self::$_data = Arr::merge_recursive(self::$_data, $key);
+            self::$_data = Arr::merge(self::$_data, $key);
         } else {
             self::$_data[$key] = $value;
         }
     }
-    
+
     /**
      * 合并信息
      *
@@ -59,26 +59,26 @@ class Registry
         $data[] = $value;
         self::set($key, $data);
     }
-    
+
     /**
      * 移除
      *
      * @param $key
      */
-    public static function remove($key)
+    public static function remove( $key)
     {
         if (isset(self::$_data[$key])) {
             unset(self::$_data[$key]);
         }
     }
-    
+
     /**
      * 对值增加
      *
      * @param     $key
      * @param int $num
      */
-    public static function setInc($key, $num = 1)
+    public static function setInc( $key,  $num = 1)
     {
         if (isset(self::$_data[$key])) {
             self::$_data[$key] += $num;
@@ -86,14 +86,14 @@ class Registry
             self::$_data[$key] = $num;
         }
     }
-    
+
     /**
      * 对值减少
      *
      * @param $key
      * @param $num
      */
-    public static function setDec($key, $num)
+    public static function setDec( $key,  $num = 1)
     {
         if (isset(self::$_data[$key])) {
             self::$_data[$key] -= $num;

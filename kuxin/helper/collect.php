@@ -36,9 +36,9 @@ class Collect
             }
             // 检测编码
             if ($data['charset'] == 'auto') {
-                if (preg_match('/charset[=\'\s]+big/i', $content)) {
+                if (preg_match('/[;\s\'"]charset[=\'\s]+?big/i', $content)) {
                     $data['charset'] = 'big5';
-                } elseif (preg_match('/charset[=\'"\s]+gb/i', $content) || preg_match('/encoding[=\'"\s]+gb/i', $content)) {
+                } elseif (preg_match('/[;\s\'"]charset[=\'"\s]+?gb/i', $content) || preg_match('/[;\s\'"]encoding[=\'"\s]+?gb/i', $content)) {
                     $data['charset'] = 'gbk';
                 } elseif (mb_detect_encoding($content) != 'UTF-8') {
                     $data['charset'] = 'gbk';

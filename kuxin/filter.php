@@ -10,7 +10,7 @@ namespace Kuxin;
  */
 class Filter
 {
-    
+
     /**
      * 默认验证规则
      *
@@ -30,7 +30,7 @@ class Filter
         //邮编
         'zip'        => '/^[0-9]\d{5}$/',
         //电话
-        'tel'        => '/^1[\d]{10}$/',
+        'mobile'        => '/^1[\d]{10}$/',
         //整型
         'integer'    => '/^[-\+]?\d+$/',
         //带小数点
@@ -50,7 +50,7 @@ class Filter
         //安全字符串
         'safestring' => '/^[^\$\?]+$/',
     ];
-    
+
     /**
      * 校验变量
      *
@@ -62,18 +62,13 @@ class Filter
     {
         //指定值
         if (is_array($rule)) {
-            foreach ($rule as $r) {
-                if (self::regex($value, $r) === false) {
-                    return false;
-                }
-            }
-            return true;
+            return in_array($value,$rule);
         } else {
             return self::regex($value, $rule);
         }
     }
-    
-    
+
+
     /**
      * 判断是否符合正则
      *
@@ -81,7 +76,7 @@ class Filter
      * @param $rule
      * @return bool
      */
-    public static function regex($value, $rule)
+    public static function regex($value,  $rule)
     {
         // 检查是否有内置的正则表达式
         $rule = strtolower($rule);
@@ -90,16 +85,17 @@ class Filter
         }
         return preg_match($rule, strval($value)) === 1;
     }
-    
+
     /**
      * 安全的剔除字符 单行等 用于搜索 链接等地方
      *
      * @param $str
      * @return mixed|string
      */
-    public static function safeWord($str)
+    public static function safeWord( $str)
     {
-        if (strlen($str) == 0) return '';
+        if (strlen($str) == 0)
+            return '';
         $str       = strip_tags($str);
         $badString = '~!@#$%^&*()+|=\\{}[];\'"/<>?';
         $length    = strlen($badString);
@@ -110,7 +106,7 @@ class Filter
         }
         return preg_replace('/([\:\r\n\t]+)/', '', $str);
     }
-    
+
     /**
      * 过滤掉html字符
      *
@@ -118,7 +114,7 @@ class Filter
      * @param string $tags 允许的html标签
      * @return mixed|string
      */
-    public static function safetext($text, $tags = 'br')
+    public static function safetext( $text,  $tags = 'br')
     {
         $text = trim($text);
         //完全过滤注释
@@ -127,7 +123,7 @@ class Filter
         $text = preg_replace('/<\?|\?' . '>/', '', $text);
         //完全过滤js
         $text = preg_replace('/<script?.*\/script>/', '', $text);
-        
+
         $text = str_replace('[', '&#091;', $text);
         $text = str_replace(']', '&#093;', $text);
         $text = str_replace('|', '&#124;', $text);
@@ -146,7 +142,7 @@ class Filter
         $text = preg_replace('/<(' . $tags . ')( [^><\[\]]*)>/i', '[\1\2]', $text);
         $text = preg_replace('/<\/(' . $tags . ')>/Ui', '[/\1]', $text);
         //过滤多余html
-        $text = preg_replace('/<\/?(html|head|meta|link|base|basefont|body|bgsound|title|style|script|form|iframe|frame|frameset|applet|id|ilayer|layer|name|script|style|xml|table|td|th|tr|i|u|strong|img|p|br|div|strong|em|ul|ol|li|dl|dd|dt|a)[^><]*>/i', '', $text);
+        $text = preg_replace('/<\/?(html|head|meta|link|base|basefont|body|bgsound|title|style|script|form|iframe|frame|frameset|applet|id|ilayer|layer|name|script|style|xml|table|td|th|tr|i|u|strong|img|p|br|div|strong|em|ul|ol|li|dl|dd|dt|a|b|strong)[^><]*>/i', '', $text);
         //过滤合法的html标签
         while (preg_match('/<([a-z]+)[^><\[\]]*>[^><]*<\/\1>/i', $text, $mat)) {
             $text = str_replace($mat[0], str_replace('>', ']', str_replace('<', '[', $mat[0])), $text);

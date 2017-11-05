@@ -2,6 +2,9 @@
 
 namespace Kuxin\Oauth;
 
+use Kuxin\Config;
+use Kuxin\Loader;
+
 abstract class Oauth{
     
     /**
@@ -103,7 +106,7 @@ abstract class Oauth{
     /**
      * @param      $type
      * @param null $token
-     * @return Driver_Oauth_QQ
+     * @return static
      */
     public static function getInstance($type, $token = null)
     {

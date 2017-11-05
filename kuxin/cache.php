@@ -16,13 +16,13 @@ namespace Kuxin;
  */
 class Cache
 {
-    
+
     /**
      * @var \Kuxin\Cache\Memcache
      */
     protected $handler = null;
-    
-    
+
+
     /**
      * Cache constructor.
      *
@@ -33,7 +33,7 @@ class Cache
         $class         = '\\Kuxin\\Cache\\' . $config['driver'];
         $this->handler = Loader::instance($class, [$config['option']]);
     }
-    
+
     /**
      * 设置缓存
      *
@@ -41,20 +41,19 @@ class Cache
      * @param     $value
      * @param int $time
      */
-    public function set($key, $value, $time = 0)
+    public function set(string $key, $value,  $time = 0)
     {
         Registry::setInc('_cacheWrite');
         $this->handler->set($key, $value, $time);
     }
-    
+
     /**
      * 获取缓存
-     *
-     * @param       $key
-     * @param mixed $default
+     * @param string $key
+     * @param mixed|null $default
      * @return mixed
      */
-    public function get($key, $default = null)
+    public function get(string $key, $default = null)
     {
         Registry::setInc('_cacheRead');
         $result = $this->handler->get($key);
@@ -65,7 +64,7 @@ class Cache
         }
         return $result;
     }
-    
+
     /**
      * debug模式来获取缓存，debug模式不取缓存
      *
@@ -73,7 +72,7 @@ class Cache
      * @param mixed $default
      * @return mixed
      */
-    public function debugGet($key, $default = null)
+    public function debugGet(string $key, $default = null)
     {
         Registry::setInc('_cacheRead');
         $result = Config::get('app.debug') ? null : $this->handler->get($key);
@@ -84,42 +83,42 @@ class Cache
         }
         return $result;
     }
-    
+
     /**
      * 删除缓存
      *
      * @param $key
      * @return bool
      */
-    public function remove($key)
+    public function remove(string $key)
     {
         return $this->handler->remove($key);
     }
-    
+
     /**
      * 缓存计数 增加
      *
      * @param     $key
      * @param int $len
-     * @return bool|int
+     * @return mixed|bool|int
      */
-    public function inc($key, $len = 1)
+    public function inc(string $key,  $len = 1)
     {
         return $this->handler->inc($key, $len);
     }
-    
+
     /**
      * 缓存计数 减少
      *
      * @param     $key
      * @param int $len
-     * @return bool|int
+     * @return mixed|bool|int
      */
-    public function dec($key, $len = 1)
+    public function dec(string $key,  $len = 1)
     {
         return $this->handler->dec($key, $len);
     }
-    
+
     /**
      * 清空缓存
      */
@@ -127,7 +126,7 @@ class Cache
     {
         $this->handler->clear();
     }
-    
+
     /**
      * @param $method
      * @param $args
@@ -140,7 +139,7 @@ class Cache
             trigger_error('Cache中不存在的方法');
         }
     }
-    
+
 }
 
 

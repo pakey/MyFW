@@ -10,22 +10,22 @@ namespace Kuxin;
  */
 class Response
 {
-    
+
     /**
      * @var
      */
     protected static $type;
-    
+
     /**
      * @var array
      */
     protected static $types = ['html', 'json', 'xml', 'jsonp'];
-    
+
     /**
      * @var bool
      */
     protected static $autoRender = true;
-    
+
     /**
      * @return string
      */
@@ -33,18 +33,18 @@ class Response
     {
         if (self::$type) {
             return self::$type;
-        } else if (Request::isAjax()) {
+        } elseif (Request::isAjax()) {
             return 'json';
         } else {
             return 'html';
         }
     }
-    
+
     /**
      * @param $type
      * @return bool
      */
-    public static function setType($type)
+    public static function setType(string $type)
     {
         if (in_array($type, self::$types)) {
             return self::$type = $type;
@@ -52,7 +52,7 @@ class Response
             return false;
         }
     }
-    
+
     /**
      * @return string
      */
@@ -69,7 +69,7 @@ class Response
                 return 'text/html';
         }
     }
-    
+
     /**
      *
      */
@@ -89,7 +89,7 @@ class Response
             }
         }
     }
-    
+
     /**
      * @param string $content
      */
@@ -100,7 +100,15 @@ class Response
         }
         echo $content;
     }
-    
+
+    /**
+     * 终止相应
+     */
+    public static function finish()
+    {
+        exit();
+    }
+
     /**
      *
      */
@@ -108,7 +116,7 @@ class Response
     {
         self::$autoRender = false;
     }
-    
+
     /**
      *
      */
@@ -116,7 +124,7 @@ class Response
     {
         self::$autoRender = true;
     }
-    
+
     /**
      * @return bool
      */
@@ -124,12 +132,12 @@ class Response
     {
         return self::$autoRender;
     }
-    
+
     /**
      * @param     $url
      * @param int $code
      */
-    public static function redirect($url, $code = 302)
+    public static function redirect(string $url, $code = 302)
     {
         if (!headers_sent()) {
             if ($code == 302) {
@@ -139,25 +147,29 @@ class Response
                 header('HTTP/1.1 301 Moved Permanently');
                 header('Status:301 Moved Permanently');
             }
+            header('Location: ' . $url);
+            exit;
+        } else {
+            echo '<script>window.location.href="' . $url . '"</script>';
         }
-        header('Location: ' . $url);
-        exit;
     }
-    
+
     /**
      * @return mixed|string
      */
-    public function runinfo()
+    public static function runInfo()
     {
-        if (Config::get('is_gen_html')) return '';
+        if (Config::get('is_gen_html')){
+            return '';
+        }
         $tpl    = Config::get('runinfo', 'Power by PTCMS, Processed in {time}(s), Memory usage: {mem}MB.');
         $from[] = '{time}';
-        $to[]   = number_format(microtime(true) - $GLOBALS['_startTime'], 3);
+        $to[]   = number_format(microtime(true) - Registry::get('_startTime'), 3);
         $from[] = '{mem}';
-        $to[]   = number_format((memory_get_usage() - $GLOBALS['_startUseMems']) / 1024 / 1024, 3);
+        $to[]   = number_format((memory_get_usage() - Registry::get('_startUseMems')) / 1024 / 1024, 3);
         if (strpos($tpl, '{net}')) {
             $from[] = '{net}';
-            $to[]   = $GLOBALS['_apinum'];
+            $to[]   = Registry::get('_apinum',0);
         }
         if (strpos($tpl, '{file}')) {
             $from[] = '{file}';
@@ -165,21 +177,25 @@ class Response
         }
         if (strpos($tpl, '{sql}')) {
             $from[] = '{sql}';
-            $to[]   = $GLOBALS['_sqlnum'];
+            $to[]   = Registry::get('_sqlnum',0);
         }
         if (strpos($tpl, '{cacheread}')) {
             $from[] = '{cacheread}';
-            $to[]   = $GLOBALS['_cacheRead'];
+            $to[]   = Registry::get('_cacheRead',0);
         }
         if (strpos($tpl, '{cachewrite}')) {
             $from[] = '{cachewrite}';
-            $to[]   = $GLOBALS['_cacheWrite'];
+            $to[]   = Registry::get('_cacheWrite',0);
+        }
+        if (strpos($tpl, '{cachehit}')) {
+            $from[] = '{cachehit}';
+            $to[]   = Registry::get('_cacheHit',0);
         }
         $runtimeinfo = str_replace($from, $to, $tpl);
         return $runtimeinfo;
     }
-    
-    
+
+
     /**
      * 下载文件
      *
@@ -187,7 +203,7 @@ class Response
      * @param        $name
      * @param string $type
      */
-    public function download($con, $name, $type = 'file')
+    public function download( $con,  $name, $type = 'str')
     {
         $length = ($type == 'file') ? filesize($con) : strlen($con);
         header("Content-type: application/octet-stream");
@@ -203,7 +219,7 @@ class Response
             echo $con;
         }
     }
-    
+
     /**
      * 屏幕输出
      *
@@ -212,7 +228,7 @@ class Response
      * @param $line
      * @return mixed
      */
-    public static function screen($text, $type, $line = true)
+    public static function screen( $text,  $type,  $line = true)
     {
         switch ($type) {
             case 'success':
@@ -237,8 +253,8 @@ class Response
             echo "<span>{$text}</span>{$line}";
         }
     }
-    
-    
+
+
     /**
      * 终端输出
      *
@@ -247,7 +263,7 @@ class Response
      * @param $line
      * @return mixed
      */
-    public static function terminal($text, $type, $line = true)
+    public static function terminal( $text,  $type, $line = true)
     {
         $end = chr(27) . "[0m";
         switch (strtolower($type)) {
@@ -272,9 +288,37 @@ class Response
             $text = str_ireplace(['<br /><br />', '<br/><br/>', '<br/>', '<br />'], PHP_EOL, $text);
         }
         $text = strip_tags($text);
+        $text = preg_replace("#".PHP_EOL."+?#", PHP_EOL, $text);
         return $pre . $text . $end . $line;
     }
-    
+
+    public static function error( $message,  $file,  $line)
+    {
+        if (Config::get('app.mode') == 'cli') {
+            exit($message);
+        } else {
+            if (Config::get('app.debug')) {
+                $e['message'] = $message;
+                $e['file']    = $file;
+                $e['line']    = $line;
+                include KX_ROOT . '/kuxin/tpl/error.php';
+            } else {
+//                header('HTTP/1.1 404 Not Found');
+//                header("status: 404 Not Found");
+                Log::record(sprintf("%s [%s:%s]", $message, $file, $line));
+                $file = KX_ROOT . '/404.html';
+                if (is_file($file)) {
+                    $content = file_get_contents($file);
+                    $content = str_replace(['{$sitename}', '{$siteurl}', '{$msg}'], [Config::get('sitename'), Config::get('siteurl'), $message], $content);
+                } else {
+                    $content = '页面出现错误';
+                }
+                self::setBody($content);
+            }
+            self::finish();
+        }
+    }
+
     /**
      * @param $arr
      */

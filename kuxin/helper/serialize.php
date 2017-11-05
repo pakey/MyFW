@@ -19,7 +19,7 @@ class Serialize
      */
     public static function encode($data)
     {
-        if (extension_loaded('swoole_serizlize')) {
+        if (function_exists('swoole_serialize')) {
             return swoole_serialize($data);
         } else {
             return serialize($data);
@@ -34,7 +34,7 @@ class Serialize
      */
     public static function decode($data)
     {
-        if (extension_loaded('swoole_serizlize')) {
+        if (function_exists('swoole_unserialize')) {
             return swoole_unserialize($data);
         } else {
             return unserialize($data);

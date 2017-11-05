@@ -10,15 +10,15 @@ namespace Kuxin;
  */
 class Plugin
 {
-    
+
     /**
      * 调用插件
      *
      * @param      $tag
-     * @param null $param
+     * @param mixed $param
      * @return mixed
      */
-    public static function call($tag, $param = null)
+    public static function call(string $tag, $param = null)
     {
         $methods = Config::get('plugin.' . $tag);
         if ($methods && is_array($methods)) {

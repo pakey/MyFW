@@ -6,6 +6,7 @@ use Kuxin\Helper\Json;
 use Kuxin\Helper\Jsonp;
 use Kuxin\Helper\Xml;
 
+
 /**
  * Class Kuxin
  *
@@ -14,7 +15,7 @@ use Kuxin\Helper\Xml;
  */
 class Kuxin
 {
-    
+
     /**
      *
      */
@@ -25,8 +26,8 @@ class Kuxin
         //程序关闭
         register_shutdown_function([__CLASS__, 'shutdown']);
         // 设定错误和异常处理
-        //set_error_handler(array(__CLASS__, 'error'));
-        //set_exception_handler([__CLASS__, 'exception']);
+        set_error_handler([__CLASS__, 'error']);
+        set_exception_handler([__CLASS__, 'exception']);
         // 注册配置
         Config::register(Loader::import(KX_ROOT . '/app/config/kuxin.php'));
         // 时区
@@ -46,16 +47,21 @@ class Kuxin
         // 记录网络请求
         Registry::set('_http', []);
         Registry::set('_httpnum', 0);
-        
+        // 常量定义
+        define('KX_VERSION', '1.0.0');
+
+
         if (Config::get('app.debug')) {
             ini_set('display_errors', 'on');
             error_reporting(E_ALL);
         } else {
             ini_set('display_errors', 'off');
             error_reporting(0);
+            ini_set('display_errors', 'on');
+            error_reporting(E_ALL);
         }
     }
-    
+
     /**
      *
      */
@@ -81,13 +87,18 @@ class Kuxin
             $controller = Loader::instance($controllerName);
             $actionName = Router::$action;
             $return     = $controller->init();
-            if ($return === null && method_exists($controller, $actionName)) {
-                $return = $controller->$actionName();
-            } else {
-                trigger_error('控制器[' . $controllerName . ']对应的方法[' . $actionName . ']不存在', E_USER_ERROR);
+            if ($return === null) {
+                if (method_exists($controller, $actionName)) {
+                    $return = $controller->$actionName();
+                } else {
+                    trigger_error('控制器[' . $controllerName . ']对应的方法[' . $actionName . ']不存在', E_USER_ERROR);
+                }
             }
             if (Response::isAutoRender()) {
                 switch (Response::getType()) {
+                    case 'html':
+                        $body = $return;
+                        break;
                     case 'json':
                         $body = Json::encode($return);
                         break;
@@ -98,13 +109,11 @@ class Kuxin
                         $body = Xml::encode($return);
                         break;
                     default:
-                        if (is_string($return)) {
-                            $body = $return;
-                        } else if (Request::isAjax()) {
+                        if (Request::isAjax()) {
                             Response::setType('json');
                             $body = Json::encode($return);
                         } else {
-                            $body = View::make(null, $return);
+                            $body = $return;
                         }
                 }
             } else {
@@ -113,18 +122,9 @@ class Kuxin
             //设置输出内容
             Response::setBody($body);
         }
-        
+
     }
-    
-    /**
-     * @param $classname
-     */
-    protected static function autoload($classname)
-    {
-        $file = KX_ROOT . '/' . strtr(strtolower($classname), '\\', '/') . '.php';
-        Loader::import($file);
-    }
-    
+
     /**
      *
      */
@@ -133,6 +133,47 @@ class Kuxin
         //如果开启日志 则记录日志
         if (Config::get('log.power')) {
             Log::build();
+        }
+    }
+
+    /**
+     * @param $classname
+     */
+    protected static function autoload($classname)
+    {
+        $file = KX_ROOT . '/' . strtr(strtolower($classname), '\\', '/') . '.php';
+        Loader::import($file);
+    }
+
+    /**
+     * @param \Exception $e
+     */
+    public static function exception($e)
+    {
+        Response::error($e->getmessage(), $e->getFile(), $e->getLine());
+    }
+
+    /**
+     * @param $errno
+     * @param $errstr
+     * @param $errfile
+     * @param $errline
+     */
+    public static function error($errno, $errstr, $errfile, $errline)
+    {
+        switch ($errno) {
+            case E_ERROR:
+            case E_PARSE:
+            case E_CORE_ERROR:
+            case E_COMPILE_ERROR:
+            case E_USER_ERROR:
+                Response::error($errstr, $errfile, $errline);
+                break;
+            case E_STRICT:
+            case E_USER_WARNING:
+            case E_USER_NOTICE:
+            default:
+                break;
         }
     }
 }

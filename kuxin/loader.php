@@ -10,24 +10,24 @@ namespace Kuxin;
  */
 class Loader
 {
-    
+
     /**
      * @var array
      */
     static $_importFiles = [];
-    
+
     /**
      * @var array
      */
     static $_class = [];
-    
+
     /**
      * 加载文件
      *
      * @param $filename
      * @return mixed
      */
-    public static function import($filename)
+    public static function import(string $filename)
     {
         if (!isset(self::$_importFiles[$filename])) {
             if (is_file($filename)) {
@@ -39,7 +39,7 @@ class Loader
         }
         return self::$_importFiles[$filename];
     }
-    
+
     /**
      * 初始化类
      *
@@ -47,7 +47,7 @@ class Loader
      * @param array $args
      * @return mixed
      */
-    public static function instance($class, $args = [])
+    public static function instance(string $class, array $args = [])
     {
         $key = md5($class . '_' . serialize($args));
         if (empty(self::$_class[$key])) {

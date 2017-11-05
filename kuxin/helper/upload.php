@@ -10,7 +10,7 @@ namespace Kuxin\Helper;
  */
 class Upload
 {
-    
+
     /**
      * @var \Kuxin\Storage
      */
@@ -29,12 +29,12 @@ class Upload
     public $allowMime = [];
     //自定义文件大小 Kb
     public $allowMaxSize = 2048;
-    
+
     public function __construct($storage)
     {
         $this->storage = $storage;
     }
-    
+
     /**
      * 临时文件
      *
@@ -44,7 +44,7 @@ class Upload
     {
         $this->fileinfo = $fileinfo;
     }
-    
+
     /**
      * 设置上传的文件名
      *
@@ -54,7 +54,7 @@ class Upload
     {
         $this->fileName = $filename;
     }
-    
+
     /**
      * 设置上传的文件路径
      *
@@ -64,7 +64,7 @@ class Upload
     {
         $this->fileDir = $filedir;
     }
-    
+
     /**
      * 设置上传的文件后缀
      *
@@ -74,7 +74,7 @@ class Upload
     {
         $this->allowType = $filetype;
     }
-    
+
     /**
      * 设置上传的文件大小
      *
@@ -84,7 +84,7 @@ class Upload
     {
         $this->allowMaxSize = $filesize;
     }
-    
+
     /**
      *检测文件大小
      */
@@ -92,7 +92,7 @@ class Upload
     {
         return $this->fileinfo['size'] > 0 && ($this->fileinfo['size'] <= $this->allowMaxSize * 1024);
     }
-    
+
     /**
      *检测文件后缀
      */
@@ -100,7 +100,7 @@ class Upload
     {
         return in_array($this->getType(), explode("|", strtolower($this->allowType)));
     }
-    
+
     /**
      *获取文件后缀
      */
@@ -108,18 +108,20 @@ class Upload
     {
         return strtolower(pathinfo($this->fileinfo['name'], PATHINFO_EXTENSION));
     }
-    
-    
+
+
     /**
      *获取文件完整路径
      */
     private function getPath()
     {
-        if (empty($this->fileDir)) $this->fileDir = date('Ym') . '/' . date('d');
-        if (!$this->fileName) $this->fileName = md5($this->fileinfo['name'] . $this->fileinfo['size']);
+        if (empty($this->fileDir))
+            $this->fileDir = date('Ym') . '/' . date('d');
+        if (!$this->fileName)
+            $this->fileName = md5($this->fileinfo['name'] . $this->fileinfo['size']);
         $this->filePath = $this->fileDir . '/' . $this->fileName . "." . $this->getType();
     }
-    
+
     /**
      * 检测mime类型
      *
@@ -129,7 +131,7 @@ class Upload
     {
         return !(!empty($this->allowMime) && !in_array($this->fileinfo['type'], $this->allowMime));
     }
-    
+
     /**
      * 错误返回
      *
@@ -140,11 +142,11 @@ class Upload
     {
         return ['status' => 0, 'info' => $info];
     }
-    
+
     /**
      *上传文件
      */
-    public function uploadOne()
+    public function save()
     {
         if ($this->fileinfo['error'] !== 0) {
             $this->error($this->geterrorinfo($this->fileinfo['error']));
@@ -167,8 +169,9 @@ class Upload
         }
         // 获取上传文件的保存信息
         $this->getpath();
-        // 上传操作
-        if ($this->save(file_get_contents($this->fileinfo['tmp_name']))) {
+
+
+        if ($this->write(file_get_contents($this->fileinfo['tmp_name']))) {
             $info['ext']      = $this->getType();
             $info['fileurl']  = $this->storage->getUrl($this->filePath);
             $info['filepath'] = $this->filePath;
@@ -180,17 +183,7 @@ class Upload
             return $this->error("上传失败！");
         }
     }
-    
-    protected function save($content)
-    {
-        if (in_array($this->getType(), ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
-            //$imginfo = getimagesize($this->fileinfo['tmp_name']);
-            $img     = new image($this->fileinfo['tmp_name']);
-            $content = $img->save();
-        }
-        return $this->storage->write($this->filePath, $content);
-    }
-    
+
     protected function getErrorInfo($num)
     {
         switch ($num) {
@@ -210,26 +203,39 @@ class Upload
                 return '未知上传错误！';
         }
     }
-    
-    public function uploadUrl($url, $content = '')
+
+    public function write($content)
+    {
+        // 上传操作
+        if (in_array($this->getType(), ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
+            //$imginfo = getimagesize($this->fileinfo['tmp_name']);
+            $img     = new image($this->fileinfo['tmp_name']);
+            $content = $img->save();
+        }
+        return $this->storage->write($this->filePath, $content);
+    }
+
+    public function saveFromUrl($url, $content = '')
     {
         $this->fileName = $this->filePath = '';
-        if ($content == '') $content = http::get($url);
+        if ($content == '') {
+            $content = http::get($url);
+        }
         $this->fileinfo = [
             'name'     => basename(parse_url($url, PHP_URL_PATH)),
             'size'     => strlen($content),
             'tmp_name' => $url,
         ];
         $this->getpath();
-        if ($this->save($content)) {
+
+        if ($this->write($content)) {
             $info['ext']      = $this->getType();
             $info['fileurl']  = $this->storage->getUrl($this->filePath);
             $info['filepath'] = $this->filePath;
             $info['filename'] = $this->fileinfo['name'];
             $info['hash']     = md5($content);
             $info['size']     = $this->fileinfo['size'];
-            return [
-                'status' => 1, 'info' => $info];
+            return ['status' => 1, 'info' => $info];
         } else {
             return $this->error("上传失败！");
         }
