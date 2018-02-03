@@ -103,19 +103,28 @@ class Image
     {
         return [$this->info['width'], $this->info['height']];
     }
-    
-    public function resize($w)
+
+    /**
+     * 按宽度缩放
+     * @param int $width
+     * @param bool $force 是否强制 如果小的不扩大
+     * @return resource
+     */
+    public function resizeByWidth(int $width,$force=false)
     {
-        $h = ceil($w * $this->info['height'] / $this->info['width']);
+        if($force === false && $this->info['width']>$width){
+            return $this->img;
+        }
+        $height = ceil($width * $this->info['height'] / $this->info['width']);
         do {
             //创建新图像
-            $img = imagecreatetruecolor($w, $h);
+            $img = imagecreatetruecolor($width, $height);
             // 调整默认颜色
             $color = imagecolorallocate($img, 255, 255, 255);
             imagefill($img, 0, 0, $color);
             
             //裁剪
-            imagecopyresampled($img, $this->img, 0, 0, 0, 0, $w, $h, $this->info['width'], $this->info['height']);
+            imagecopyresampled($img, $this->img, 0, 0, 0, 0, $width, $height, $this->info['width'], $this->info['height']);
             //销毁原图
             imagedestroy($this->img);
             
@@ -123,8 +132,8 @@ class Image
             $this->img = $img;
         } while (!empty($this->gif) && $this->gifNext());
         
-        $this->info['width']  = $w;
-        $this->info['height'] = $h;
+        $this->info['width']  = $width;
+        $this->info['height'] = $height;
         return $this->img;
     }
     
@@ -456,19 +465,19 @@ class Image
     
     protected function gettype($content)
     {
-        switch (substr($content, 0, 4)) {
-            case chr('137') . 'PNG':
+        switch (substr($content, 0, 2)) {
+            case chr('137') . 'P':
                 return 'png';
                 break;
-            case 'GIF8':
+            case 'GI':
                 return 'gif';
                 break;
-            case chr('255') . chr('216') . chr('255') . chr('225'):
-            case chr('255') . chr('216') . chr('255') . chr('224'):
+            case chr('255') . chr('216'):
                 return 'jpg';
                 break;
             default:
-                exit;
+                return 'jpeg';
+                exit('error image type ['.ord(substr($content, 0, 1)).' '.ord(substr($content, 1, 1)).']');
         }
     }
     

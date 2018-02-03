@@ -2,18 +2,16 @@
 
 namespace Kuxin\Storage;
 
-use Kuxin\Config;
-
 class File
 {
 
-    protected static $path = null;
-    protected static $url = null;
+    protected $path = null;
+    protected $url = null;
 
     public function __construct($config)
     {
-        self::$path = $config['path'];
-        self::$url  = $config['url'] ?? "";
+        $this->path = $config['path'];
+        $this->url  = $config['url'] ?? "";
     }
 
     public function exist($file)
@@ -75,13 +73,13 @@ class File
 
     public function getUrl($file)
     {
-        $file = ($file{0} === '/' || $file{1} == ':') ? str_replace(self::$path, '', $file) : $file;
-        return rtrim(self::$url, '/') . '/' . $file;
+        $file = ($file{0} === '/' || $file{1} == ':') ? str_replace($this->path, '', $file) : $file;
+        return rtrim($this->url, '/') . '/' . $file;
     }
 
     public function getPath($file)
     {
-        return ($file{0} === '/' || $file{1} == ':') ? $file : self::$path . '/' . ltrim($file, '/');
+        return ($file{0} === '/' || $file{1} == ':') ? $file : $this->path . '/' . ltrim($file, '/');
     }
 
     public function error()

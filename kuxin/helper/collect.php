@@ -1,4 +1,5 @@
 <?php
+
 namespace Kuxin\Helper;
 
 /**
@@ -9,25 +10,26 @@ namespace Kuxin\Helper;
  */
 class Collect
 {
-    
+
     /**
      * 获取内容
      *
      * @param $data
      * @return bool|mixed|string
      */
-    public static function getContent($data)
+    public static function getContent($data, $header = [], $option = [])
     {
-        if (is_string($data)) $data = ['rule' => $data, 'charset' => 'auto'];
+        if (is_string($data))
+            $data = ['rule' => $data, 'charset' => 'auto'];
         if (strpos($data['rule'], '[timestamp]') || strpos($data['rule'], '[时间]')) {
-            $data['rule'] = str_replace(['[timestamp]', '[时间]'], [time()-64566122, date('Y-m-d H:i:s')], $data['rule']);
-        }elseif(isset($data['usetimestamp']) && $data['usetimestamp']==1){
-            $data['rule'].=(strpos($data['rule'],'?')?'&_ptcms=':'?_ptcms=').(time()-13456867);
+            $data['rule'] = str_replace(['[timestamp]', '[时间]'], [time() - 64566122, date('Y-m-d H:i:s')], $data['rule']);
+        } elseif (isset($data['usetimestamp']) && $data['usetimestamp'] == 1) {
+            $data['rule'] .= (strpos($data['rule'], '?') ? '&_ptcms=' : '?_ptcms=') . (time() - 13456867);
         }
         if (isset($data['method']) && strtolower($data['method']) == 'post') {
-            $content = Http::post($data['rule']);
+            $content = Http::post($data['rule'], [], $header, $option);
         } else {
-            $content = Http::get($data['rule']);
+            $content = Http::get($data['rule'], [], $header, $option);
         }
         if ($content) {
             // 处理编码
@@ -68,7 +70,7 @@ class Collect
         }
         return '';
     }
-    
+
     /**
      * 根据正则批量获取
      *
@@ -86,9 +88,10 @@ class Collect
         } elseif (empty($pregArr['rule'])) {
             return [];
         }
-        if (!self::isreg($pregArr['rule'])) return [];
-        $pregstr = '{' . $pregArr['rule'] . '}';
-        $pregstr .= empty($pregArr['option']) ? '' : $pregArr['option'];
+        if (!self::isreg($pregArr['rule']))
+            return [];
+        $pregstr  = '{' . $pregArr['rule'] . '}';
+        $pregstr  .= empty($pregArr['option']) ? '' : $pregArr['option'];
         $matchvar = $match = [];
         if (!empty($pregstr)) {
             if ($needposition) {
@@ -135,7 +138,7 @@ class Collect
         }
         return [];
     }
-    
+
     /**
      * 根据正则获取指定数据 单个
      *
@@ -149,10 +152,11 @@ class Collect
             return $pregArr;
         } elseif (empty($pregArr) || (isset($pregArr['rule']) && empty($pregArr['rule']))) {
             return '';
-        } else if (is_string($pregArr)) {
+        } elseif (is_string($pregArr)) {
             $pregArr = ['rule' => self::parseMatchRule($pregArr), 'replace' => []];
         }
-        if (!self::isreg($pregArr['rule'])) return $pregArr['rule'];
+        if (!self::isreg($pregArr['rule']))
+            return $pregArr['rule'];
         $pregstr = '{' . $pregArr['rule'] . '}';
         $pregstr .= empty($pregArr['option']) ? '' : $pregArr['option'];
         preg_match($pregstr, $code, $match);
@@ -165,7 +169,7 @@ class Collect
         }
         return '';
     }
-    
+
     /**
      * 内容替换 支持正则批量替换
      *
@@ -199,7 +203,7 @@ class Collect
         }
         return $con;
     }
-    
+
     /**
      * 处理链接，根据当前页面地址得到完整的链接地址
      *
@@ -227,7 +231,7 @@ class Collect
             return '';
         }
     }
-    
+
     /**
      * 内容切割方式
      *
@@ -240,27 +244,32 @@ class Collect
      */
     public static function cut($strings, $argl, $argr, $lt = false, $gt = false)
     {
-        if (!$strings) return ("");
+        if (!$strings)
+            return ("");
         if (strpos($argl, ".+?")) {
             $argl = strtr($argl, ["/" => "\/"]);
-            if (preg_match("/" . $argl . "/", $strings, $match)) $argl = $match[0];
+            if (preg_match("/" . $argl . "/", $strings, $match))
+                $argl = $match[0];
         }
         if (strpos($argr, ".+?")) {
             $argr = strtr($argr, ["/" => "\/"]);
-            if (preg_match("/" . $argr . "/", $strings, $match)) $argr = $match[0];
+            if (preg_match("/" . $argr . "/", $strings, $match))
+                $argr = $match[0];
         }
         $args = explode($argl, $strings);
         $args = explode($argr, $args[1]);
         $args = $args[0];
         if ($args) {
-            if ($lt) $args = $argl . $args;
-            if ($gt) $args .= $argr;
+            if ($lt)
+                $args = $argl . $args;
+            if ($gt)
+                $args .= $argr;
         } else {
             $args = "";
         }
         return ($args);
     }
-    
+
     /**
      * 简写规则转化
      *
@@ -285,7 +294,7 @@ class Collect
         }
         return strtr($rules, $replace_pairs);
     }
-    
+
     /**
      * 是否正则
      *
@@ -296,7 +305,7 @@ class Collect
     {
         return (strpos($str, ')') !== false || strpos($str, '(') !== false);
     }
-    
+
     /**
      * @param $data
      * @return array
@@ -308,7 +317,8 @@ class Collect
         foreach ($data as $v) {
             if ($v) {
                 if ($num) {
-                    if ($num != count($v)) return [];
+                    if ($num != count($v))
+                        return [];
                 } else {
                     $num = count($v);
                 }
@@ -327,5 +337,5 @@ class Collect
         }
         return $list;
     }
-    
+
 }

@@ -7,14 +7,6 @@ use Kuxin\Registry;
 
 class Mysql
 {
-    
-    /**
-     * 单例模式实例化对象
-     *
-     * @var object
-     */
-    public static $instance;
-    
     /**
      * 数据库连接ID
      *
@@ -27,28 +19,28 @@ class Mysql
      * @var boolean
      */
     protected $Transactions;
-    
+
     /**
      * 数据库日志
      *
      * @var array
      */
     public $logs = [];
-    
+
     /**
      * debug开关
      *
      * @var bool
      */
     protected $debug;
-    
+
     /**
      * PDO操作实例
      *
      * @var \PDOStatement
      */
     protected $PDOStatement;
-    
+
     /**
      * 构造函数
      * 用于初始化运行环境,或对基本变量进行赋值
@@ -65,9 +57,9 @@ class Mysql
         if (!$this->db_link) {
             trigger_error($params['driver'] . ' Server connect fail! <br/>Error Message:' . $this->error() . '<br/>Error Code:' . $this->errno(), E_USER_ERROR);
         }
-        $this->debug = Config::get('app.debug');
+        $this->debug = Config::get('database.debug', Config::get('app.debug', false));
     }
-    
+
     /**
      * 执行SQL语句
      * SQL语句执行函数
@@ -82,12 +74,12 @@ class Mysql
         if (!$sql) {
             return false;
         }
-        
+
         //释放前次的查询结果
         if (!empty($this->PDOStatement) && $this->PDOStatement->queryString != $sql) {
             $this->free();
         }
-        
+
         $this->PDOStatement = $this->db_link->prepare($sql);
         foreach ($bindparams as $k => $v) {
             $this->PDOStatement->bindValue($k, $bindparams[$k]);
@@ -105,7 +97,7 @@ class Mysql
         Registry::setInc('_sqlnum');
         return $result;
     }
-    
+
     /**
      * 获取数据库错误描述信息
      *
@@ -114,14 +106,18 @@ class Mysql
      */
     public function errorInfo()
     {
-        $error=$this->PDOStatement->errorInfo();
-        if($error['0']=='0000'){
-            return '';
+        if($this->PDOStatement){
+            $error = $this->PDOStatement->errorInfo();
         }else{
+            $error =  $this->db_link->errorInfo();
+        }
+        if ($error['0'] == '0000') {
+            return '';
+        } else {
             return $error['2'];
         }
     }
-    
+
     /**
      * 获取数据库错误信息代码
      *
@@ -130,9 +126,9 @@ class Mysql
      */
     public function errorCode()
     {
-        return $this->db_link->errorCode();
+        return $this->PDOStatement->errorCode();
     }
-    
+
     /**
      * 通过一个SQL语句获取一行信息(字段型)
      *
@@ -146,13 +142,17 @@ class Mysql
         if (!$result) {
             return false;
         }
-        
+
         $myrow = $this->PDOStatement->fetch(\PDO::FETCH_ASSOC);
-        if (!$myrow) return null;
-        
+
+        $this->free();
+
+        if (!$myrow)
+            return null;
+
         return $myrow;
     }
-    
+
     /**
      * 通过一个SQL语句获取全部信息(字段型)
      *
@@ -163,19 +163,22 @@ class Mysql
     public function fetchAll(string $sql, array $bindParams = [])
     {
         $result = $this->execute($sql, $bindParams);
-        
+
         if (!$result) {
             return false;
         }
-        
+
         $myrow = $this->PDOStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->free();
+
         if (!$myrow) {
             return [];
         }
-        
+
         return $myrow;
     }
-    
+
     /**
      * 获取insert_id
      *
@@ -186,7 +189,7 @@ class Mysql
     {
         return $this->db_link->lastInsertId();
     }
-    
+
     /**
      * 开启事务处理
      *
@@ -201,7 +204,7 @@ class Mysql
         }
         return true;
     }
-    
+
     /**
      * 提交事务处理
      *
@@ -210,17 +213,17 @@ class Mysql
      */
     public function commit()
     {
-        
+
         if ($this->Transactions == true) {
             if ($this->db_link->commit()) {
                 $this->Transactions = false;
             }
         }
-        
+
         return true;
     }
-    
-    
+
+
     /**
      * 事务回滚
      */
@@ -231,7 +234,7 @@ class Mysql
             $this->Transactions = false;
         }
     }
-    
+
     /**
      * 关闭数据库连接
      */
@@ -242,7 +245,7 @@ class Mysql
             $this->db_link = null;
         }
     }
-    
+
     /**
      * SQL指令安全过滤
      *
@@ -254,7 +257,7 @@ class Mysql
     {
         return $this->db_link->quote($str);
     }
-    
+
     /**
      * 根据参数绑定组装最终的SQL语句 便于调试
      *
@@ -272,7 +275,7 @@ class Mysql
         }
         return $sql;
     }
-    
+
     /**
      * 释放查询结果
      *
@@ -282,7 +285,7 @@ class Mysql
     {
         $this->PDOStatement = null;
     }
-    
+
     /**
      * 返回最后插入行的ID或序列值
      *
@@ -292,7 +295,7 @@ class Mysql
     {
         return $this->db_link->lastInsertId();
     }
-    
+
     /**
      * 返回受上一个 SQL 语句影响的行数
      *
@@ -306,7 +309,7 @@ class Mysql
             return false;
         }
     }
-    
+
     public function lastSql()
     {
         $sql = end($this->logs);

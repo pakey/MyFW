@@ -38,7 +38,7 @@ class Pinyin
      * @param string $default 匹配不到默认显示字符
      * @return string
      */
-    public static function change(string $str, $isfirst = false, $default = '0')
+    public static function change(string $str, $isfirst = false, $default = '_')
     {
         $str   = iconv('UTF-8', 'GBK//ignore', $str);
         $data  = self::getdata();

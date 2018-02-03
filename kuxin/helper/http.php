@@ -32,30 +32,36 @@ class Http
 
     /**
      * @param        $url
-     * @param array $params
+     * @param array  $params
      * @param string $method
-     * @param array $header
-     * @param array $option
+     * @param array  $header
+     * @param array  $option
      * @return bool|mixed
      */
     public static function curl($url, $params = [], $method = 'GET', $header = [], $option = [])
     {
         $opts = [
-            CURLOPT_TIMEOUT => Config::get('http.timeout', 111),
-            CURLOPT_CONNECTTIMEOUT => Config::get('http.timeout', 111),
+            CURLOPT_TIMEOUT        => Config::get('http.timeout', 15),
+            CURLOPT_CONNECTTIMEOUT => Config::get('http.timeout', 15),
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_FOLLOWLOCATION => 1,
-            CURLOPT_HEADER => 0,
+            CURLOPT_HEADER         => 0,
             //CURLOPT_FILETIME       => true,
             //CURLOPT_FRESH_CONNECT  => false,
             //CURLOPT_MAXREDIRS      => 5,
-            CURLOPT_USERAGENT => Config::get('http.user_agent', 'PTCMS Framework Http Client'),
-            CURLOPT_REFERER => isset($header['referer']) ? $header['referer'] : $url,
-            CURLOPT_NOSIGNAL => 1,
-            CURLOPT_ENCODING => 'gzip, deflate',
+            CURLOPT_USERAGENT      => Config::get('http.user_agent', 'PTCMS Framework Http Client'),
+            CURLOPT_REFERER        => isset($header['referer']) ? $header['referer'] : $url,
+            CURLOPT_NOSIGNAL       => 1,
+            CURLOPT_ENCODING       => 'gzip, deflate',
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
         ];
+
+        if (Config::get('http.proxy.power')) {
+            $opts[CURLOPT_PROXY]     = Config::get('http.proxy.host');
+            $opts[CURLOPT_PROXYPORT] = Config::get('http.proxy.port');
+            $opts[CURLOPT_PROXYTYPE] = Config::get('http.proxy.type');
+        }
 
         if (isset($header['cookie'])) {
             $opts[CURLOPT_COOKIE] = $header['cookie'];
@@ -88,20 +94,20 @@ class Http
                 break;
             case 'POST':
                 //判断是否传输文件
-                $opts[CURLOPT_POST] = 1;
+                $opts[CURLOPT_POST]       = 1;
                 $opts[CURLOPT_POSTFIELDS] = $params;
                 break;
             case 'PUT':
                 $opts[CURLOPT_CUSTOMREQUEST] = 'PUT';
-                $opts[CURLOPT_POSTFIELDS] = $params;
+                $opts[CURLOPT_POSTFIELDS]    = $params;
                 break;
             case 'HEAD':
                 $opts[CURLOPT_CUSTOMREQUEST] = 'HEAD';
-                $opts[CURLOPT_NOBODY] = 1;
+                $opts[CURLOPT_NOBODY]        = 1;
                 break;
             case 'DELETE':
                 $opts[CURLOPT_CUSTOMREQUEST] = 'DELETE';
-                $opts[CURLOPT_POSTFIELDS] = $params;
+                $opts[CURLOPT_POSTFIELDS]    = $params;
                 break;
             default:
                 exit('不支持的请求方式！');
@@ -110,7 +116,7 @@ class Http
         /* 初始化并执行curl请求 */
         $ch = curl_init();
         curl_setopt_array($ch, $opts);
-        $data = curl_exec($ch);
+        $data  = curl_exec($ch);
         $error = curl_error($ch);
         $errno = curl_errno($ch);
         curl_close($ch);
@@ -140,11 +146,11 @@ class Http
         if (stripos($url, 'http') === 0) {
             if (defined('CURLOPT_TIMEOUT_MS')) {
                 self::curl($url, [], 'GET', [], [
-                    CURLOPT_TIMEOUT_MS => 300,
+                    CURLOPT_TIMEOUT_MS        => 300,
                     CURLOPT_CONNECTTIMEOUT_MS => 300,
                 ]);
             } elseif (function_exists('file_get_contents')) {
-                $context = [
+                $context        = [
                     'http' => [
                         'timeout' => 0,
                     ],
@@ -171,7 +177,7 @@ class Http
      */
     public static function parse_headers($response)
     {
-        $result = [];
+        $result  = [];
         $headers = explode("\r\n\r\n", $response, 2)[0];
         $headers = explode("\n", $headers);
         array_shift($headers);

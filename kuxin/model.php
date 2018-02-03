@@ -18,7 +18,7 @@ class Model
      *
      * @var string
      */
-    protected $dbNode = 'common';
+    protected $node = 'common';
 
     /**
      * 数据表名
@@ -89,7 +89,7 @@ class Model
     public function db(): \Kuxin\Db\Mysql
     {
         if (!$this->db) {
-            $this->db = DI::DB($this->dbNode);
+            $this->db = DI::DB($this->node);
         }
         return $this->db;
     }
@@ -152,7 +152,7 @@ class Model
     }
 
     /**
-     * @param $data
+     * @param       $data
      * @param array $option
      * @return $this
      */
@@ -226,6 +226,12 @@ class Model
         return $this;
     }
 
+    public function index($value)
+    {
+        $this->data['index'] = $value;
+        return $this;
+    }
+
     public function order($value)
     {
         $this->data['order'] = $value;
@@ -270,7 +276,7 @@ class Model
                             $pks[] = strtolower($v['Field']);
                         $fields[strtolower($v['Field'])] = strpos($v['Type'], 'int') !== false;
                     }
-                    DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache.time',600));
+                    DI::Cache()->set('tablefield_' . $tablename, $fields, Config::get('cache.time', 600));
                     return $fields;
                 } else {
                     trigger_error('获取表' . $tablename . '信息发生错误 ', E_USER_ERROR);
@@ -289,7 +295,7 @@ class Model
 
     /**
      * @param array $data
-     * @param bool $replace
+     * @param bool  $replace
      * @return mixed
      */
     public function insert(array $data, bool $replace = false)
@@ -327,7 +333,7 @@ class Model
      * 插入记录
      *
      * @access public
-     * @param mixed $datas 数据
+     * @param mixed   $datas   数据
      * @param boolean $replace 是否replace
      * @return false | integer
      */
@@ -351,7 +357,7 @@ class Model
             $result = $this->db()->execute($sql);
             $this->free();
             if (true === $result) {
-                return $this->db()->lastInsertId();
+                return intval($this->db()->lastInsertId()) + count($datas) - 1;
             } else {
                 return false;
             }
@@ -436,6 +442,7 @@ class Model
         $this->data['limit'] = 1;
         $sql                 = "SELECT " . $this->parseField() . ' FROM '
             . $this->parseTable()
+            . $this->parseIndex()
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -455,6 +462,7 @@ class Model
     {
         $sql             = "SELECT " . $this->parseField() . ' FROM '
             . $this->parseTable()
+            . $this->parseIndex()
             . $this->parseJoin()
             . $this->parseWhere()
             . $this->parseGroup()
@@ -841,6 +849,15 @@ class Model
         $table = $this->parseKey($table);
         //判断是否带数据库
         return ((empty($this->data['database'])) ? $table : $this->parseKey($this->data['db']) . '.' . $table);
+    }
+
+    protected function parseIndex()
+    {
+        if (empty($this->data['index'])) {
+            return '';
+        } else {
+            return 'force index (' . $this->data['index'] . ')';
+        }
     }
 
     protected function parseDistinct()

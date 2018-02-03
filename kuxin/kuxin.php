@@ -72,7 +72,12 @@ class Kuxin
         if (PHP_SAPI == 'cli') {
             Router::cli();
             global $argv;
-            $className = 'App\\Console\\' . Router::$controller;
+            //系统console和用户的走不通的位置
+            if (in_array(Router::$controller, Router::$selfConsoleClass)) {
+                $className = 'Kuxin\\Console\\' . Router::$controller;
+            } else {
+                $className = 'App\\Console\\' . Router::$controller;
+            }
             unset($argv[0], $argv[1]);
             $controller = Loader::instance($className, $argv);
             $actionName = Router::$action;

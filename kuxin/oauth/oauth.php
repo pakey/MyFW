@@ -81,14 +81,7 @@ abstract class Oauth{
      * @var null
      */
     protected $openid = null;
-    
-    /**
-     * 单例模式
-     *
-     * @var array
-     */
-    protected static $_instance = [];
-    
+
     /**
      * 构造函数
      *
@@ -110,13 +103,10 @@ abstract class Oauth{
      */
     public static function getInstance($type, $token = null)
     {
-        if (empty(self::$_instance[$type])) {
-            $config['appid']        = Config::get("oauth_{$type}_appid");
-            $config['appsecret']    = Config::get("oauth_{$type}_appsecret");
-            $classname              = 'Driver_Oauth_' . $type;
-            self::$_instance[$type] = Loader::instance($classname, [$config, $token]);
-        }
-        return self::$_instance[$type];
+        $config['appid']        = Config::get("oauth_{$type}_appid");
+        $config['appsecret']    = Config::get("oauth_{$type}_appsecret");
+        $classname              = 'Driver_Oauth_' . $type;
+        return Loader::instance($classname, [$config, $token]);
     }
     
     /**

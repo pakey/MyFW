@@ -44,14 +44,14 @@ class Console
      */
     public function info(string $text, string $status = 'text', bool $line = true): void
     {
-        echo Response::terminal($text, $status, $line);
+        printf(Response::terminal($text, $status, $line));
     }
 
     /**
      * 获取参数
      * @param string $key
      * @param string $type
-     * @param null $default
+     * @param null   $default
      * @return array|float|int|mixed|null|string
      */
     public function param(string $key, string $type = 'int', $default = null)
