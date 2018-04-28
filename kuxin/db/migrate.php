@@ -21,13 +21,12 @@ class Migrate
         //执行回调函数
         $func();
 
-        $field  = $this->combineCommand();
+        $field = $this->combineCommand();
 
-        $engine = $engine ?: Config::get('database.engine','innodb');
+        $engine = $engine ?: Config::get('database.engine', 'innodb');
 
         if ($field) {
             $sql = "CREATE TABLE `{$table}` ({$field}) ENGINE={$engine} DEFAULT CHARSET=utf8;";
-            echo $sql;
             return $this->executeSql($sql);
         }
     }

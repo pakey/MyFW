@@ -78,6 +78,8 @@ class Response
         if (!headers_sent()) {
             //设置系统的输出字符为utf-8
             header("Content-Type: " . self::getMime() . "; charset=utf-8");
+            //支持页面回跳
+            header("Cache-control: private");
             //版权标识
             header("X-Powered-By: PTcms Studio (www.ptcms.com)");
             // 跨域

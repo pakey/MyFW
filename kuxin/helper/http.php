@@ -14,21 +14,6 @@ use Kuxin\Log;
 class Http
 {
 
-    public static function get($url, $data = [])
-    {
-        if (is_array($data)) {
-            $data = http_build_query($data);
-        }
-        if ($data) {
-            if (strpos($url, '?')) {
-                $url .= '&' . $data;
-            } else {
-                $url .= '?' . $data;
-            }
-            $data = [];
-        }
-        return self::curl($url, $data, 'GET');
-    }
 
     /**
      * @param        $url
@@ -91,6 +76,17 @@ class Http
         /* 根据请求类型设置特定参数 */
         switch (strtoupper($method)) {
             case 'GET':
+                if ($params) {
+                    if (is_array($params)) {
+                        $params = http_build_query($params);
+                    }
+                    if (strpos($url, '?')) {
+                        $url .= '&' . $params;
+                    } else {
+                        $url .= '?' . $params;
+                    }
+                    $opts[CURLOPT_URL] = $url;
+                }
                 break;
             case 'POST':
                 //判断是否传输文件
@@ -129,6 +125,11 @@ class Http
             return false;
         }
         return $data;
+    }
+
+    public static function get($url, $data = [])
+    {
+        return self::curl($url, $data, 'GET');
     }
 
     public static function post($url, $data = [], $header = [])
